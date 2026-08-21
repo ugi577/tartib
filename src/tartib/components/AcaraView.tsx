@@ -381,6 +381,9 @@ export function AcaraView() {
   const jenis = jenisMap.get(terpilih.jenisAcaraId);
   const statusBerikut = acaraSvc.statusBerikutnya(terpilih.status);
   const jam = [terpilih.jamMulai, terpilih.jamSelesai].filter(Boolean).join('–');
+  // C-6: indikator kesiapan PIC — blokir naik ke SIAP selama ada divisi bertugas tanpa PIC (A-01).
+  const jumlahTanpaPic = acaraDivisi.filter((r) => r.picNama.trim() === '').length;
+  const picBelumLengkap = terpilih.status === 'DRAF' && jumlahTanpaPic > 0;
 
   return (
     <div>
@@ -399,12 +402,21 @@ export function AcaraView() {
           {terpilih.lokasi ? ` · ${terpilih.lokasi}` : ''} · {fases.length} fase · {tugas.length} tugas
         </p>
         {statusBerikut && (
-          <button
-            onClick={lanjutkanStatusAcara}
-            className="mt-3 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
-          >
-            Lanjutkan ke {statusBerikut}
-          </button>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button
+              onClick={lanjutkanStatusAcara}
+              disabled={picBelumLengkap}
+              title={picBelumLengkap ? 'Lengkapi PIC semua divisi bertugas terlebih dahulu' : undefined}
+              className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              Lanjutkan ke {statusBerikut}
+            </button>
+            {picBelumLengkap && (
+              <span className="text-sm text-red-600">
+                {jumlahTanpaPic} divisi belum ber-PIC — wajib lengkap sebelum acara naik ke SIAP.
+              </span>
+            )}
+          </div>
         )}
       </div>
 
@@ -489,6 +501,16 @@ export function AcaraView() {
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
                 {acaraDivisi.length} divisi bertugas
               </span>
+              {acaraDivisi.length > 0 &&
+                (jumlahTanpaPic > 0 ? (
+                  <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
+                    {jumlahTanpaPic} belum ber-PIC
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
+                    Semua PIC lengkap
+                  </span>
+                ))}
             </div>
             <p className="mt-1 text-sm text-slate-500">
               Nama PIC wajib diisi untuk setiap divisi bertugas sebelum acara bisa dinaikkan ke SIAP.
