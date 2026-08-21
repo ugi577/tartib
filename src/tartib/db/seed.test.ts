@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DIVISI_BAKU, JENIS_ACARA_BAKU, TEMPLATE_CONTOH } from './seed';
+import { parseRumusQty } from '../lib/rumusQty';
 
 describe('seed divisi baku', () => {
   it('berisi tepat 13 divisi', () => {
@@ -60,6 +61,17 @@ describe('seed template contoh', () => {
       for (const item of fase.items) {
         expect(item.divisiUrutan, `item "${item.judul}"`).toBeGreaterThanOrEqual(1);
         expect(item.divisiUrutan, `item "${item.judul}"`).toBeLessThanOrEqual(DIVISI_BAKU.length);
+      }
+    }
+  });
+
+  it('setiap rumusQty di template contoh dapat diparse (A-04)', () => {
+    const konteks = { porsi: 100, santri: 50, panitia: 20, rsvp: 60 };
+    for (const fase of TEMPLATE_CONTOH.fase) {
+      for (const item of fase.items) {
+        if (item.rumusQty !== undefined) {
+          expect(typeof parseRumusQty(item.rumusQty, konteks), `rumus "${item.rumusQty}"`).toBe('number');
+        }
       }
     }
   });
