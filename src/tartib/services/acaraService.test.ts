@@ -1,7 +1,7 @@
 // Test fungsi murni snapshot acara (K-03/K-11/A-02) — tanpa IndexedDB.
 import { describe, expect, it } from 'vitest';
-import type { Fase, TemplateItem } from '../types';
-import { AcaraError, siapkanSnapshotAcara } from './acaraService';
+import type { AcaraDivisi, Fase, TemplateItem } from '../types';
+import { AcaraError, daftarDivisiTanpaPic, siapkanSnapshotAcara } from './acaraService';
 
 function fase(id: string, templateId: string, urutan: number, label: string, offsetHari: number): Fase {
   return { id, templateId, urutan, label, offsetHari };
@@ -97,5 +97,37 @@ describe('siapkanSnapshotAcara', () => {
     expect(s.fase).toEqual([]);
     expect(s.tugas).toEqual([]);
     expect(s.divisiBertugas).toEqual([]);
+  });
+});
+
+function barisDivisi(divisiId: string, picNama: string): AcaraDivisi {
+  return { id: `ad-${divisiId}`, acaraId: 'a1', divisiId, picNama, picKontak: '', catatan: '' };
+}
+
+describe('daftarDivisiTanpaPic (A-01)', () => {
+  it('mengembalikan divisi yang picNama kosong', () => {
+    const hasil = daftarDivisiTanpaPic([
+      barisDivisi('d1', 'Ustadz Amir'),
+      barisDivisi('d2', ''),
+      barisDivisi('d3', 'Ustadzah Siti'),
+    ]);
+    expect(hasil).toEqual(['d2']);
+  });
+
+  it('picNama berisi spasi dianggap kosong (trim)', () => {
+    const hasil = daftarDivisiTanpaPic([barisDivisi('d1', '   '), barisDivisi('d2', ' Ustadz Amir ')]);
+    expect(hasil).toEqual(['d1']);
+  });
+
+  it('mengembalikan daftar kosong bila semua divisi sudah ber-PIC', () => {
+    const hasil = daftarDivisiTanpaPic([
+      barisDivisi('d1', 'Ustadz Amir'),
+      barisDivisi('d2', 'Ustadzah Siti'),
+    ]);
+    expect(hasil).toEqual([]);
+  });
+
+  it('acara tanpa divisi bertugas tidak terblokir (daftar kosong)', () => {
+    expect(daftarDivisiTanpaPic([])).toEqual([]);
   });
 });

@@ -2,13 +2,22 @@
 // status acara menegakkan aturan PIC-wajib (A-01). Akses Dexie dari UI wajib
 // lewat service layer (PRD §3); fungsi murni diuji tanpa IndexedDB.
 import { buatId, tartibDb } from '../db/schema';
-import type { Acara, AcaraDivisi, Fase, TemplateItem, Tugas } from '../types';
+import type { Acara, AcaraDivisi, Fase, StatusAcara, TemplateItem, Tugas } from '../types';
 import { ambilFaseTemplate, ambilItemTemplate, ambilTemplate } from './templateService';
 
 export class AcaraError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'AcaraError';
+  }
+}
+
+// A-01 (inti aplikasi): status tidak boleh naik ke SIAP bila ada divisi
+// bertugas tanpa PIC. Diangkat dari setStatus; UI hanya menampilkan pesan.
+export class PicBelumLengkapError extends AcaraError {
+  constructor(namaDivisi: string[]) {
+    super(`PIC belum ditetapkan untuk divisi: ${namaDivisi.join(', ')}`);
+    this.name = 'PicBelumLengkapError';
   }
 }
 
@@ -116,6 +125,13 @@ export async function buatDariTemplate(input: InputBuatAcara): Promise<Acara> {
   return acara;
 }
 
+// A-01: daftar id divisi yang belum ber-PIC. Baris tartib_acaraDivisi hanya
+// dibuat untuk divisi yang punya minimal satu tugas (lihat buatDariTemplate),
+// jadi tidak perlu cek ulang jumlah tugas di sini.
+export function daftarDivisiTanpaPic(acaraDivisi: readonly AcaraDivisi[]): string[] {
+  return acaraDivisi.filter((d) => d.picNama.trim() === '').map((d) => d.divisiId);
+}
+
 export async function ambilAcara(id: string): Promise<Acara> {
   const acara = await tartibDb.acara.get(id);
   if (!acara) throw new AcaraError('Acara tidak ditemukan');
@@ -124,4 +140,21 @@ export async function ambilAcara(id: string): Promise<Acara> {
 
 export async function daftarAcara(): Promise<Acara[]> {
   return tartibDb.acara.orderBy('dibuatPada').reverse().toArray();
+}
+
+// Transisi status acara (PRD 5.2). Menuju SIAP diblokir A-01: bila ada
+// divisi bertugas tanpa PIC, setStatus melempar PicBelumLengkapError dan
+// status tidak berubah.
+export async function setStatus(acaraId: string, status: StatusAcara): Promise<void> {
+  await ambilAcara(acaraId);
+  if (status === 'SIAP') {
+    const baris = await tartibDb.acaraDivisi.where('acaraId').equals(acaraId).toArray();
+    const tanpaPic = daftarDivisiTanpaPic(baris);
+    if (tanpaPic.length > 0) {
+      const divisi = await tartibDb.divisi.toArray();
+      const nama = tanpaPic.map((id) => divisi.find((d) => d.id === id)?.nama ?? id);
+      throw new PicBelumLengkapError(nama);
+    }
+  }
+  await tartibDb.acara.update(acaraId, { status });
 }
