@@ -10,9 +10,10 @@ import { useSearchParams } from 'next/navigation';
 import { AcaraView } from '../tartib/components/AcaraView';
 import { TemplateView } from '../tartib/components/TemplateView';
 import { TamuView } from '../tartib/components/TamuView';
+import { TentangView } from '../tartib/components/TentangView';
 import { jalankanSeed } from '../tartib/db/seed';
 
-type View = 'beranda' | 'template' | 'acara' | 'tamu';
+type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'tentang';
 
 function Konten() {
   const params = useSearchParams();
@@ -39,12 +40,16 @@ function Konten() {
           <Link href="/?view=tamu" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tamu')}`}>
             Tamu & Porsi
           </Link>
+          <Link href="/?view=tentang" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tentang')}`}>
+            Tentang
+          </Link>
         </nav>
       </header>
 
       {view === 'template' && <TemplateView />}
       {view === 'acara' && <AcaraView />}
       {view === 'tamu' && <TamuView />}
+      {view === 'tentang' && <TentangView />}
       {view === 'beranda' && (
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
