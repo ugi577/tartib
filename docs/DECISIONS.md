@@ -4,6 +4,10 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-11 — 2026-08-22 — Fase ikut disnapshot ke acara (perluasan K-03)
+
+Saat acara dibuat dari template, **fase juga** disalin ke baris milik acara (`tartib_fase` dengan `templateId = id acara`), bukan hanya item ke `tartib_tugas`. Editor template memakai `templateId = id template`; papan acara memakai `templateId = id acara`. Akibat: edit template apa pun (termasuk hapus/ubah fase dan offset hari) **tidak pernah** mengubah acara yang berjalan — isolasi penuh dua arah.
+
 ## K-10 — 2026-08-22 — Integrasi dengan cara salin folder, bukan monorepo
 
 `src/tartib/` portabel; integrasi = salin folder ke v3 + sediakan `mahadHost` + naikkan versi Dexie. Alasan: menghindari tooling monorepo untuk satu modul.

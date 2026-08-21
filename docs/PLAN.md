@@ -154,5 +154,6 @@ Branch: di **repo v3**, bukan di repo tartib.
 
 ## Changelog PLAN
 
+- **2026-08-22 — v1.2** — Batch B selesai diimplementasi (branch `batch-b-template-crud`, 5 commit `feat(tartib)`). Yang dibangun: `templateService` (buat/duplikat/versiBaru/arsip + editor fase & item), `divisiService`, skema Dexie v2 (index `dibuatPada`), `usePagedList` lokal, `AppDialog`/`FormDialog`/`KonfirmasiDialog` (nol `window.confirm`), halaman `?view=template` + shell routing `?view=` di `src/app`. Keputusan baru: K-11 (fase ikut disnapshot ke acara). Gate B teknis: tsc bersih, vitest 39/39, build statis sukses, audit bebas `window.confirm` & impor `next/*` di `src/tartib`. Tersisa verifikasi manual Ahmed di perangkat fisik.
 - **2026-08-22 — v1.1** — Batch A selesai diimplementasi (branch `batch-a-fondasi-skema`, 6 sub-langkah, 7 commit `feat(tartib)`). Gate A: tsc bersih (nol `as any`), vitest 30/30 hijau, seed 13 divisi + 8 jenis + template contoh teruji lewat data murni, fixture porsi 240/144/264 lulus, parser rumus menolak eval/fungsi asing, impor luar `src/tartib/` hanya `dexie` (+ `vitest` di file test). Tersisa verifikasi Ahmed: seed tertulis ke IndexedDB via `pnpm dev` + tutup Gate A.
 - **2026-08-22 — v1.0** — disusun dari BRIEF Bagian 7 (Sesi 0). Batch A–G, konvensi commit, protokol blocker.
