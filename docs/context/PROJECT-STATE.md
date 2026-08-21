@@ -5,9 +5,9 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 2 — Batch C (acara, tugas & aturan PIC) — **IMPLEMENTASI SELESAI, MENUNGGU VERIFIKASI AHMED + TUTUP GATE C**
+- **Sesi:** 2 — Batch C (acara, tugas & aturan PIC) — **IMPLEMENTASI SELESAI & SUDAH DI-MERGE KE `master`; GATE A/B/C TINGGAL VERIFIKASI MANUAL AHMED**
 - **Repo:** `/Users/ahmad/Projects/tartib-app` — path dipindah dari `~/dev/tartib` (keputusan user, 2026-08-22)
-- **Branch:** `batch-c-acara-pic` (bercabang dari `batch-b-template-crud`; merge menunggu Gate C ditutup; Gate A & B masih menunggu verifikasi manual Ahmed)
+- **Branch:** `master` — batch A, B, C di-merge fast-forward (instruksi Ahmed 2026-08-22: "selesaikan dulu PR yang belum selesai"); ref `batch-*` dipertahankan sebagai penanda riwayat
 
 ## Progress
 
@@ -128,7 +128,7 @@ Setelah Gate B ditutup: Batch C — Acara, tugas & aturan PIC, branch `batch-c-a
 
 ## Blocker
 
-Tidak ada. Tiga hal menunggu verifikasi manual Ahmed (bukan blocker kode): isi IndexedDB hasil seed (Gate A), UI Batch B di perangkat fisik (Gate B), dan UI Batch C — papan acara, tanggal fase, cycling status, PIC — di perangkat fisik (Gate C).
+Tidak ada. Merge batch A/B/C ke `master` sudah dilakukan (fast-forward, tanpa konflik) per instruksi Ahmed. Tiga hal masih menunggu verifikasi manual Ahmed (bukan blocker kode — syarat tutup Gate A/B/C): isi IndexedDB hasil seed (Gate A), UI Batch B di perangkat fisik (Gate B), dan UI Batch C — papan acara, tanggal fase, cycling status, PIC — di perangkat fisik (Gate C).
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.
