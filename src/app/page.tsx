@@ -9,8 +9,9 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AcaraView } from '../tartib/components/AcaraView';
 import { TemplateView } from '../tartib/components/TemplateView';
+import { TamuView } from '../tartib/components/TamuView';
 
-type View = 'beranda' | 'template' | 'acara';
+type View = 'beranda' | 'template' | 'acara' | 'tamu';
 
 function Konten() {
   const params = useSearchParams();
@@ -34,11 +35,15 @@ function Konten() {
           <Link href="/?view=acara" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('acara')}`}>
             Acara
           </Link>
+          <Link href="/?view=tamu" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tamu')}`}>
+            Tamu & Porsi
+          </Link>
         </nav>
       </header>
 
       {view === 'template' && <TemplateView />}
       {view === 'acara' && <AcaraView />}
+      {view === 'tamu' && <TamuView />}
       {view === 'beranda' && (
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
@@ -57,6 +62,15 @@ function Konten() {
             <h3 className="font-semibold text-slate-800">Papan Acara</h3>
             <p className="mt-1 text-sm text-slate-500">
               Buat acara dari template, tetapkan PIC, dan pantau progres tugas per fase.
+            </p>
+          </Link>
+          <Link
+            href="/?view=tamu"
+            className="rounded-xl border border-slate-200 bg-white p-6 hover:border-emerald-300"
+          >
+            <h3 className="font-semibold text-slate-800">Tamu & Porsi</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Kelompok tamu, RSVP berombongan, kalkulator porsi, dan ceklis perlengkapan.
             </p>
           </Link>
         </div>
