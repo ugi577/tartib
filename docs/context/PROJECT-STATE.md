@@ -5,7 +5,7 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 2 — Batch C (acara, tugas & aturan PIC) — **IMPLEMENTASI SELESAI & SUDAH DI-MERGE KE `master`; GATE A/B/C TINGGAL VERIFIKASI MANUAL AHMED**
+- **Sesi:** 3 — Gate A/B/C ditutup (verifikasi manual Ahmed lulus 2026-08-22); **Batch D (tamu, porsi, perlengkapan) dimulai**
 - **Repo:** `/Users/ahmad/Projects/tartib-app` — path dipindah dari `~/dev/tartib` (keputusan user, 2026-08-22)
 - **Branch:** `master` — batch A, B, C di-merge fast-forward (instruksi Ahmed 2026-08-22: "selesaikan dulu PR yang belum selesai"); ref `batch-*` dipertahankan sebagai penanda riwayat
 
@@ -55,11 +55,11 @@
 - [x] PIC divisi diisi/kosongkan dari halaman acara — `acaraDivisiService`
 - [x] A-01 ditegakkan di `setStatus` — `PicBelumLengkapError`; UI menonaktifkan tombol SIAP + menampilkan jumlah divisi belum ber-PIC
 - [x] Teknis: tsc bersih, vitest 70/70 (9 file), `pnpm build` (static export) sukses, grep bebas `window.confirm`, `as any`, & impor `next/*` di `src/tartib`
-- [ ] **Verifikasi manual Ahmed di perangkat fisik** (UI + IndexedDB), lalu tutup Gate C + merge
+- [x] **Verifikasi manual Ahmed di perangkat fisik** (UI + IndexedDB) — lulus, 2026-08-22
 
 ## Next step (presisi)
 
-Setelah Gate C ditutup: Batch D — Tamu & Porsi, branch `batch-d-tamu-porsi`. Isi: `tamuService` (daftar tamu per acara, `?view=tamu`), RSVP (BRIEF §5.4), `hitungPorsi` per acara dengan variabel porsi/santri/panitia/rsvp (A-04). Rincian di `docs/PLAN.md` Batch D.
+Gate C ditutup. Batch D — Tamu, porsi, perlengkapan sedang dikerjakan, branch `batch-d-tamu-porsi`. Isi: `tamuService` (CRUD `KelompokTamu`, RSVP dengan jumlah rombongan, `rekapKelompok`), halaman `?view=tamu`, `perlengkapanService.generatePerlengkapan()` dari `rumusQty`, panel porsi dengan komponen perhitungan + toggle tim pencuci. Rincian di `docs/PLAN.md` Batch D.
 
 ## Gate A — status
 
@@ -69,7 +69,7 @@ Setelah Gate C ditutup: Batch D — Tamu & Porsi, branch `batch-d-tamu-porsi`. I
 - [x] Test porsi lulus fixture 21 Agustus (240 / 144 / 264)
 - [x] Parser rumus menolak input berbahaya — 10 test (`eval`, `alert`, `Math.ceil`, `fetch`, `porsi[0]`, arity, pembagian nol, dll.)
 - [x] Tidak ada impor dari luar `src/tartib/` selain React & Dexie — grep: hanya `dexie`; `vitest` hanya di file test
-- [ ] **Verifikasi manual Ahmed:** buka `pnpm dev` → seed menulis 13 divisi + template contoh ke IndexedDB, lalu tutup Gate A + merge ke `master`
+- [x] **Verifikasi manual Ahmed:** buka `pnpm dev` → seed menulis 13 divisi + template contoh ke IndexedDB — lulus, 2026-08-22
 
 ## Gate B — status
 
@@ -78,11 +78,7 @@ Setelah Gate C ditutup: Batch D — Tamu & Porsi, branch `batch-d-tamu-porsi`. I
 - [x] Item template terikat fase & divisi — validasi service layer (fase & divisi wajib ada, rumusQty A-04)
 - [x] Versi lama tetap terbaca setelah versi baru — `templateVersiBaru` test + `versiBaruTemplate` menonaktifkan (bukan menghapus) versi lama
 - [x] Teknis: tsc bersih, vitest 39/39 (6 file), `pnpm build` (static export) sukses, grep bebas `window.confirm` & `next/*` di `src/tartib`
-- [ ] **Verifikasi manual Ahmed di perangkat fisik** (UI + IndexedDB), lalu tutup Gate B + merge
-
-## Next step (presisi)
-
-Setelah Gate B ditutup: Batch C — Acara, tugas & aturan PIC, branch `batch-c-acara-pic`. Isi: `acaraService.buatDariTemplate()` snapshot (K-03/K-11: item → `tartib_tugas`, fase → salinan milik acara), `tugasService`, `acaraDivisiService`, `setStatus` menegakkan A-01 (`PicBelumLengkapError`), halaman `?view=acara` (papan tugas per fase, tanggal = `tanggal - offsetHari`, indikator PIC). Rincian di `docs/PLAN.md` Batch C.
+- [x] **Verifikasi manual Ahmed di perangkat fisik** (UI + IndexedDB) — lulus, 2026-08-22
 
 ## Files touched (Batch A)
 
@@ -128,7 +124,7 @@ Setelah Gate B ditutup: Batch C — Acara, tugas & aturan PIC, branch `batch-c-a
 
 ## Blocker
 
-Tidak ada. Merge batch A/B/C ke `master` sudah dilakukan (fast-forward, tanpa konflik) per instruksi Ahmed. Tiga hal masih menunggu verifikasi manual Ahmed (bukan blocker kode — syarat tutup Gate A/B/C): isi IndexedDB hasil seed (Gate A), UI Batch B di perangkat fisik (Gate B), dan UI Batch C — papan acara, tanggal fase, cycling status, PIC — di perangkat fisik (Gate C).
+Tidak ada. Gate A/B/C ditutup 2026-08-22 (verifikasi manual Ahmed lulus semua). Batch D sedang berjalan di branch `batch-d-tamu-porsi`.
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.
