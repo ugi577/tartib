@@ -102,6 +102,22 @@ Branch: `batch-d-tamu-porsi`
 - [ ] Peralatan berubah saat opsi tim pencuci ditoggle (144 ↔ 264)
 - [ ] Qty perlengkapan boleh ditimpa manual (`qtyFinal`), asalnya (`qtyHitung`) tetap tersimpan
 
+## Batch T — Ikhtisar eksekusi & Tentang (amandemen riset pasar 2026-08-22) · `glm` lo
+
+Branch: `batch-t-ikhtisar-tentang` — ditambahkan dari riset lanskap Ahmed (K-13): celah terbesar
+adalah jembatan dokumen SOP ↔ eksekusi real-time untuk acara kecil–menengah. Batch F (cetak
+lembar tugas/buku acara) tidak terpengaruh; Batch T fokus lapisan ikhtisar + posisi produk.
+
+1. `src/tartib/lib/ikhtisar.ts` — fungsi murni: `ikhtisarTugas` (persen selesai, BATAL dikecualikan dari penyebut), `ikhtisarPerDivisi`, `statusWaktuFase` (LALU/HARI_INI/MENDATANG), `faseHariIni`, `faseBerikutnya`
+2. Papan acara — progres keseluruhan (bar + persen), badge Hari ini/Mendatang per fase, x/y selesai per fase, progres per divisi di baris PIC
+3. Cetak Laporan Eksekusi — payload `ikhtisarEksekusi` di `TartibHost.cetak`; kop laporan khusus print; kontrol interaktif `print:hidden`
+4. Halaman `?view=tentang` — posisi produk: peta lanskap (pembuat dokumen vs eksekusi acara), celah yang diisi, dan yang disengaja backlog (notifikasi/ERP — K-09)
+
+**Gate T**
+- [x] Teknis: tsc bersih, vitest 94/94 (12 file), `pnpm build` statis sukses
+- [x] Progres & waktu fase dihitung fungsi murni yang teruji (14 test ikhtisar)
+- [ ] Verifikasi manual Ahmed: papan progres, badge fase, cetak laporan eksekusi di printer fisik
+
 ## Batch E — Evaluasi & umpan balik · `clo` high ▲
 
 Branch: `batch-e-evaluasi`
@@ -153,6 +169,8 @@ Branch: di **repo v3**, bukan di repo tartib.
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.4** — Amandemen riset pasar (K-13): Batch T `batch-t-ikhtisar-tentang` ditambahkan & langsung selesai (4 commit `feat(tartib)`): `lib/ikhtisar.ts` murni + 14 test, progres eksekusi di papan acara (persen keseluruhan, fase hari-ini/berikutnya, per fase & per divisi), cetak Laporan Eksekusi (payload `ikhtisarEksekusi`, kop khusus print, kontrol `print:hidden`), halaman `?view=tentang` (posisi produk). PRD diamandemen (§8). Gate T teknis lulus (tsc, 94/94, build statis); tersisa verifikasi manual Ahmed. Batch D juga di-fix saat verifikasi UI (seed di titik masuk, skema v3 + pemetaan tabel, transaksi idempoten).
 
 - **2026-08-22 — v1.3** — Batch C selesai diimplementasi (branch `batch-c-acara-pic`, 6 commit `feat(tartib)` + 1 docs). Yang dibangun: `acaraService.buatDariTemplate()` snapshot sekali (K-03/A-02: item → `tartib_tugas`, fase → salinan `tartib_fase` milik acara K-11), `setStatus` menegakkan A-01 (`PicBelumLengkapError`), `tugasService` (status cycling + `selesaiPada`), `acaraDivisiService` (PIC), `lib/tanggal.ts` (geserTanggal/format Indonesia/H-offset, kalender lokal), halaman `?view=acara` penuh (daftar + buat dari template + papan tugas per fase dengan tanggal nyata + PIC + indikator kesiapan). Gate C teknis: tsc bersih, vitest 70/70 (9 file), build statis sukses, audit A-02 (`templateItem` hanya di schema/seed/templateService), bebas `window.confirm`/`as any`/impor `next/*` di `src/tartib`. Tersisa verifikasi manual Ahmed di perangkat fisik.
 - **2026-08-22 — v1.2** — Batch B selesai diimplementasi (branch `batch-b-template-crud`, 5 commit `feat(tartib)`). Yang dibangun: `templateService` (buat/duplikat/versiBaru/arsip + editor fase & item), `divisiService`, skema Dexie v2 (index `dibuatPada`), `usePagedList` lokal, `AppDialog`/`FormDialog`/`KonfirmasiDialog` (nol `window.confirm`), halaman `?view=template` + shell routing `?view=` di `src/app`. Keputusan baru: K-11 (fase ikut disnapshot ke acara). Gate B teknis: tsc bersih, vitest 39/39, build statis sukses, audit bebas `window.confirm` & impor `next/*` di `src/tartib`. Tersisa verifikasi manual Ahmed di perangkat fisik.
