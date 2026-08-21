@@ -50,6 +50,22 @@ export class TartibDb extends Dexie {
       tartib_perlengkapan: 'id, acaraId, divisiId',
       tartib_evaluasi: 'id, acaraId, divisiId',
     });
+    // v2: index dibuatPada untuk daftar terurut (usePagedList orderBy).
+    // Upgrade otomatis Dexie tanpa migrasi data — belum ada data produksi.
+    this.version(2).stores({
+      tartib_jenisAcara: 'id',
+      tartib_template: 'id, jenisAcaraId, dibuatPada',
+      tartib_fase: 'id, templateId, urutan',
+      tartib_templateItem: 'id, templateId, faseId, divisiId, urutan',
+      tartib_divisi: 'id, urutan',
+      tartib_acara: 'id, jenisAcaraId, templateId, status, dibuatPada',
+      tartib_acaraDivisi: 'id, acaraId, divisiId',
+      tartib_tugas: 'id, acaraId, faseId, divisiId, urutan',
+      tartib_kelompokTamu: 'id, acaraId',
+      tartib_rsvp: 'id, acaraId, kelompokId',
+      tartib_perlengkapan: 'id, acaraId, divisiId',
+      tartib_evaluasi: 'id, acaraId, divisiId',
+    });
   }
 }
 
