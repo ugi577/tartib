@@ -119,51 +119,63 @@ export const TEMPLATE_CONTOH: {
 // ===== Fungsi seed (hanya berjalan di browser, butuh IndexedDB) =====
 // Semua fungsi idempotent: tidak menulis apa pun jika tabel sudah terisi.
 
+// Cek-lalu-tulis dibungkus satu transaksi Dexie per fungsi (bukan dua
+// panggilan await terpisah) supaya idempotensi tetap berlaku walau
+// jalankanSeed() dipanggil dua kali beriringan — mis. React StrictMode
+// dev me-render efek dua kali, yang tanpa ini menggandakan baris seed
+// (bug ditemukan saat verifikasi UI Batch D).
+
 export async function seedDivisiBaku(db: TartibDb = tartibDb): Promise<number> {
-  if ((await db.divisi.count()) > 0) return 0;
-  const rows = DIVISI_BAKU.map((d, i) => ({ id: buatId(), ...d, urutan: i + 1, baku: true }));
-  await db.divisi.bulkAdd(rows);
-  return rows.length;
+  return db.transaction('rw', db.divisi, async () => {
+    if ((await db.divisi.count()) > 0) return 0;
+    const rows = DIVISI_BAKU.map((d, i) => ({ id: buatId(), ...d, urutan: i + 1, baku: true }));
+    await db.divisi.bulkAdd(rows);
+    return rows.length;
+  });
 }
 
 export async function seedJenisAcara(db: TartibDb = tartibDb): Promise<number> {
-  if ((await db.jenisAcara.count()) > 0) return 0;
-  const rows = JENIS_ACARA_BAKU.map((j) => ({ id: buatId(), ...j, aktif: true }));
-  await db.jenisAcara.bulkAdd(rows);
-  return rows.length;
+  return db.transaction('rw', db.jenisAcara, async () => {
+    if ((await db.jenisAcara.count()) > 0) return 0;
+    const rows = JENIS_ACARA_BAKU.map((j) => ({ id: buatId(), ...j, aktif: true }));
+    await db.jenisAcara.bulkAdd(rows);
+    return rows.length;
+  });
 }
 
 export async function seedTemplateContoh(db: TartibDb = tartibDb): Promise<number> {
-  if ((await db.template.count()) > 0) return 0;
+  return db.transaction('rw', db.template, db.templateItem, db.fase, db.jenisAcara, db.divisi, async () => {
+    if ((await db.template.count()) > 0) return 0;
 
-  const jenisAcara = await db.jenisAcara.where('nama').equals(TEMPLATE_CONTOH.jenisAcaraNama).first();
-  if (!jenisAcara) {
-    throw new Error(`seedTemplateContoh: jenis acara "${TEMPLATE_CONTOH.jenisAcaraNama}" belum ada — jalankan seedJenisAcara dulu`);
-  }
+    const jenisAcara = await db.jenisAcara.where('nama').equals(TEMPLATE_CONTOH.jenisAcaraNama).first();
+    if (!jenisAcara) {
+      throw new Error(`seedTemplateContoh: jenis acara "${TEMPLATE_CONTOH.jenisAcaraNama}" belum ada — jalankan seedJenisAcara dulu`);
+    }
 
-  const divisi = (await db.divisi.toArray()).sort((a, b) => a.urutan - b.urutan);
-  const divisiByUrutan = new Map(divisi.map((d) => [d.urutan, d.id]));
+    const divisi = (await db.divisi.toArray()).sort((a, b) => a.urutan - b.urutan);
+    const divisiByUrutan = new Map(divisi.map((d) => [d.urutan, d.id]));
 
-  const templateId = buatId();
-  const faseIds = new Map<number, string>();
-  const items: { id: string; templateId: string; faseId: string; divisiId: string; judul: string; catatan: string; wajib: boolean; rumusQty?: string; urutan: number }[] = [];
+    const templateId = buatId();
+    const faseIds = new Map<number, string>();
+    const items: { id: string; templateId: string; faseId: string; divisiId: string; judul: string; catatan: string; wajib: boolean; rumusQty?: string; urutan: number }[] = [];
 
-  for (const fase of TEMPLATE_CONTOH.fase) {
-    const faseId = buatId();
-    faseIds.set(fase.urutan, faseId);
-    await db.fase.add({ id: faseId, templateId, urutan: fase.urutan, label: fase.label, offsetHari: fase.offsetHari });
-    fase.items.forEach((item, i) => {
-      const divisiId = divisiByUrutan.get(item.divisiUrutan);
-      if (!divisiId) {
-        throw new Error(`seedTemplateContoh: divisi urutan ${item.divisiUrutan} tidak ada (item "${item.judul}")`);
-      }
-      items.push({ id: buatId(), templateId, faseId, divisiId, judul: item.judul, catatan: item.catatan, wajib: item.wajib, rumusQty: item.rumusQty, urutan: i + 1 });
-    });
-  }
+    for (const fase of TEMPLATE_CONTOH.fase) {
+      const faseId = buatId();
+      faseIds.set(fase.urutan, faseId);
+      await db.fase.add({ id: faseId, templateId, urutan: fase.urutan, label: fase.label, offsetHari: fase.offsetHari });
+      fase.items.forEach((item, i) => {
+        const divisiId = divisiByUrutan.get(item.divisiUrutan);
+        if (!divisiId) {
+          throw new Error(`seedTemplateContoh: divisi urutan ${item.divisiUrutan} tidak ada (item "${item.judul}")`);
+        }
+        items.push({ id: buatId(), templateId, faseId, divisiId, judul: item.judul, catatan: item.catatan, wajib: item.wajib, rumusQty: item.rumusQty, urutan: i + 1 });
+      });
+    }
 
-  await db.template.add({ id: templateId, jenisAcaraId: jenisAcara.id, versi: TEMPLATE_CONTOH.versi, nama: TEMPLATE_CONTOH.nama, catatan: TEMPLATE_CONTOH.catatan, dibuatPada: new Date().toISOString(), aktif: true });
-  await db.templateItem.bulkAdd(items);
-  return items.length;
+    await db.template.add({ id: templateId, jenisAcaraId: jenisAcara.id, versi: TEMPLATE_CONTOH.versi, nama: TEMPLATE_CONTOH.nama, catatan: TEMPLATE_CONTOH.catatan, dibuatPada: new Date().toISOString(), aktif: true });
+    await db.templateItem.bulkAdd(items);
+    return items.length;
+  });
 }
 
 export async function jalankanSeed(db: TartibDb = tartibDb): Promise<void> {

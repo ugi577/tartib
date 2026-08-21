@@ -5,11 +5,12 @@
 // useSearchParams dibungkus Suspense karena halaman diprerender statis.
 
 import Link from 'next/link';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AcaraView } from '../tartib/components/AcaraView';
 import { TemplateView } from '../tartib/components/TemplateView';
 import { TamuView } from '../tartib/components/TamuView';
+import { jalankanSeed } from '../tartib/db/seed';
 
 type View = 'beranda' | 'template' | 'acara' | 'tamu';
 
@@ -80,6 +81,13 @@ function Konten() {
 }
 
 export default function Halaman() {
+  // Seed berjalan sekali di titik masuk aplikasi (idempotent — lihat
+  // db/seed.ts). Sebelumnya tidak pernah dipanggil sama sekali sehingga
+  // pnpm dev selalu mulai kosong; ini bug pra-Batch D, diperbaiki di sini.
+  useEffect(() => {
+    void jalankanSeed();
+  }, []);
+
   return (
     <Suspense fallback={<main className="flex min-h-screen items-center justify-center text-sm text-slate-500">Memuat…</main>}>
       <Konten />
