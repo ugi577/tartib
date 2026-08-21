@@ -5,19 +5,20 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 1 — Batch B (template CRUD) — **IMPLEMENTASI SELESAI, MENUNGGU VERIFIKASI AHMED + TUTUP GATE B**
+- **Sesi:** 2 — Batch C (acara, tugas & aturan PIC) — **IMPLEMENTASI SELESAI, MENUNGGU VERIFIKASI AHMED + TUTUP GATE C**
 - **Repo:** `/Users/ahmad/Projects/tartib-app` — path dipindah dari `~/dev/tartib` (keputusan user, 2026-08-22)
-- **Branch:** `batch-b-template-crud` (bercabang dari `master`; merge menunggu Gate B ditutup; Gate A masih menunggu verifikasi manual Ahmed)
+- **Branch:** `batch-c-acara-pic` (bercabang dari `batch-b-template-crud`; merge menunggu Gate C ditutup; Gate A & B masih menunggu verifikasi manual Ahmed)
 
 ## Progress
 
 - [x] `docs/BRIEF.md` — brief disalin (409 baris), commit `chore: brief awal Tartib`
 - [x] `docs/PRD.md` — spesifikasi otoritatif dari BRIEF Bagian 3–6
-- [x] `docs/PLAN.md` — batch A–G, gate checklist, protokol blocker, konvensi commit (changelog v1.1, v1.2)
+- [x] `docs/PLAN.md` — batch A–G, gate checklist, protokol blocker, konvensi commit (changelog v1.1, v1.2, v1.3)
 - [x] `docs/DECISIONS.md` — K-01 s/d K-11 (entry terbaru di atas)
 - [x] Scaffold Next.js 14 + TS strict + Dexie + Tailwind + Vitest, static export, tanpa fitur
 - [x] Batch A — fondasi & skema (6 sub-langkah, semua commit `feat(tartib)`)
 - [x] Batch B — template CRUD (5 commit `feat(tartib)`)
+- [x] Batch C — acara, tugas & aturan PIC (6 commit `feat(tartib)` + 1 docs)
 
 ## Batch A — hasil
 
@@ -38,6 +39,27 @@
 6. `src/tartib/components/AppDialog.tsx` — `AppDialog`/`FormDialog`/`KonfirmasiDialog`; nol `window.confirm` di seluruh kode
 7. `src/tartib/components/TemplateView.tsx` — daftar template (paginasi), editor fase & item, dialog baru/duplikat/versiBaru/arsip/fase/item/hapus dengan tampilan error service layer
 8. `src/app/page.tsx` — shell routing `?view=beranda|template|acara` (Suspense + useSearchParams, `next/*` hanya di sini); `AcaraView` stub (isi di Batch C)
+
+## Batch C — hasil
+
+1. `src/tartib/services/acaraService.ts` — `siapkanSnapshotAcara` murni (K-03/A-02: item template disalin sekali ke `tartib_tugas`, fase → salinan `tartib_fase` milik acara K-11), `buatDariTemplate` (status `DRAF`), `setStatus` menegakkan A-01 (`PicBelumLengkapError` berisi nama divisi), `statusBerikutnya` (DRAF→SIAP→BERJALAN→SELESAI→DIEVALUASI, null di terminal), `ambilFaseAcara` (papan)
+2. `src/tartib/services/tugasService.ts` — `perubahanStatusTugas` murni (status sama → referensi sama, SELESAI mengisi `selesaiPada`, keluar SELESAI menghapusnya), `ubahStatusTugas` (get → `===` → put), `daftarTugasAcara`, `statusBerikutnya` (siklus BELUM→JALAN→SELESAI→BATAL→BELUM)
+3. `src/tartib/services/acaraDivisiService.ts` — `daftarAcaraDivisi`, `tetapkanPic` (trim, nama wajib), `kosongkanPic`
+4. `src/tartib/lib/tanggal.ts` — `geserTanggal` (kalender lokal, DST-aman, validasi round-trip), `formatTanggalIndonesia` (Intl `id-ID`), `formatOffsetHari` (H-30/Hari H/H+1), `tanggalHariIni`
+5. `src/tartib/components/AcaraView.tsx` — daftar acara (paginasi `usePagedList`), dialog buat dari template (`buatDariTemplate`), papan tugas per fase (tanggal nyata = `tanggal - offsetHari`, status tugas cycling, `selesaiPada`), PIC divisi per baris, indikator kesiapan PIC (tombol SIAP dinonaktifkan + hint merah saat PIC belum lengkap)
+
+## Gate C — status
+
+- [x] Buat acara dari template = snapshot sekali (A-02) — `tartib_tugas` + `tartib_fase` milik acara; grep: `templateItem` hanya di schema/seed/templateService
+- [x] Tugas terikat fase & divisi, status berjalan (BELUM→JALAN→SELESAI/BATAL, reopen BATAL→BELUM) — `tugasService` + test
+- [x] PIC divisi diisi/kosongkan dari halaman acara — `acaraDivisiService`
+- [x] A-01 ditegakkan di `setStatus` — `PicBelumLengkapError`; UI menonaktifkan tombol SIAP + menampilkan jumlah divisi belum ber-PIC
+- [x] Teknis: tsc bersih, vitest 70/70 (9 file), `pnpm build` (static export) sukses, grep bebas `window.confirm`, `as any`, & impor `next/*` di `src/tartib`
+- [ ] **Verifikasi manual Ahmed di perangkat fisik** (UI + IndexedDB), lalu tutup Gate C + merge
+
+## Next step (presisi)
+
+Setelah Gate C ditutup: Batch D — Tamu & Porsi, branch `batch-d-tamu-porsi`. Isi: `tamuService` (daftar tamu per acara, `?view=tamu`), RSVP (BRIEF §5.4), `hitungPorsi` per acara dengan variabel porsi/santri/panitia/rsvp (A-04). Rincian di `docs/PLAN.md` Batch D.
 
 ## Gate A — status
 
@@ -89,9 +111,24 @@ Setelah Gate B ditutup: Batch C — Acara, tugas & aturan PIC, branch `batch-c-a
 - `3d367bd` feat(tartib): AppDialog + KonfirmasiDialog + FormDialog tanpa window.confirm (Batch B-4)
 - `676ccbc` feat(tartib): halaman ?view=template (daftar + editor fase/item) + shell routing (Batch B-5)
 
+## Files touched (Batch C)
+
+- `src/tartib/services/acaraService.ts` + `acaraService.test.ts`, `src/tartib/services/tugasService.ts` + `tugasService.test.ts`, `src/tartib/services/acaraDivisiService.ts`, `src/tartib/lib/tanggal.ts` + `tanggal.test.ts`, `src/tartib/components/AcaraView.tsx` (stub → papan penuh)
+- `docs/DECISIONS.md` (K-11), `docs/PLAN.md` (changelog v1.2), `docs/context/PROJECT-STATE.md`
+
+## Riwayat commit (Batch C)
+
+- `ad72e46` feat(tartib): acaraService snapshot sekali ke acara — tugas + fase milik acara (Batch C-1)
+- `d7f4607` feat(tartib): tugasService ubahStatusTugas, selesaiPada saat SELESAI (Batch C-2)
+- `2223efe` feat(tartib): acaraDivisiService tetapkanPic/daftar/kosongkan (Batch C-3)
+- `1d99aab` feat(tartib): setStatus menegakkan A-01 — PicBelumLengkapError saat PIC belum lengkap (Batch C-4)
+- `044c308` feat(tartib): halaman ?view=acara — papan tugas per fase, tanggal nyata, PIC divisi (Batch C-5)
+- `18f8a5d` docs(tartib): catat keputusan K-11 (fase disnapshot ke acara) + changelog v1.2
+- `fcf37df` feat(tartib): indikator kesiapan PIC — tombol SIAP dinonaktifkan saat PIC belum lengkap (Batch C-6)
+
 ## Blocker
 
-Tidak ada. Dua hal menunggu verifikasi manual Ahmed (bukan blocker kode): isi IndexedDB hasil seed (Gate A) dan UI Batch B di perangkat fisik (Gate B).
+Tidak ada. Tiga hal menunggu verifikasi manual Ahmed (bukan blocker kode): isi IndexedDB hasil seed (Gate A), UI Batch B di perangkat fisik (Gate B), dan UI Batch C — papan acara, tanggal fase, cycling status, PIC — di perangkat fisik (Gate C).
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.
