@@ -5,18 +5,19 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 1 — Batch A (fondasi & skema) — **IMPLEMENTASI SELESAI, MENUNGGU VERIFIKASI AHMED + TUTUP GATE A**
+- **Sesi:** 1 — Batch B (template CRUD) — **IMPLEMENTASI SELESAI, MENUNGGU VERIFIKASI AHMED + TUTUP GATE B**
 - **Repo:** `/Users/ahmad/Projects/tartib-app` — path dipindah dari `~/dev/tartib` (keputusan user, 2026-08-22)
-- **Branch:** `batch-a-fondasi-skema` (bercabang dari `master`; merge menunggu Gate A ditutup)
+- **Branch:** `batch-b-template-crud` (bercabang dari `master`; merge menunggu Gate B ditutup; Gate A masih menunggu verifikasi manual Ahmed)
 
 ## Progress
 
 - [x] `docs/BRIEF.md` — brief disalin (409 baris), commit `chore: brief awal Tartib`
 - [x] `docs/PRD.md` — spesifikasi otoritatif dari BRIEF Bagian 3–6
-- [x] `docs/PLAN.md` — batch A–G, gate checklist, protokol blocker, konvensi commit
-- [x] `docs/DECISIONS.md` — K-01 s/d K-10 (entry terbaru di atas)
+- [x] `docs/PLAN.md` — batch A–G, gate checklist, protokol blocker, konvensi commit (changelog v1.1, v1.2)
+- [x] `docs/DECISIONS.md` — K-01 s/d K-11 (entry terbaru di atas)
 - [x] Scaffold Next.js 14 + TS strict + Dexie + Tailwind + Vitest, static export, tanpa fitur
 - [x] Batch A — fondasi & skema (6 sub-langkah, semua commit `feat(tartib)`)
+- [x] Batch B — template CRUD (5 commit `feat(tartib)`)
 
 ## Batch A — hasil
 
@@ -26,6 +27,17 @@
 4. `src/tartib/host/TartibHost.ts` + `standaloneHost.ts` — satu-satunya batas integrasi (K-04); `cetak` = `window.print()`
 5. `src/tartib/lib/porsi.ts` — `hitungPorsi` (aritmetika integer, fixture 240 ✓) + `hitungPeralatan` (144/264 ✓)
 6. `src/tartib/lib/rumusQty.ts` — parser terbatas tanpa `eval` (A-04): variabel porsi/santri/panitia/rsvp, `+ - * /`, kurung, `ceil`/`round`; selain itu `RumusError`
+
+## Batch B — hasil
+
+1. `src/tartib/services/templateService.ts` — `TemplateError`, fungsi murni `salinStrukturTemplate`/`templateUntukDuplikat`/`templateVersiBaru` (diuji), CRUD template, editor fase (tambah/ubah/hapus/pindah) & item (tambah/ubah/hapus/pindah, validasi rumusQty A-04, divisi wajib)
+2. `src/tartib/services/divisiService.ts` — `daftarDivisi()`, `tambahDivisi()`, `ubahDivisi()` (nama unik case-insensitive, urutan max+1)
+3. `src/tartib/lib/urutan.ts` — `urutanBerikutnya` (max+1, tidak mengisi celah) + 3 test
+4. Skema Dexie **v2** — index `dibuatPada` di `tartib_template` & `tartib_acara` (untuk `usePagedList`), upgrade otomatis tanpa migrasi
+5. `src/tartib/lib/usePagedList.ts` — hook daftar terpaginasi lokal (pola v3-mandated: terima `Table` langsung; opsi di ref agar aman diberi fungsi filter inline)
+6. `src/tartib/components/AppDialog.tsx` — `AppDialog`/`FormDialog`/`KonfirmasiDialog`; nol `window.confirm` di seluruh kode
+7. `src/tartib/components/TemplateView.tsx` — daftar template (paginasi), editor fase & item, dialog baru/duplikat/versiBaru/arsip/fase/item/hapus dengan tampilan error service layer
+8. `src/app/page.tsx` — shell routing `?view=beranda|template|acara` (Suspense + useSearchParams, `next/*` hanya di sini); `AcaraView` stub (isi di Batch C)
 
 ## Gate A — status
 
@@ -37,14 +49,28 @@
 - [x] Tidak ada impor dari luar `src/tartib/` selain React & Dexie — grep: hanya `dexie`; `vitest` hanya di file test
 - [ ] **Verifikasi manual Ahmed:** buka `pnpm dev` → seed menulis 13 divisi + template contoh ke IndexedDB, lalu tutup Gate A + merge ke `master`
 
+## Gate B — status
+
+- [x] Template dibuat/diduplikat/diversikan — `templateService` + test fungsi murni (versi baru = versi lama tetap terbaca)
+- [x] Fase tambah/ubah/urut ulang/hapus — service layer; hapus fase ikut menghapus item-nya, acara tidak terpengaruh (K-11)
+- [x] Item template terikat fase & divisi — validasi service layer (fase & divisi wajib ada, rumusQty A-04)
+- [x] Versi lama tetap terbaca setelah versi baru — `templateVersiBaru` test + `versiBaruTemplate` menonaktifkan (bukan menghapus) versi lama
+- [x] Teknis: tsc bersih, vitest 39/39 (6 file), `pnpm build` (static export) sukses, grep bebas `window.confirm` & `next/*` di `src/tartib`
+- [ ] **Verifikasi manual Ahmed di perangkat fisik** (UI + IndexedDB), lalu tutup Gate B + merge
+
 ## Next step (presisi)
 
-Setelah Gate A ditutup: Batch B — CRUD acara sederhana + snapshot tugas (K-03) + aturan PIC-wajib (A-01), branch `batch-b-crud-acara`. Rincian di `docs/PLAN.md` Batch B.
+Setelah Gate B ditutup: Batch C — Acara, tugas & aturan PIC, branch `batch-c-acara-pic`. Isi: `acaraService.buatDariTemplate()` snapshot (K-03/K-11: item → `tartib_tugas`, fase → salinan milik acara), `tugasService`, `acaraDivisiService`, `setStatus` menegakkan A-01 (`PicBelumLengkapError`), halaman `?view=acara` (papan tugas per fase, tanggal = `tanggal - offsetHari`, indikator PIC). Rincian di `docs/PLAN.md` Batch C.
 
 ## Files touched (Batch A)
 
 - `src/tartib/types/index.ts`, `src/tartib/db/schema.ts`, `src/tartib/db/seed.ts`, `src/tartib/db/seed.test.ts`, `src/tartib/host/TartibHost.ts`, `src/tartib/host/standaloneHost.ts`, `src/tartib/lib/porsi.ts`, `src/tartib/lib/porsi.test.ts`, `src/tartib/lib/rumusQty.ts`, `src/tartib/lib/rumusQty.test.ts`
 - `docs/PLAN.md` (changelog v1.1), `docs/context/PROJECT-STATE.md`
+
+## Files touched (Batch B)
+
+- `src/tartib/services/templateService.ts` + `templateService.test.ts`, `src/tartib/services/divisiService.ts`, `src/tartib/lib/urutan.ts` + `urutan.test.ts`, `src/tartib/lib/usePagedList.ts`, `src/tartib/components/AppDialog.tsx`, `src/tartib/components/TemplateView.tsx`, `src/tartib/components/AcaraView.tsx` (stub), `src/tartib/db/schema.ts` (v2), `src/app/page.tsx`
+- `docs/DECISIONS.md` (K-11), `docs/PLAN.md` (changelog v1.2), `docs/context/PROJECT-STATE.md`
 
 ## Riwayat commit (Batch A)
 
@@ -55,11 +81,17 @@ Setelah Gate A ditutup: Batch B — CRUD acara sederhana + snapshot tugas (K-03)
 - `07dba4d` feat(tartib): kalkulator porsi & peralatan dengan fixture 240/144/264 (Batch A-5)
 - `96d186f` feat(tartib): parser rumus qty terbatas tanpa eval, tolak fungsi asing (Batch A-6)
 
+## Riwayat commit (Batch B)
+
+- `f68382c` feat(tartib): templateService CRUD + editor fase/item, salinStrukturTemplate murni (Batch B-1)
+- `288c8f3` feat(tartib): divisiService daftar/tambah/ubah, nama unik, urutan max+1 (Batch B-2)
+- `c4ab8c2` feat(tartib): skema v2 (index dibuatPada) + usePagedList lokal (Batch B-3)
+- `3d367bd` feat(tartib): AppDialog + KonfirmasiDialog + FormDialog tanpa window.confirm (Batch B-4)
+- `676ccbc` feat(tartib): halaman ?view=template (daftar + editor fase/item) + shell routing (Batch B-5)
+
 ## Blocker
 
-Tidak ada. Satu hal perlu verifikasi manual Ahmed (bukan blocker kode): isi IndexedDB hasil seed.
-
-## Catatan operasional
+Tidak ada. Dua hal menunggu verifikasi manual Ahmed (bukan blocker kode): isi IndexedDB hasil seed (Gate A) dan UI Batch B di perangkat fisik (Gate B).
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.
