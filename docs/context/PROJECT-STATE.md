@@ -5,7 +5,7 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 0 — docs + scaffold (belum ada kode fitur)
+- **Sesi:** 0 — docs + scaffold (belum ada kode fitur) — **SELESAI**
 - **Repo:** `/Users/ahmad/Projects/tartib-app` — path dipindah dari `~/dev/tartib` (keputusan user, 2026-08-22)
 - **Branch:** `master`
 
@@ -39,7 +39,16 @@ Lalu tutup Gate A.
 ## Files touched (Sesi 0)
 
 - `docs/BRIEF.md`, `docs/PRD.md`, `docs/PLAN.md`, `docs/DECISIONS.md`, `docs/context/PROJECT-STATE.md`
-- Scaffold: `package.json`, `next.config.mjs`, `tsconfig.json`, `postcss.config.mjs`, `tailwind.config.ts`, `vitest.config.ts`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `tests/scaffold.test.ts`, `.gitignore`
+- Scaffold: `package.json`, `pnpm-workspace.yaml`, `next.config.mjs`, `tsconfig.json`, `postcss.config.mjs`, `tailwind.config.ts`, `vitest.config.ts`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `tests/scaffold.test.ts`, `.gitignore`
+
+## Riwayat commit (Sesi 0)
+
+- `05d4d76` chore: brief awal Tartib
+- `bc8e2d9` docs(prd): spesifikasi otoritatif Tartib dari BRIEF Bagian 3-6
+- `2f274cc` docs(plan): batch A-G, gate checklist, protokol blocker, konvensi commit
+- `b913e5f` docs(decisions): keputusan Terkunci K-01 s/d K-10
+- `752ae74` docs(state): posisi awal proyek
+- `4506455` chore(scaffold): Next.js 14 static export + TS strict + Dexie + Tailwind + Vitest, tanpa fitur
 
 ## Blocker
 
@@ -50,3 +59,4 @@ Tidak ada.
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.
 - Seed 13 divisi baku & sumber item template contoh: BRIEF Bagian 8.
+- pnpm 11: izin build script lewat `pnpm-workspace.yaml` (`allowBuilds: esbuild: true`), bukan field `pnpm` di package.json (sudah tidak dibaca).
