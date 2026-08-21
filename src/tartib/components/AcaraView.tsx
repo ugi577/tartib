@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { tartibDb } from '../db/schema';
 import { usePagedList } from '../lib/usePagedList';
 import { formatOffsetHari, formatTanggalIndonesia, geserTanggal, tanggalHariIni } from '../lib/tanggal';
+import { faseBerikutnya, ikhtisarPerDivisi, ikhtisarTugas, statusWaktuFase } from '../lib/ikhtisar';
 import { daftarDivisi } from '../services/divisiService';
 import * as acaraSvc from '../services/acaraService';
 import * as picSvc from '../services/acaraDivisiService';
@@ -384,6 +385,11 @@ export function AcaraView() {
   // C-6: indikator kesiapan PIC — blokir naik ke SIAP selama ada divisi bertugas tanpa PIC (A-01).
   const jumlahTanpaPic = acaraDivisi.filter((r) => r.picNama.trim() === '').length;
   const picBelumLengkap = terpilih.status === 'DRAF' && jumlahTanpaPic > 0;
+  // T-2: lapisan eksekusi real-time (K-13) — progres & posisi waktu fase.
+  const hariIni = tanggalHariIni();
+  const ikhtisar = ikhtisarTugas(tugas);
+  const perDivisi = new Map(ikhtisarPerDivisi(tugas).map((i) => [i.divisiId, i]));
+  const fBerikut = faseBerikutnya(fases, terpilih.tanggal, hariIni);
 
   return (
     <div>
@@ -401,6 +407,32 @@ export function AcaraView() {
           {jam ? ` · ${jam}` : ''}
           {terpilih.lokasi ? ` · ${terpilih.lokasi}` : ''} · {fases.length} fase · {tugas.length} tugas
         </p>
+        {tugas.length > 0 && (
+          <div className="mt-3 max-w-xl">
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <span>
+                {ikhtisar.selesai} dari {ikhtisar.total} tugas selesai
+                {ikhtisar.batal > 0 ? ` · ${ikhtisar.batal} batal` : ''}
+                {ikhtisar.jalan > 0 ? ` · ${ikhtisar.jalan} sedang berjalan` : ''}
+              </span>
+              <span className="font-medium text-slate-700">{ikhtisar.persenSelesai}%</span>
+            </div>
+            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all"
+                style={{ width: `${ikhtisar.persenSelesai}%` }}
+              />
+            </div>
+            {fBerikut && terpilih.status !== 'SELESAI' && terpilih.status !== 'DIEVALUASI' && (
+              <p className="mt-2 text-xs text-slate-500">
+                Fase berikutnya:{' '}
+                <span className="font-medium text-slate-700">{fBerikut.label}</span> ·{' '}
+                {formatTanggalIndonesia(geserTanggal(terpilih.tanggal, fBerikut.offsetHari))} ·{' '}
+                {formatOffsetHari(fBerikut.offsetHari)}
+              </p>
+            )}
+          </div>
+        )}
         {statusBerikut && (
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button
@@ -437,8 +469,15 @@ export function AcaraView() {
           {fases.map((fase) => {
             const tugasFase = tugas.filter((t) => t.faseId === fase.id);
             const tanggalFase = geserTanggal(terpilih.tanggal, fase.offsetHari);
+            const waktu = statusWaktuFase(terpilih.tanggal, fase.offsetHari, hariIni);
+            const faseIkhtisar = ikhtisarTugas(tugasFase);
             return (
-              <div key={fase.id} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div
+                key={fase.id}
+                className={`rounded-xl border bg-white p-4 ${
+                  waktu === 'HARI_INI' ? 'border-emerald-300 ring-2 ring-emerald-200' : 'border-slate-200'
+                }`}
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-slate-800">
@@ -450,7 +489,17 @@ export function AcaraView() {
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
                       {formatTanggalIndonesia(tanggalFase)}
                     </span>
-                    <span className="text-xs text-slate-400">{tugasFase.length} tugas</span>
+                    {waktu === 'HARI_INI' && (
+                      <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white">
+                        Hari ini
+                      </span>
+                    )}
+                    {waktu === 'MENDATANG' && (
+                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-700">Mendatang</span>
+                    )}
+                    <span className="text-xs text-slate-400">
+                      {faseIkhtisar.selesai}/{faseIkhtisar.total} selesai
+                    </span>
                   </div>
                 </div>
 
@@ -521,6 +570,7 @@ export function AcaraView() {
                 const divisi = divisiMap.get(r.divisiId);
                 const isi = formPic[r.id] ?? { picNama: '', picKontak: '' };
                 const sudah = isi.picNama.trim() !== '';
+                const prog = perDivisi.get(r.divisiId);
                 return (
                   <div key={r.id} className="flex flex-wrap items-end gap-2 rounded-lg bg-slate-50 px-3 py-2">
                     <div className="w-36">
@@ -528,6 +578,11 @@ export function AcaraView() {
                       <p className={`text-xs ${sudah ? 'text-emerald-600' : 'text-red-500'}`}>
                         {sudah ? `PIC: ${isi.picNama}` : 'belum ada PIC'}
                       </p>
+                      {prog && prog.total > 0 && (
+                        <p className="text-xs text-slate-400">
+                          {prog.selesai}/{prog.total} tugas selesai
+                        </p>
+                      )}
                     </div>
                     <label className="min-w-36 flex-1 text-sm">
                       <span className="sr-only">Nama PIC {divisi?.nama}</span>
