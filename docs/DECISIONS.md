@@ -1,0 +1,49 @@
+# DECISIONS — Tartib
+
+Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal — judul — keputusan`.
+
+---
+
+## K-10 — 2026-08-22 — Integrasi dengan cara salin folder, bukan monorepo
+
+`src/tartib/` portabel; integrasi = salin folder ke v3 + sediakan `mahadHost` + naikkan versi Dexie. Alasan: menghindari tooling monorepo untuk satu modul.
+
+## K-09 — 2026-08-22 — Offline penuh
+
+Tidak ada pemanggilan jaringan di jalur mana pun. Bila suatu fitur menuntut jaringan, fitur itu masuk backlog.
+
+## K-08 — 2026-08-22 — Bahasa antarmuka: Indonesia
+
+Istilah pesantren dipertahankan apa adanya (ikhtilath, musyrif, tasmi'), tidak diterjemahkan.
+
+## K-07 — 2026-08-22 — Routing query param saja
+
+Konsekuensi `output: 'export'`.
+
+## K-06 — 2026-08-22 — Aturan PIC wajib ditegakkan di service layer, bukan UI
+
+`acaraService.setStatus(id, 'SIAP')` melempar `PicBelumLengkapError` bila ada divisi bertugas tanpa PIC. UI hanya menampilkan pesannya. Alasan: aturan yang hanya dijaga UI akan bocor lewat impor, seed, atau jalur lain.
+
+## K-05 — 2026-08-22 — Fase adalah data, bukan enum keras
+
+Tiap template mendefinisikan fasenya sendiri (label + offset hari). Alasan: temuan Ahmed — *"undangan idealnya dua pekan, tapi bila SOP matang sepuluh hari pun cukup."* Linimasa harus bisa dipendekkan tanpa mengubah kode.
+
+## K-04 — 2026-08-22 — `TartibHost` adalah satu-satunya batas integrasi
+
+Modul **tidak boleh** mengimpor apa pun dari v3. Kebutuhan data luar (jumlah santri, daftar cabang, cetak) lewat adapter. Standalone memakai `standaloneHost`, v3 memakai `mahadHost`.
+
+## K-03 — 2026-08-22 — Acara menyimpan SNAPSHOT template, bukan referensi hidup
+
+Saat acara dibuat, seluruh item template disalin ke tabel tugas. Perubahan template sesudahnya **tidak** mengubah acara yang berjalan. Alasan: acara yang sedang disiapkan tidak boleh berubah diam-diam. Ini penerapan langsung anti-pattern **"Deklarasi dianggap data"** — yang jadi pegangan panitia adalah tugas yang tersalin, bukan definisi template.
+
+## K-02 — 2026-08-22 — Semua tabel Dexie berawalan `tartib_`
+
+Skema v3 sudah di v37; awalan mencegah tabrakan saat penggabungan.
+
+## K-01 — 2026-08-22 — Nama modul: `tartib`
+
+Istilah "tartib acara" sudah dikenal di lingkungan pesantren, dan maknanya penyusunan/pengurutan. Sejalan dengan penamaan proyek lain (Turjuman, Syajarah, Sima'i).
+
+---
+
+*Keputusan baru ditambahkan di bagian atas. Perubahan keputusan Terkunci = tulis entry baru di sini, bukan mengedit entry lama.*
