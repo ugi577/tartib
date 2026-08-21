@@ -1,0 +1,173 @@
+import { buatId, type TartibDb, tartibDb } from './schema';
+
+// ===== Data murni (diuji oleh seed.test.ts, tanpa menyentuh IndexedDB) =====
+
+// 13 divisi baku — BRIEF Bagian 8.
+export const DIVISI_BAKU: readonly { nama: string; tanggungJawab: string }[] = [
+  { nama: 'Ketua Panitia', tanggungJawab: 'Keputusan akhir, penghubung ke Mudir' },
+  { nama: 'Sekretaris', tanggungJawab: 'Surat & undangan, rekap konfirmasi, buku tamu' },
+  { nama: 'Bendahara', tanggungJawab: 'Anggaran, belanja, amplop, laporan keuangan' },
+  { nama: 'Acara & MC', tanggungJawab: 'Rundown, gladi, koordinasi pengisi acara' },
+  { nama: 'Konsumsi', tanggungJawab: 'Masak, hidang, peralatan makan, pencucian' },
+  { nama: 'Perlengkapan & Sound', tanggungJawab: 'Tenda, karpet, kursi, sound, listrik, genset' },
+  { nama: 'Penerima Tamu', tanggungJawab: 'Sambutan pintu, antar ke tempat duduk, buku tamu' },
+  { nama: 'Parkir & Sandal', tanggungJawab: 'Pengaturan kendaraan, rak sandal, penomoran' },
+  { nama: 'Kebersihan', tanggungJawab: 'Tempat sampah, sapu keliling' },
+  { nama: 'Dokumentasi & Live', tanggungJawab: 'Foto, video, streaming' },
+  { nama: 'Kesehatan', tanggungJawab: 'P3K, obat dasar, nomor klinik terdekat' },
+  { nama: 'Koordinator Jamaah Putri', tanggungJawab: 'Tempat duduk, ketenangan, konsumsi area putri' },
+  { nama: 'Aroma & Suasana', tanggungJawab: 'Bukhur, arang, pengharum, ventilasi' },
+];
+
+// 8 jenis acara — PRD 2.1.
+export const JENIS_ACARA_BAKU: readonly { nama: string; deskripsi: string }[] = [
+  { nama: 'Tasyakuran Khatam', deskripsi: 'Tasyakuran khatam Al-Qur\'an santri' },
+  { nama: 'Maulid', deskripsi: 'Peringatan maulid Nabi' },
+  { nama: 'Haflah', deskripsi: 'Haflah akhir tahun / pentas seni' },
+  { nama: 'Wisuda', deskripsi: 'Wisuda santri' },
+  { nama: 'Dauroh', deskripsi: 'Dauroh / pelatihan santri' },
+  { nama: 'Rapat Wali Santri', deskripsi: 'Rapat wali santri' },
+  { nama: 'PHBI', deskripsi: 'Peringatan hari besar Islam' },
+  { nama: 'Custom', deskripsi: 'Jenis acara lain yang dibuat manual' },
+];
+
+export interface FaseContoh {
+  urutan: number;
+  label: string;
+  offsetHari: number;
+  items: { divisiUrutan: number; judul: string; catatan: string; wajib: boolean; rumusQty?: string }[];
+}
+
+// Template contoh dari Buku Panduan SOP Acara Ma'had Askar Qur'an
+// (Bagian 3: linimasa, Bagian 4: ceklis perlengkapan) — representasi seed.
+export const TEMPLATE_CONTOH: {
+  nama: string;
+  versi: number;
+  jenisAcaraNama: string;
+  catatan: string;
+  fase: FaseContoh[];
+} = {
+  nama: 'Tasyakuran Khatam',
+  versi: 1,
+  jenisAcaraNama: 'Tasyakuran Khatam',
+  catatan: 'Template contoh dari Buku Panduan SOP Acara (linimasa & ceklis perlengkapan)',
+  fase: [
+    {
+      urutan: 1,
+      label: 'Persiapan H-30',
+      offsetHari: -30,
+      items: [
+        { divisiUrutan: 1, judul: 'Rapat pembentukan panitia', catatan: 'Tentukan ketua, sekretaris, bendahara, dan koordinator divisi', wajib: true },
+        { divisiUrutan: 2, judul: 'Susun daftar undangan', catatan: 'Tetapkan target undangan tiap kelompok', wajib: true },
+        { divisiUrutan: 3, judul: 'Susun anggaran', catatan: 'Rincian pemasukan & pengeluaran', wajib: true },
+        { divisiUrutan: 4, judul: 'Susun rundown acara', catatan: 'Alur acara dari pembukaan sampai penutup', wajib: true },
+        { divisiUrutan: 5, judul: 'Rencanakan menu konsumsi', catatan: 'Sesuaikan dengan porsi hasil kalkulator', wajib: true },
+        { divisiUrutan: 6, judul: 'Cek kebutuhan perlengkapan', catatan: 'Tenda, karpet, kursi, sound, genset', wajib: true },
+        { divisiUrutan: 10, judul: 'Tunjuk tim dokumentasi', catatan: 'Foto, video, streaming', wajib: false },
+        { divisiUrutan: 12, judul: 'Koordinasi area jamaah putri', catatan: 'Tempat duduk & ketenangan', wajib: true },
+      ],
+    },
+    {
+      urutan: 2,
+      label: 'Persiapan H-7',
+      offsetHari: -7,
+      items: [
+        { divisiUrutan: 2, judul: 'Kirim undangan & rekap konfirmasi', catatan: 'Konfirmasi tamu dicatat per rombongan', wajib: true },
+        { divisiUrutan: 3, judul: 'Belanja kebutuhan', catatan: 'Sesuai anggaran', wajib: true },
+        { divisiUrutan: 5, judul: 'Belanja bahan konsumsi', catatan: 'Hitung porsi dari rekap konfirmasi', wajib: true },
+        { divisiUrutan: 6, judul: 'Sewa & pasang perlengkapan', catatan: 'Tenda, kursi, sound', wajib: true },
+        { divisiUrutan: 7, judul: 'Tentukan petugas penyambutan', catatan: 'Jadwal sambutan pintu', wajib: true },
+        { divisiUrutan: 8, judul: 'Siapkan parkir & rak sandal', catatan: 'Penomoran sandal, area parkir', wajib: true },
+        { divisiUrutan: 9, judul: 'Siapkan tempat sampah', catatan: 'Titik-titik strategis', wajib: true },
+        { divisiUrutan: 11, judul: 'Siapkan P3K & obat dasar', catatan: 'Nomor klinik terdekat ditempel di lokasi', wajib: true },
+        { divisiUrutan: 13, judul: 'Belanja bukhur & arang', catatan: 'Cukup untuk durasi acara', wajib: false },
+      ],
+    },
+    {
+      urutan: 3,
+      label: 'Hari H',
+      offsetHari: 0,
+      items: [
+        { divisiUrutan: 4, judul: 'Gladi resik', catatan: 'Sebelum acara dimulai', wajib: true },
+        { divisiUrutan: 5, judul: 'Hidangkan konsumsi', catatan: 'Porsi dari kalkulator', wajib: true, rumusQty: 'porsi' },
+        { divisiUrutan: 5, judul: 'Siapkan peralatan makan', catatan: 'Asumsi tanpa tim pencuci: 1,1 × porsi', wajib: true, rumusQty: 'ceil(porsi * 1.1)' },
+        { divisiUrutan: 6, judul: 'Operasikan sound & listrik', catatan: 'Genset standby', wajib: true },
+        { divisiUrutan: 7, judul: 'Sambut tamu di pintu', catatan: 'Antar ke tempat duduk, isi buku tamu', wajib: true },
+        { divisiUrutan: 8, judul: 'Atur parkir & sandal', catatan: 'Koordinasi tukang parkir, sandal bernomor', wajib: true },
+        { divisiUrutan: 9, judul: 'Jaga kebersihan', catatan: 'Sapu keliling', wajib: true },
+        { divisiUrutan: 10, judul: 'Dokumentasikan acara', catatan: 'Foto & video sesuai rundown', wajib: true },
+        { divisiUrutan: 12, judul: 'Jaga area putri', catatan: 'Ketenangan & konsumsi area putri', wajib: true },
+        { divisiUrutan: 13, judul: 'Nyalakan bukhur', catatan: 'Ventilasi tetap dijaga', wajib: true },
+      ],
+    },
+    {
+      urutan: 4,
+      label: 'Evaluasi H+1',
+      offsetHari: 1,
+      items: [
+        { divisiUrutan: 1, judul: 'Rapat evaluasi', catatan: 'Isi evaluasi per divisi di aplikasi', wajib: true },
+        { divisiUrutan: 2, judul: 'Rekap tamu hadir', catatan: 'Buku tamu & jumlah rombongan nyata', wajib: true },
+        { divisiUrutan: 3, judul: 'Laporan keuangan', catatan: 'Sisa dana & amplop', wajib: true },
+        { divisiUrutan: 5, judul: 'Kembalikan pinjaman peralatan makan', catatan: 'Cocokkan dengan catatan peminjaman', wajib: true },
+        { divisiUrutan: 6, judul: 'Bongkar & kembalikan sewaan', catatan: 'Tenda, kursi, sound', wajib: true },
+        { divisiUrutan: 9, judul: 'Bersihkan lokasi', catatan: 'Sampah habis, lokasi dikembalikan', wajib: true },
+      ],
+    },
+  ],
+};
+
+// ===== Fungsi seed (hanya berjalan di browser, butuh IndexedDB) =====
+// Semua fungsi idempotent: tidak menulis apa pun jika tabel sudah terisi.
+
+export async function seedDivisiBaku(db: TartibDb = tartibDb): Promise<number> {
+  if ((await db.divisi.count()) > 0) return 0;
+  const rows = DIVISI_BAKU.map((d, i) => ({ id: buatId(), ...d, urutan: i + 1, baku: true }));
+  await db.divisi.bulkAdd(rows);
+  return rows.length;
+}
+
+export async function seedJenisAcara(db: TartibDb = tartibDb): Promise<number> {
+  if ((await db.jenisAcara.count()) > 0) return 0;
+  const rows = JENIS_ACARA_BAKU.map((j) => ({ id: buatId(), ...j, aktif: true }));
+  await db.jenisAcara.bulkAdd(rows);
+  return rows.length;
+}
+
+export async function seedTemplateContoh(db: TartibDb = tartibDb): Promise<number> {
+  if ((await db.template.count()) > 0) return 0;
+
+  const jenisAcara = await db.jenisAcara.where('nama').equals(TEMPLATE_CONTOH.jenisAcaraNama).first();
+  if (!jenisAcara) {
+    throw new Error(`seedTemplateContoh: jenis acara "${TEMPLATE_CONTOH.jenisAcaraNama}" belum ada — jalankan seedJenisAcara dulu`);
+  }
+
+  const divisi = (await db.divisi.toArray()).sort((a, b) => a.urutan - b.urutan);
+  const divisiByUrutan = new Map(divisi.map((d) => [d.urutan, d.id]));
+
+  const templateId = buatId();
+  const faseIds = new Map<number, string>();
+  const items: { id: string; templateId: string; faseId: string; divisiId: string; judul: string; catatan: string; wajib: boolean; rumusQty?: string; urutan: number }[] = [];
+
+  for (const fase of TEMPLATE_CONTOH.fase) {
+    const faseId = buatId();
+    faseIds.set(fase.urutan, faseId);
+    await db.fase.add({ id: faseId, templateId, urutan: fase.urutan, label: fase.label, offsetHari: fase.offsetHari });
+    fase.items.forEach((item, i) => {
+      const divisiId = divisiByUrutan.get(item.divisiUrutan);
+      if (!divisiId) {
+        throw new Error(`seedTemplateContoh: divisi urutan ${item.divisiUrutan} tidak ada (item "${item.judul}")`);
+      }
+      items.push({ id: buatId(), templateId, faseId, divisiId, judul: item.judul, catatan: item.catatan, wajib: item.wajib, rumusQty: item.rumusQty, urutan: i + 1 });
+    });
+  }
+
+  await db.template.add({ id: templateId, jenisAcaraId: jenisAcara.id, versi: TEMPLATE_CONTOH.versi, nama: TEMPLATE_CONTOH.nama, catatan: TEMPLATE_CONTOH.catatan, dibuatPada: new Date().toISOString(), aktif: true });
+  await db.templateItem.bulkAdd(items);
+  return items.length;
+}
+
+export async function jalankanSeed(db: TartibDb = tartibDb): Promise<void> {
+  await seedDivisiBaku(db);
+  await seedJenisAcara(db);
+  await seedTemplateContoh(db);
+}
