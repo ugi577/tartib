@@ -86,6 +86,7 @@ export interface Tugas {
   status: StatusTugas;
   selesaiPada?: string; // ISO, terisi saat status jadi SELESAI
   urutan: number;
+  rumusQty?: string; // salinan TemplateItem.rumusQty saat snapshot (K-12); dipakai perlengkapanService
 }
 
 export interface KelompokTamu {

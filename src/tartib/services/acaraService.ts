@@ -60,6 +60,7 @@ export function siapkanSnapshotAcara(
       wajib: i.wajib,
       status: 'BELUM' as const,
       urutan: i.urutan,
+      rumusQty: i.rumusQty, // K-12: disalin agar perlengkapanService tidak perlu membaca templateItem (A-02)
     };
   });
   return { fase, tugas, divisiBertugas };

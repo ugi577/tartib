@@ -15,8 +15,9 @@ function item(
   judul: string,
   urutan: number,
   wajib = true,
+  rumusQty?: string,
 ): TemplateItem {
-  return { id, templateId, faseId, divisiId, judul, catatan: '', wajib, urutan };
+  return { id, templateId, faseId, divisiId, judul, catatan: '', wajib, urutan, rumusQty };
 }
 
 const FASE_LAMA = [
@@ -84,6 +85,17 @@ describe('siapkanSnapshotAcara', () => {
     expect(s.tugas[1].wajib).toBe(true);
     expect(s.tugas[2].divisiId).toBe('d1');
     expect(s.divisiBertugas).toEqual(['d1', 'd2']);
+  });
+
+  it('menyalin rumusQty item ke tugas (K-12); tugas tanpa rumusQty tetap undefined', () => {
+    const itemDenganRumus = [
+      ...ITEM_LAMA.slice(0, 2),
+      item('i3', 'tpl1', 'f2', 'd1', 'Sambutan panitia', 1, true, 'ceil(porsi * 1.1)'),
+    ];
+    const s = siapkanSnapshotAcara(FASE_LAMA, itemDenganRumus, 'acara1');
+    expect(s.tugas[0].rumusQty).toBeUndefined();
+    expect(s.tugas[1].rumusQty).toBeUndefined();
+    expect(s.tugas[2].rumusQty).toBe('ceil(porsi * 1.1)');
   });
 
   it('melempar AcaraError bila item merujuk fase yang tidak disalin', () => {
