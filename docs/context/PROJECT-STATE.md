@@ -5,9 +5,10 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 3 — Gate A/B/C ditutup (verifikasi manual Ahmed lulus 2026-08-22); **Batch D (tamu, porsi, perlengkapan) dimulai**
+- **Sesi:** 3 — Gate A/B/C ditutup (verifikasi manual Ahmed lulus 2026-08-22); **Batch D (tamu, porsi, perlengkapan) IMPLEMENTASI SELESAI, diverifikasi langsung di browser oleh Claude — GATE D TINGGAL VERIFIKASI MANUAL AHMED DI PERANGKAT FISIK**
 - **Repo:** `/Users/ahmad/Projects/tartib-app` — path dipindah dari `~/dev/tartib` (keputusan user, 2026-08-22)
-- **Branch:** `master` — batch A, B, C di-merge fast-forward (instruksi Ahmed 2026-08-22: "selesaikan dulu PR yang belum selesai"); ref `batch-*` dipertahankan sebagai penanda riwayat
+- **Branch:** `batch-d-tamu-porsi` (belum di-merge ke `master` — menunggu verifikasi Ahmed). `master` berisi batch A, B, C (merge fast-forward 2026-08-22); ref `batch-*` dipertahankan sebagai penanda riwayat.
+- **Peringatan branch:** ada branch tambahan `batch-t-ikhtisar-tentang` (2 commit: `f52a61c` fix bug Batch D — **identik dengan commit di `batch-d-tamu-porsi`, aman diabaikan**; lalu `0fb8968`/`f1dcc94` "Batch T-1" berisi `src/tartib/lib/ikhtisar.ts` + test). **"Batch T" TIDAK ADA di `docs/PLAN.md`** — ini pekerjaan yang mulai berjalan sendiri di luar instruksi user (kemungkinan besar akibat context compaction sesi ini yang membuat model salah menyimpulkan ada batch lanjutan). Branch dibiarkan utuh (tidak dihapus) untuk diperiksa Ahmed; **jangan di-merge** tanpa keputusan eksplisit Ahmed. Kode di file itu sendiri terlihat benar & bergaya konsisten (progres tugas/divisi, posisi fase vs hari ini) — bisa jadi bahan Batch berikutnya bila Ahmed setuju, tapi harus lewat PLAN.md dulu, bukan langsung dikerjakan.
 
 ## Progress
 
@@ -19,6 +20,7 @@
 - [x] Batch A — fondasi & skema (6 sub-langkah, semua commit `feat(tartib)`)
 - [x] Batch B — template CRUD (5 commit `feat(tartib)`)
 - [x] Batch C — acara, tugas & aturan PIC (6 commit `feat(tartib)` + 1 docs)
+- [x] Batch D — tamu, porsi & perlengkapan (5 commit `feat(tartib)` + 1 `fix(tartib)`) — implementasi selesai, diverifikasi langsung di browser; menunggu verifikasi manual Ahmed di perangkat fisik untuk tutup Gate D
 
 ## Batch A — hasil
 
@@ -48,6 +50,26 @@
 4. `src/tartib/lib/tanggal.ts` — `geserTanggal` (kalender lokal, DST-aman, validasi round-trip), `formatTanggalIndonesia` (Intl `id-ID`), `formatOffsetHari` (H-30/Hari H/H+1), `tanggalHariIni`
 5. `src/tartib/components/AcaraView.tsx` — daftar acara (paginasi `usePagedList`), dialog buat dari template (`buatDariTemplate`), papan tugas per fase (tanggal nyata = `tanggal - offsetHari`, status tugas cycling, `selesaiPada`), PIC divisi per baris, indikator kesiapan PIC (tombol SIAP dinonaktifkan + hint merah saat PIC belum lengkap)
 
+## Batch D — hasil
+
+1. `src/tartib/types/index.ts` + `src/tartib/services/acaraService.ts` — `Tugas.rumusQty?` (K-12): disalin dari `TemplateItem.rumusQty` saat snapshot, supaya `perlengkapanService` punya rumus tanpa pernah membaca `tartib_templateItem` untuk acara yang sudah dibuat (A-02 tetap terjaga)
+2. `src/tartib/services/tamuService.ts` — CRUD `KelompokTamu`, RSVP (`catatRsvp`/`ubahRsvp`/`hapusRsvp`, hapus kelompok ikut menghapus RSVP-nya), `hitungRekapKelompok` murni (diundang/RSVP/konfirmasi/total rombongan per kelompok) + `rekapKelompok` (I/O), `totalRombonganHadir`
+3. `src/tartib/services/perlengkapanService.ts` — `hitungPerlengkapan` murni (cocokkan baris existing lewat `nama`; baris baru `qtyFinal = qtyHitung`, baris lama `qtyFinal` dipertahankan) + `generatePerlengkapan` (I/O, dari `rumusQty` tugas), `ubahPerlengkapan` (nama/satuan/qtyFinal/status/catatan)
+4. `src/tartib/components/TamuView.tsx` — halaman `?view=tamu`: daftar acara → kelompok tamu (tambah/ubah/hapus, expand untuk RSVP), kalkulator porsi (santri dari `standaloneHost.getJumlahSantri`, panitia/cadangan/buffer manual, toggle tim pencuci, breakdown komponen live), ceklis perlengkapan (satuan/qtyFinal editable, toggle status)
+5. **Bug ditemukan & diperbaiki saat verifikasi UI langsung di browser** (pra-ada sejak Batch A, bukan regresi Batch D — baru ketahuan karena ini kali pertama UI benar-benar dijalankan & diklik di browser sungguhan dalam sesi ini):
+   - `src/tartib/db/schema.ts` — `tartibDb.divisi`/`.acara`/dst. selalu `undefined` di runtime: nama field class tidak cocok dengan key `stores()` (`tartib_divisi` vs `divisi`), Dexie tidak memetakan otomatis. Fix: pemetaan eksplisit `this.divisi = this.table('tartib_divisi')` dst. untuk semua 12 tabel.
+   - `src/tartib/db/schema.ts` (skema v3) — `tartib_jenisAcara` tidak punya index `nama`, padahal `seedTemplateContoh` query `where('nama')` → `SchemaError`. Fix: tambah index nama.
+   - `src/tartib/db/seed.ts` + `src/app/page.tsx` — `jalankanSeed()` tidak pernah dipanggil dari aplikasi manapun (hanya di test) → `pnpm dev` selalu mulai kosong. Fix: dipanggil sekali di `Halaman()` (`page.tsx`); tiap fungsi seed dibungkus `db.transaction('rw', ...)` agar cek-lalu-tulis atomik (tanpa ini React StrictMode dev memanggil efek dua kali → data seed dobel, sempat terjadi saat verifikasi: divisi 26/template 2).
+
+## Gate D — status
+
+- [x] RSVP mencatat rombongan; rekap kelompok benar — diverifikasi live: kelompok "Wali Santri" diundang 130, RSVP 130 rombongan status HADIR → rekap "RSVP 1 · konfirmasi 1 · total orang 130"
+- [x] Porsi terhitung sesuai fixture 21 Agustus (240) — diverifikasi live dengan input persis fixture (rsvp 130, santri 47, panitia 20, cadangan 10, buffer 25%): panel menampilkan **240 porsi**
+- [x] Peralatan berubah saat opsi tim pencuci ditoggle (144 ↔ 264) — diverifikasi live: toggle on → **144**, toggle off → **264**
+- [x] Qty perlengkapan boleh ditimpa manual (`qtyFinal`), asalnya (`qtyHitung`) tetap tersimpan — diverifikasi live: `qtyFinal` diubah manual ke 250, tekan "Hitung Ulang Perlengkapan" lagi → `qtyHitung` tetap 240 (rumus), `qtyFinal` tetap 250 (override tidak tertimpa)
+- [x] Teknis: tsc bersih, vitest 80/80 (11 file), `pnpm build` (static export) sukses, grep bebas `window.confirm`, `as any`, & impor `next/*` di `src/tartib`; `templateItem` tetap hanya di schema/seed/templateService (A-02)
+- [ ] **Verifikasi manual Ahmed di perangkat fisik** (UI + IndexedDB), lalu tutup Gate D + merge
+
 ## Gate C — status
 
 - [x] Buat acara dari template = snapshot sekali (A-02) — `tartib_tugas` + `tartib_fase` milik acara; grep: `templateItem` hanya di schema/seed/templateService
@@ -59,7 +81,7 @@
 
 ## Next step (presisi)
 
-Gate C ditutup. Batch D — Tamu, porsi, perlengkapan sedang dikerjakan, branch `batch-d-tamu-porsi`. Isi: `tamuService` (CRUD `KelompokTamu`, RSVP dengan jumlah rombongan, `rekapKelompok`), halaman `?view=tamu`, `perlengkapanService.generatePerlengkapan()` dari `rumusQty`, panel porsi dengan komponen perhitungan + toggle tim pencuci. Rincian di `docs/PLAN.md` Batch D.
+Batch D implementasi selesai di branch `batch-d-tamu-porsi`, sudah diverifikasi Claude langsung di browser (semua kriteria Gate D lulus). **Menunggu Ahmed:** (1) verifikasi manual di perangkat fisik → tutup Gate D → merge `batch-d-tamu-porsi` ke `master`; (2) putuskan nasib branch `batch-t-ikhtisar-tentang` (lihat peringatan di bagian Posisi) — buang, simpan sebagai bahan Batch berikutnya via PLAN.md, atau lainnya. Setelah Gate D ditutup: Batch E — Evaluasi & umpan balik, branch `batch-e-evaluasi`. Rincian di `docs/PLAN.md` Batch E.
 
 ## Gate A — status
 
@@ -122,9 +144,22 @@ Gate C ditutup. Batch D — Tamu, porsi, perlengkapan sedang dikerjakan, branch 
 - `18f8a5d` docs(tartib): catat keputusan K-11 (fase disnapshot ke acara) + changelog v1.2
 - `fcf37df` feat(tartib): indikator kesiapan PIC — tombol SIAP dinonaktifkan saat PIC belum lengkap (Batch C-6)
 
+## Files touched (Batch D)
+
+- `src/tartib/types/index.ts` (`Tugas.rumusQty?`), `src/tartib/services/acaraService.ts` + `acaraService.test.ts` (K-12), `src/tartib/services/tamuService.ts` + `tamuService.test.ts`, `src/tartib/services/perlengkapanService.ts` + `perlengkapanService.test.ts`, `src/tartib/components/TamuView.tsx`, `src/app/page.tsx` (routing `?view=tamu` + panggil `jalankanSeed()`), `src/tartib/db/schema.ts` (skema v3 + pemetaan tabel eksplisit), `src/tartib/db/seed.ts` (transaksi idempoten)
+- `docs/DECISIONS.md` (K-12), `docs/PLAN.md` (changelog v1.4), `docs/context/PROJECT-STATE.md`
+
+## Riwayat commit (Batch D)
+
+- `938f908` feat(tartib): tugas menyimpan rumusQty saat snapshot acara (K-12, Batch D-1)
+- `93d05c2` feat(tartib): tamuService — kelompok tamu, RSVP rombongan, rekapKelompok (Batch D-2)
+- `a327446` feat(tartib): perlengkapanService — generatePerlengkapan dari rumusQty tugas (Batch D-3)
+- `a86f4ca` feat(tartib): halaman ?view=tamu — kelompok tamu, RSVP, panel porsi, ceklis perlengkapan (Batch D-4)
+- `f52a61c` fix(tartib): seed dijalankan di titik masuk + skema v3 (index nama) + pemetaan tabel eksplisit + transaksi idempoten (Batch D, bug verifikasi UI)
+
 ## Blocker
 
-Tidak ada. Gate A/B/C ditutup 2026-08-22 (verifikasi manual Ahmed lulus semua). Batch D sedang berjalan di branch `batch-d-tamu-porsi`.
+Tidak ada blocker kode. Gate A/B/C ditutup 2026-08-22. Batch D implementasi selesai + diverifikasi Claude di browser, menunggu verifikasi manual Ahmed di perangkat fisik untuk tutup Gate D + merge. Ada anomali proses yang perlu diketahui Ahmed: branch `batch-t-ikhtisar-tentang` berisi pekerjaan ("Batch T") yang tidak diminta dan tidak ada di PLAN.md — lihat peringatan di bagian Posisi di atas.
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.
