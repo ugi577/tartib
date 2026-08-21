@@ -1,7 +1,7 @@
 // Test transisi status tugas (C-2) — fungsi murni, tanpa IndexedDB.
 import { describe, expect, it } from 'vitest';
 import type { Tugas } from '../types';
-import { perubahanStatusTugas } from './tugasService';
+import { perubahanStatusTugas, statusBerikutnya } from './tugasService';
 
 function tugas(status: Tugas['status'], selesaiPada?: string): Tugas {
   return {
@@ -75,5 +75,14 @@ describe('perubahanStatusTugas', () => {
     expect(hasil.judul).toBe('Sewa tenda');
     expect(hasil.wajib).toBe(true);
     expect(hasil.urutan).toBe(1);
+  });
+});
+
+describe('statusBerikutnya', () => {
+  it('mengikuti siklus BELUM → JALAN → SELESAI → BATAL → BELUM', () => {
+    expect(statusBerikutnya('BELUM')).toBe('JALAN');
+    expect(statusBerikutnya('JALAN')).toBe('SELESAI');
+    expect(statusBerikutnya('SELESAI')).toBe('BATAL');
+    expect(statusBerikutnya('BATAL')).toBe('BELUM');
   });
 });

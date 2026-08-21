@@ -1,7 +1,7 @@
 // Test fungsi murni snapshot acara (K-03/K-11/A-02) — tanpa IndexedDB.
 import { describe, expect, it } from 'vitest';
 import type { AcaraDivisi, Fase, TemplateItem } from '../types';
-import { AcaraError, daftarDivisiTanpaPic, siapkanSnapshotAcara } from './acaraService';
+import { AcaraError, daftarDivisiTanpaPic, siapkanSnapshotAcara, statusBerikutnya } from './acaraService';
 
 function fase(id: string, templateId: string, urutan: number, label: string, offsetHari: number): Fase {
   return { id, templateId, urutan, label, offsetHari };
@@ -129,5 +129,15 @@ describe('daftarDivisiTanpaPic (A-01)', () => {
 
   it('acara tanpa divisi bertugas tidak terblokir (daftar kosong)', () => {
     expect(daftarDivisiTanpaPic([])).toEqual([]);
+  });
+});
+
+describe('statusBerikutnya', () => {
+  it('mengikuti alur PRD 5.2 hingga DIEVALUASI, lalu berhenti', () => {
+    expect(statusBerikutnya('DRAF')).toBe('SIAP');
+    expect(statusBerikutnya('SIAP')).toBe('BERJALAN');
+    expect(statusBerikutnya('BERJALAN')).toBe('SELESAI');
+    expect(statusBerikutnya('SELESAI')).toBe('DIEVALUASI');
+    expect(statusBerikutnya('DIEVALUASI')).toBeNull();
   });
 });

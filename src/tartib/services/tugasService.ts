@@ -11,6 +11,15 @@ export class TugasError extends Error {
   }
 }
 
+// Urutan perputaran status di papan acara; BATAL kembali ke BELUM agar
+// tugas yang dibatalkan bisa dibuka lagi.
+const URUTAN_STATUS_TUGAS: readonly StatusTugas[] = ['BELUM', 'JALAN', 'SELESAI', 'BATAL'];
+
+export function statusBerikutnya(status: StatusTugas): StatusTugas {
+  const idx = URUTAN_STATUS_TUGAS.indexOf(status);
+  return URUTAN_STATUS_TUGAS[(idx + 1) % URUTAN_STATUS_TUGAS.length];
+}
+
 // Transisi status BELUM/JALAN/SELESAI/BATAL. Menjadi SELESAI mengisi
 // selesaiPada; meninggalkan SELESAI menghapusnya. Status sama → objek
 // dikembalikan apa adanya (tidak ada perubahan).

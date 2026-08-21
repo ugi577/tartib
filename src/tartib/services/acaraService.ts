@@ -132,6 +132,21 @@ export function daftarDivisiTanpaPic(acaraDivisi: readonly AcaraDivisi[]): strin
   return acaraDivisi.filter((d) => d.picNama.trim() === '').map((d) => d.divisiId);
 }
 
+// Alur status acara PRD 5.2: DRAF → SIAP → BERJALAN → SELESAI → DIEVALUASI.
+// null = sudah di ujung alur (tidak ada status lanjutan).
+const URUTAN_STATUS_ACARA: readonly StatusAcara[] = ['DRAF', 'SIAP', 'BERJALAN', 'SELESAI', 'DIEVALUASI'];
+
+export function statusBerikutnya(status: StatusAcara): StatusAcara | null {
+  const idx = URUTAN_STATUS_ACARA.indexOf(status);
+  return URUTAN_STATUS_ACARA[idx + 1] ?? null;
+}
+
+// K-11: fase milik acara = salinan baris tartib_fase dengan templateId =
+// id acara (lihat siapkanSnapshotAcara), bukan baris template asli.
+export async function ambilFaseAcara(acaraId: string): Promise<Fase[]> {
+  return tartibDb.fase.where('templateId').equals(acaraId).sortBy('urutan');
+}
+
 export async function ambilAcara(id: string): Promise<Acara> {
   const acara = await tartibDb.acara.get(id);
   if (!acara) throw new AcaraError('Acara tidak ditemukan');
