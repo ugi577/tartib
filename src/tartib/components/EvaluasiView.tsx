@@ -12,13 +12,13 @@ import { daftarDivisi } from '../services/divisiService';
 import * as evaluasiSvc from '../services/evaluasiService';
 import * as ts from '../services/templateService';
 import type { Acara, Divisi, Evaluasi, Template } from '../types';
+import { KELAS } from '../ui/kelas';
 
 function pesanError(e: unknown): string {
   return e instanceof Error ? e.message : 'Terjadi kesalahan';
 }
 
-const klasInput =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-400 focus:outline-none';
+const klasInput = KELAS.input;
 
 export function EvaluasiView() {
   const daftar = usePagedList<Acara>(tartibDb.acara, { orderBy: 'dibuatPada', arah: 'desc' });
@@ -101,37 +101,36 @@ export function EvaluasiView() {
     }
   }
 
-  const klasAksi =
-    'rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50';
+  const klasAksi = KELAS.tombolSekunderKecil;
 
   if (!terpilih) {
     return (
       <div>
         <div className="mb-5">
-          <h2 className="text-xl font-semibold text-slate-800">Evaluasi</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className={KELAS.judulHalaman}>Evaluasi</h2>
+          <p className="text-sm text-teks-halus">
             {daftar.total} acara — pilih acara untuk mengisi lembar evaluasi per divisi dan mempromosikan usulan.
           </p>
         </div>
-        {daftar.memuat && <p className="text-sm text-slate-500">Memuat…</p>}
+        {daftar.memuat && <p className="text-sm text-teks-halus">Memuat…</p>}
         {!daftar.memuat && daftar.items.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
-            <p className="text-sm text-slate-500">Belum ada acara untuk dievaluasi. Buat acara dulu di tab Acara.</p>
+          <div className={KELAS.kosong}>
+            <p className="text-sm text-teks-halus">Belum ada acara untuk dievaluasi. Buat acara dulu di tab Acara.</p>
           </div>
         )}
         <div className="space-y-3">
           {daftar.items.map((a) => (
-            <div key={a.id} className="rounded-xl border border-slate-200 bg-white p-4">
+            <div key={a.id} className={KELAS.kartuIsi}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <span className="font-medium text-slate-800">{a.nama}</span>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <span className="font-medium text-teks-utama">{a.nama}</span>
+                  <p className="mt-1 text-sm text-teks-halus">
                     {formatTanggalIndonesia(a.tanggal)} · status {a.status}
                   </p>
                 </div>
                 <button
                   onClick={() => setTerpilih(a)}
-                  className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
+                  className={KELAS.tombolSekunderKecil}
                 >
                   Buka
                 </button>
@@ -140,7 +139,7 @@ export function EvaluasiView() {
           ))}
         </div>
         {daftar.totalHalaman > 1 && (
-          <div className="mt-5 flex items-center justify-center gap-3 text-sm text-slate-600">
+          <div className="mt-5 flex items-center justify-center gap-3 text-sm text-teks-sedang">
             <button
               onClick={() => daftar.setHalaman(daftar.halaman - 1)}
               disabled={daftar.halaman <= 1}
@@ -175,21 +174,21 @@ export function EvaluasiView() {
           setPesanPromosi(null);
           daftar.muatUlang();
         }}
-        className="mb-3 text-sm font-medium text-emerald-700 hover:underline"
+        className="mb-3 text-sm font-medium text-aksen-700 hover:underline"
       >
         ← Kembali ke daftar acara
       </button>
       <div className="mb-5">
-        <h2 className="text-xl font-semibold text-slate-800">Evaluasi — {terpilih.nama}</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className={KELAS.judulHalaman}>Evaluasi — {terpilih.nama}</h2>
+        <p className="mt-1 text-sm text-teks-halus">
           {formatTanggalIndonesia(terpilih.tanggal)} · isi per divisi: satu yang berjalan baik, satu yang kurang,
           satu usulan perbaikan.
         </p>
       </div>
 
-      {errorUmum && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorUmum}</p>}
+      {errorUmum && <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>}
       {pesanPromosi && (
-        <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{pesanPromosi}</p>
+        <p className="mb-4 rounded-lg bg-aksen-50 px-3 py-2 text-sm text-aksen-700">{pesanPromosi}</p>
       )}
 
       <div className="space-y-3">
@@ -197,11 +196,11 @@ export function EvaluasiView() {
           const isi = form[d.id] ?? { baik: '', kurang: '', usulan: '' };
           const tersimpan = evaluasiMap.get(d.id);
           return (
-            <div key={d.id} className="rounded-xl border border-slate-200 bg-white p-4">
+            <div key={d.id} className={KELAS.kartuIsi}>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-medium text-slate-800">{d.nama}</span>
+                <span className="font-medium text-teks-utama">{d.nama}</span>
                 {tersimpan && (
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
+                  <span className={KELAS.badgeAksen}>
                     tersimpan
                     {tersimpan.sudahDipromosikan ? ' · usulan sudah dipromosikan' : ''}
                   </span>
@@ -209,7 +208,7 @@ export function EvaluasiView() {
               </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-3">
                 <label className="text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Berjalan baik</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Berjalan baik</span>
                   <textarea
                     rows={2}
                     aria-label={`Berjalan baik ${d.nama}`}
@@ -219,7 +218,7 @@ export function EvaluasiView() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Kurang</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Kurang</span>
                   <textarea
                     rows={2}
                     aria-label={`Kurang ${d.nama}`}
@@ -229,7 +228,7 @@ export function EvaluasiView() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Usulan perbaikan</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Usulan perbaikan</span>
                   <textarea
                     rows={2}
                     aria-label={`Usulan perbaikan ${d.nama}`}
@@ -248,9 +247,9 @@ export function EvaluasiView() {
       </div>
 
       {/* Promosi usulan (A-03) */}
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
-        <h3 className="font-medium text-slate-800">Promosikan Usulan ke Template</h3>
-        <p className="mt-1 text-sm text-slate-500">
+      <div className={`mt-6 ${KELAS.kartuIsi}`}>
+        <h3 className="font-medium text-teks-utama">Promosikan Usulan ke Template</h3>
+        <p className="mt-1 text-sm text-teks-halus">
           Promosi membuat <strong>versi template baru</strong> berisi seluruh SOP lama + item usulan di fase
           terakhir. Versi lama tetap terbaca; satu usulan hanya bisa dipromosikan sekali.
         </p>
@@ -258,16 +257,16 @@ export function EvaluasiView() {
           <p className="mt-3 text-sm text-amber-700">Tidak ada template aktif — tidak ada target promosi.</p>
         )}
         {usulanTersedia.length === 0 && (
-          <p className="mt-3 text-sm text-slate-400">Belum ada evaluasi berisi usulan.</p>
+          <p className="mt-3 text-sm text-teks-redup">Belum ada evaluasi berisi usulan.</p>
         )}
         {templates.length > 0 && usulanTersedia.length > 0 && (
           <>
             <label className="mt-3 block text-sm">
-              <span className="mb-1 block font-medium text-slate-700">Template target</span>
+              <span className="mb-1 block font-medium text-teks-kuat">Template target</span>
               <select
                 value={templatePromosi}
                 onChange={(e) => setTemplatePromosi(e.target.value)}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className={KELAS.input}
               >
                 {templates.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -282,23 +281,23 @@ export function EvaluasiView() {
                 return (
                   <div
                     key={e.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-kontrol bg-permukaan-halus px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-700">{e.usulan}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm font-medium text-teks-kuat">{e.usulan}</p>
+                      <p className="text-xs text-teks-halus">
                         {divisi?.nama ?? 'Divisi tidak ditemukan'}
                         {e.kurang ? ` · catatan kurang: ${e.kurang}` : ''}
                       </p>
                     </div>
                     {e.sudahDipromosikan ? (
-                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-700">
+                      <span className={KELAS.badgeUngu}>
                         sudah dipromosikan
                       </span>
                     ) : (
                       <button
                         onClick={() => promosikan(e)}
-                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+                        className={KELAS.tombolUtamaKecil}
                       >
                         Promosikan
                       </button>
