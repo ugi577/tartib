@@ -1,0 +1,106 @@
+'use client';
+
+// Shell routing Tartib (Sesi 0 keputusan): routing via query param (?view=…)
+// dan impor next/* hanya hidup di src/app — src/tartib bebas next/* (Gate A).
+// useSearchParams dibungkus Suspense karena halaman diprerender statis.
+
+import Link from 'next/link';
+import { Suspense, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { AcaraView } from '../tartib/components/AcaraView';
+import { EvaluasiView } from '../tartib/components/EvaluasiView';
+import { TemplateView } from '../tartib/components/TemplateView';
+import { TamuView } from '../tartib/components/TamuView';
+import { TentangView } from '../tartib/components/TentangView';
+import { jalankanSeed } from '../tartib/db/seed';
+
+type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'tentang';
+
+function Konten() {
+  const params = useSearchParams();
+  const view = (params.get('view') as View | null) ?? 'beranda';
+  const aktif = (v: View) => (view === v ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-100');
+
+  return (
+    <main className="mx-auto min-h-screen max-w-3xl px-4 py-8">
+      <header className="mb-6 print:hidden">
+        <h1 className="text-2xl font-semibold text-slate-800">Tartib — Pembuat SOP Acara</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai hari-H.
+        </p>
+        <nav className="mt-4 flex gap-2">
+          <Link href="/?view=beranda" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('beranda')}`}>
+            Beranda
+          </Link>
+          <Link href="/?view=template" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('template')}`}>
+            Template
+          </Link>
+          <Link href="/?view=acara" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('acara')}`}>
+            Acara
+          </Link>
+          <Link href="/?view=tamu" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tamu')}`}>
+            Tamu & Porsi
+          </Link>
+          <Link href="/?view=evaluasi" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('evaluasi')}`}>
+            Evaluasi
+          </Link>
+          <Link href="/?view=tentang" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tentang')}`}>
+            Tentang
+          </Link>
+        </nav>
+      </header>
+
+      {view === 'template' && <TemplateView />}
+      {view === 'acara' && <AcaraView />}
+      {view === 'tamu' && <TamuView />}
+      {view === 'evaluasi' && <EvaluasiView />}
+      {view === 'tentang' && <TentangView />}
+      {view === 'beranda' && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link
+            href="/?view=template"
+            className="rounded-xl border border-slate-200 bg-white p-6 hover:border-emerald-300"
+          >
+            <h3 className="font-semibold text-slate-800">Template SOP</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Kelola template acara: fase, item SOP, divisi PIC, rumus kuantitas, duplikat & versi baru.
+            </p>
+          </Link>
+          <Link
+            href="/?view=acara"
+            className="rounded-xl border border-slate-200 bg-white p-6 hover:border-emerald-300"
+          >
+            <h3 className="font-semibold text-slate-800">Papan Acara</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Buat acara dari template, tetapkan PIC, dan pantau progres tugas per fase.
+            </p>
+          </Link>
+          <Link
+            href="/?view=tamu"
+            className="rounded-xl border border-slate-200 bg-white p-6 hover:border-emerald-300"
+          >
+            <h3 className="font-semibold text-slate-800">Tamu & Porsi</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Kelompok tamu, RSVP berombongan, kalkulator porsi, dan ceklis perlengkapan.
+            </p>
+          </Link>
+        </div>
+      )}
+    </main>
+  );
+}
+
+export default function Halaman() {
+  // Seed berjalan sekali di titik masuk aplikasi (idempotent — lihat
+  // db/seed.ts). Sebelumnya tidak pernah dipanggil sama sekali sehingga
+  // pnpm dev selalu mulai kosong; ini bug pra-Batch D, diperbaiki di sini.
+  useEffect(() => {
+    void jalankanSeed();
+  }, []);
+
+  return (
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center text-sm text-slate-500">Memuat…</main>}>
+      <Konten />
+    </Suspense>
+  );
+}
