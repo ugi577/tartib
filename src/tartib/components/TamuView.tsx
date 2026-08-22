@@ -317,7 +317,7 @@ export function TamuView() {
                 const terbuka = kelompokTerbuka === k.id;
                 const rsvpKelompok = rsvp.filter((x) => x.kelompokId === k.id);
                 return (
-                  <div key={k.id} className="rounded-lg border border-slate-200">
+                  <div key={k.id} className="rounded-kontrol border border-garis">
                     <div className="flex flex-wrap items-center justify-between gap-2 bg-permukaan-halus px-3 py-2">
                       <button onClick={() => setKelompokTerbuka(terbuka ? null : k.id)} className="text-left">
                         <span className="text-sm font-medium text-teks-kuat">{terbuka ? '▾' : '▸'} {k.nama}</span>

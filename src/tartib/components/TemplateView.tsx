@@ -328,11 +328,7 @@ export function TemplateView() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-teks-utama">{t.nama}</span>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${
-                          t.aktif ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-teks-halus'
-                        }`}
-                      >
+                      <span className={`${t.aktif ? KELAS.badgeAksen : KELAS.badgeNetral}`}>
                         {t.aktif ? 'Aktif' : 'Diarsipkan'}
                       </span>
                       <span className={KELAS.badgeNetral}>v{t.versi}</span>
@@ -490,11 +486,7 @@ export function TemplateView() {
         </button>
         <div className="flex flex-wrap items-center gap-2">
           <h2 className={KELAS.judulHalaman}>{terpilih.nama}</h2>
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs ${
-              terpilih.aktif ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-teks-halus'
-            }`}
-          >
+          <span className={`${terpilih.aktif ? KELAS.badgeAksen : KELAS.badgeNetral}`}>
             {terpilih.aktif ? 'Aktif' : 'Diarsipkan'}
           </span>
           <span className={KELAS.badgeNetral}>v{terpilih.versi}</span>
