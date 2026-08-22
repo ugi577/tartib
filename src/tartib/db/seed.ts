@@ -116,6 +116,85 @@ export const TEMPLATE_CONTOH: {
   ],
 };
 
+// Template baku sebagai PANDUAN MANUAL PENGISIAN (sesi 15, arahan Ahmed):
+// itemnya teks contoh — cetak ("Cetak Panduan A4") atau unduh .docx, lalu
+// isi manual di kertas (tanggal tiap fase, PIC tiap item). Idempoten per nama
+// (bukan "hanya bila tabel kosong") supaya muncul juga di data yang sudah ada.
+export const TEMPLATE_PANDUAN: {
+  nama: string;
+  versi: number;
+  jenisAcaraNama: string;
+  catatan: string;
+  fase: FaseContoh[];
+} = {
+  nama: 'SOP Baku (Panduan Manual)',
+  versi: 1,
+  jenisAcaraNama: 'Custom',
+  catatan:
+    'Template baku berisi contoh pengisian — cetak (Cetak Panduan A4) atau unduh .docx, lalu isi manual: nama acara, tanggal tiap fase, dan PIC tiap item. Ganti teks contoh dengan tugas acara Anda.',
+  fase: [
+    {
+      urutan: 1,
+      label: 'Penetapan',
+      offsetHari: -30,
+      items: [
+        { divisiUrutan: 1, judul: 'Contoh: tetapkan tanggal, jam mulai & selesai acara', catatan: 'Tulis tanggal fase di kolom yang tersedia', wajib: true },
+        { divisiUrutan: 1, judul: 'Contoh: bentuk panitia & tulis nama PIC tiap divisi', catatan: 'Satu nama pemilik per tugas', wajib: true },
+        { divisiUrutan: 3, judul: 'Contoh: susun anggaran kasar', catatan: '', wajib: true },
+        { divisiUrutan: 4, judul: 'Contoh: susun rundown acara', catatan: '', wajib: true },
+      ],
+    },
+    {
+      urutan: 2,
+      label: 'Undangan & Anggaran',
+      offsetHari: -14,
+      items: [
+        { divisiUrutan: 2, judul: 'Contoh: kirim undangan & rekap konfirmasi tamu', catatan: '', wajib: true },
+        { divisiUrutan: 5, judul: 'Contoh: rencanakan menu & hitung porsi konsumsi', catatan: '', wajib: true },
+        { divisiUrutan: 6, judul: 'Contoh: cek kebutuhan tenda, kursi, dan sound', catatan: '', wajib: true },
+      ],
+    },
+    {
+      urutan: 3,
+      label: 'Persiapan Lokasi',
+      offsetHari: -7,
+      items: [
+        { divisiUrutan: 6, judul: 'Contoh: sewa & pasang perlengkapan lokasi', catatan: '', wajib: true },
+        { divisiUrutan: 8, judul: 'Contoh: siapkan parkir & rak sandal', catatan: '', wajib: true },
+        { divisiUrutan: 9, judul: 'Contoh: siapkan titik sampah', catatan: '', wajib: true },
+      ],
+    },
+    {
+      urutan: 4,
+      label: 'Gladi & Penataan',
+      offsetHari: -1,
+      items: [
+        { divisiUrutan: 4, judul: 'Contoh: gladi resik seluruh rundown', catatan: '', wajib: true },
+        { divisiUrutan: 13, judul: 'Contoh: pasang penunjuk arah & pembatas area', catatan: '', wajib: true },
+      ],
+    },
+    {
+      urutan: 5,
+      label: 'Hari H',
+      offsetHari: 0,
+      items: [
+        { divisiUrutan: 7, judul: 'Contoh: sambut tamu & isi buku tamu', catatan: '', wajib: true },
+        { divisiUrutan: 5, judul: 'Contoh: hidangkan konsumsi sesuai porsi', catatan: '', wajib: true },
+        { divisiUrutan: 10, judul: 'Contoh: dokumentasikan acara', catatan: '', wajib: true },
+      ],
+    },
+    {
+      urutan: 6,
+      label: 'Evaluasi',
+      offsetHari: 1,
+      items: [
+        { divisiUrutan: 1, judul: 'Contoh: rapat evaluasi per divisi', catatan: '', wajib: true },
+        { divisiUrutan: 6, judul: 'Contoh: kembalikan seluruh barang pinjaman', catatan: '', wajib: true },
+      ],
+    },
+  ],
+};
+
 // ===== Fungsi seed (hanya berjalan di browser, butuh IndexedDB) =====
 // Semua fungsi idempotent: tidak menulis apa pun jika tabel sudah terisi.
 
@@ -143,38 +222,55 @@ export async function seedJenisAcara(db: TartibDb = tartibDb): Promise<number> {
   });
 }
 
+// Menanam satu template (fase + item) — dipakai seedTemplateContoh dan
+// seedTemplatePanduan. Harus dipanggil di dalam transaksi pemanggilnya.
+async function tanamTemplate(
+  db: TartibDb,
+  data: { nama: string; versi: number; jenisAcaraNama: string; catatan: string; fase: FaseContoh[] },
+  labelAsal: string,
+): Promise<number> {
+  const jenisAcara = await db.jenisAcara.where('nama').equals(data.jenisAcaraNama).first();
+  if (!jenisAcara) {
+    throw new Error(`${labelAsal}: jenis acara "${data.jenisAcaraNama}" belum ada — jalankan seedJenisAcara dulu`);
+  }
+
+  const divisi = (await db.divisi.toArray()).sort((a, b) => a.urutan - b.urutan);
+  const divisiByUrutan = new Map(divisi.map((d) => [d.urutan, d.id]));
+
+  const templateId = buatId();
+  const items: { id: string; templateId: string; faseId: string; divisiId: string; judul: string; catatan: string; wajib: boolean; rumusQty?: string; urutan: number }[] = [];
+
+  for (const fase of data.fase) {
+    const faseId = buatId();
+    await db.fase.add({ id: faseId, templateId, urutan: fase.urutan, label: fase.label, offsetHari: fase.offsetHari });
+    fase.items.forEach((item, i) => {
+      const divisiId = divisiByUrutan.get(item.divisiUrutan);
+      if (!divisiId) {
+        throw new Error(`${labelAsal}: divisi urutan ${item.divisiUrutan} tidak ada (item "${item.judul}")`);
+      }
+      items.push({ id: buatId(), templateId, faseId, divisiId, judul: item.judul, catatan: item.catatan, wajib: item.wajib, rumusQty: item.rumusQty, urutan: i + 1 });
+    });
+  }
+
+  await db.template.add({ id: templateId, jenisAcaraId: jenisAcara.id, versi: data.versi, nama: data.nama, catatan: data.catatan, dibuatPada: new Date().toISOString(), aktif: true });
+  await db.templateItem.bulkAdd(items);
+  return items.length;
+}
+
 export async function seedTemplateContoh(db: TartibDb = tartibDb): Promise<number> {
   return db.transaction('rw', db.template, db.templateItem, db.fase, db.jenisAcara, db.divisi, async () => {
     if ((await db.template.count()) > 0) return 0;
+    return tanamTemplate(db, TEMPLATE_CONTOH, 'seedTemplateContoh');
+  });
+}
 
-    const jenisAcara = await db.jenisAcara.where('nama').equals(TEMPLATE_CONTOH.jenisAcaraNama).first();
-    if (!jenisAcara) {
-      throw new Error(`seedTemplateContoh: jenis acara "${TEMPLATE_CONTOH.jenisAcaraNama}" belum ada — jalankan seedJenisAcara dulu`);
-    }
-
-    const divisi = (await db.divisi.toArray()).sort((a, b) => a.urutan - b.urutan);
-    const divisiByUrutan = new Map(divisi.map((d) => [d.urutan, d.id]));
-
-    const templateId = buatId();
-    const faseIds = new Map<number, string>();
-    const items: { id: string; templateId: string; faseId: string; divisiId: string; judul: string; catatan: string; wajib: boolean; rumusQty?: string; urutan: number }[] = [];
-
-    for (const fase of TEMPLATE_CONTOH.fase) {
-      const faseId = buatId();
-      faseIds.set(fase.urutan, faseId);
-      await db.fase.add({ id: faseId, templateId, urutan: fase.urutan, label: fase.label, offsetHari: fase.offsetHari });
-      fase.items.forEach((item, i) => {
-        const divisiId = divisiByUrutan.get(item.divisiUrutan);
-        if (!divisiId) {
-          throw new Error(`seedTemplateContoh: divisi urutan ${item.divisiUrutan} tidak ada (item "${item.judul}")`);
-        }
-        items.push({ id: buatId(), templateId, faseId, divisiId, judul: item.judul, catatan: item.catatan, wajib: item.wajib, rumusQty: item.rumusQty, urutan: i + 1 });
-      });
-    }
-
-    await db.template.add({ id: templateId, jenisAcaraId: jenisAcara.id, versi: TEMPLATE_CONTOH.versi, nama: TEMPLATE_CONTOH.nama, catatan: TEMPLATE_CONTOH.catatan, dibuatPada: new Date().toISOString(), aktif: true });
-    await db.templateItem.bulkAdd(items);
-    return items.length;
+// Idempoten PER NAMA (bukan "hanya bila tabel kosong") supaya template panduan
+// muncul juga pada data yang sudah berisi template lain.
+export async function seedTemplatePanduan(db: TartibDb = tartibDb): Promise<number> {
+  return db.transaction('rw', db.template, db.templateItem, db.fase, db.jenisAcara, db.divisi, async () => {
+    const sudahAda = await db.template.filter((t) => t.nama === TEMPLATE_PANDUAN.nama).first();
+    if (sudahAda) return 0;
+    return tanamTemplate(db, TEMPLATE_PANDUAN, 'seedTemplatePanduan');
   });
 }
 
@@ -182,4 +278,5 @@ export async function jalankanSeed(db: TartibDb = tartibDb): Promise<void> {
   await seedDivisiBaku(db);
   await seedJenisAcara(db);
   await seedTemplateContoh(db);
+  await seedTemplatePanduan(db);
 }

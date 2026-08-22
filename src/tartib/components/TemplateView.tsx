@@ -8,9 +8,11 @@
 // window.confirm).
 
 import { useCallback, useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { tartibDb } from '../db/schema';
+import { standaloneHost } from '../host/standaloneHost';
 import { usePagedList } from '../lib/usePagedList';
-import { formatOffsetHari } from '../lib/tanggal';
+import { formatOffsetHari, formatTanggalIndonesia, tanggalHariIni } from '../lib/tanggal';
 import { bacaZip } from '../lib/impor/zip';
 import { parseXmlLite } from '../lib/impor/xml';
 import { dokumenXmlKeSop, type HasilImporDokumen } from '../lib/impor/dokumenSop';
@@ -67,6 +69,7 @@ export function TemplateView() {
   const [fases, setFases] = useState<Fase[]>([]);
   const [items, setItems] = useState<TemplateItem[]>([]);
   const [memuatEditor, setMemuatEditor] = useState(false);
+  const [cetakPanduan, setCetakPanduan] = useState(false);
 
   const [dialogT, setDialogT] = useState<DialogT>(null);
   const [errorDialog, setErrorDialog] = useState<string | null>(null);
@@ -411,6 +414,16 @@ export function TemplateView() {
     } finally {
       setMenyimpanImpor(false);
     }
+  }
+
+  // Cetak panduan manual pengisian (sesi 15): flushSync memastikan bagian
+  // print ter-commit ke DOM sebelum window.print() (pola Batch F di AcaraView).
+  function cetakPanduanA4() {
+    if (!terpilih) return;
+    flushSync(() => setCetakPanduan(true));
+    void standaloneHost
+      .cetak({ jenis: 'panduanTemplate', templateId: terpilih.id })
+      .finally(() => setCetakPanduan(false));
   }
 
   // Struktur fase & item diambil ulang dari penyimpanan agar ekspor tidak
@@ -899,8 +912,11 @@ export function TemplateView() {
   const jenis = jenisMap.get(terpilih.jenisAcaraId);
 
   return (
-    <div>
-      <div className="mb-5">
+    <>
+      {/* Saat mencetak panduan, seluruh editor disembunyikan dari kertas —
+          yang tercetak hanya formulir panduan di bawah. */}
+      <div className={cetakPanduan ? 'print:hidden' : undefined}>
+        <div className="mb-5">
         <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-aksen-700 hover:underline">
           ← Kembali ke daftar template
         </button>
@@ -934,12 +950,14 @@ export function TemplateView() {
         </div>
       </div>
 
-      {/* Ekspor template (Batch W) */}
+      {/* Ekspor & cetak template (Batch W; cetak panduan sesi 15) */}
       <div className={`mb-4 ${KELAS.kartuIsi}`}>
-        <h3 className="font-medium text-teks-utama">Ekspor Template</h3>
+        <h3 className="font-medium text-teks-utama">Ekspor &amp; Cetak Template</h3>
         <p className="mt-1 text-sm text-teks-halus">
-          Unduh sebagai dokumen Word (.docx) untuk dibagikan atau dicadangkan, atau simpan ke Google Drive.
-          Berkasnya bisa diimpor ulang di tab Template tanpa kehilangan struktur fase & item.
+          Unduh sebagai dokumen Word (.docx) untuk dibagikan atau dicadangkan, simpan ke Google Drive,
+          atau cetak panduan pengisian A4 — formulir kertas berisi fase &amp; item dengan kolom
+          tanggal dan PIC untuk diisi manual. Berkas .docx bisa diimpor ulang di tab Template tanpa
+          kehilangan struktur fase &amp; item.
         </p>
         {pesanEkspor && (
           <p className="mt-3 rounded-lg bg-aksen-50 px-3 py-2 text-sm text-aksen-700">{pesanEkspor}</p>
@@ -959,6 +977,13 @@ export function TemplateView() {
             className={`${KELAS.tombolSekunder} disabled:cursor-not-allowed disabled:opacity-40`}
           >
             {mengunggahDrive ? 'Mengunggah…' : 'Simpan ke Google Drive'}
+          </button>
+          <button
+            onClick={cetakPanduanA4}
+            disabled={memuatEditor}
+            className={`${KELAS.tombolSekunder} disabled:cursor-not-allowed disabled:opacity-40`}
+          >
+            Cetak Panduan (A4)
           </button>
         </div>
         {tampilkanFormClientId && (
@@ -1299,6 +1324,54 @@ export function TemplateView() {
           onYa={simpanHapus}
         />
       )}
-    </div>
+      </div>
+
+      {/* Formulir panduan manual pengisian — hanya muncul di kertas (sesi 15).
+          Kolom tanggal & PIC sengaja kosong untuk diisi tulisan tangan. */}
+      {cetakPanduan && (
+        <div className="hidden print:block">
+          <div className="mb-4 border-b border-slate-400 pb-2">
+            <h1 className="text-lg font-bold">Panduan Manual Pengisian SOP</h1>
+            <p className="text-sm">
+              {terpilih.nama} · {jenis?.nama ?? 'SOP Acara'} · v{terpilih.versi}
+            </p>
+            {terpilih.catatan && <p className="mt-1 text-xs">{terpilih.catatan}</p>}
+            <p className="mt-1 text-xs">Dicetak {formatTanggalIndonesia(tanggalHariIni())}</p>
+          </div>
+          <div className="mb-4 space-y-1 text-sm">
+            <p>Nama acara: ............................................................................</p>
+            <p>
+              Tanggal Hari-H: .................................... Lokasi:{' '}
+              ....................................................
+            </p>
+          </div>
+          {fases.map((fase) => (
+            <div key={fase.id} className="mb-3 break-inside-avoid">
+              <p className="font-semibold">
+                {formatOffsetHari(fase.offsetHari)} — {fase.label} · tanggal:{' '}
+                ......................................
+              </p>
+              <ul className="mt-1 space-y-1 text-sm">
+                {items
+                  .filter((i) => i.faseId === fase.id)
+                  .map((item) => (
+                    <li key={item.id} className="flex gap-2">
+                      <span>☐</span>
+                      <span className="flex-1">
+                        {item.judul}
+                        {divisiMap.get(item.divisiId) && (
+                          <span className="text-slate-500"> · {divisiMap.get(item.divisiId)?.nama}</span>
+                        )}
+                        {item.catatan && <span className="text-slate-500"> — {item.catatan}</span>}
+                      </span>
+                      <span>PIC: .......................</span>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   );
 }

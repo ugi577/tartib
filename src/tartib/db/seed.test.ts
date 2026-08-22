@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DIVISI_BAKU, JENIS_ACARA_BAKU, TEMPLATE_CONTOH } from './seed';
+import { DIVISI_BAKU, JENIS_ACARA_BAKU, TEMPLATE_CONTOH, TEMPLATE_PANDUAN } from './seed';
 import { parseRumusQty } from '../lib/rumusQty';
 
 describe('seed divisi baku', () => {
@@ -74,6 +74,36 @@ describe('seed template contoh', () => {
         }
       }
     }
+  });
+});
+
+describe('seed template panduan manual (sesi 15)', () => {
+  it('fase berurutan dengan offset monotonik dari H-30 sampai H+1', () => {
+    expect(TEMPLATE_PANDUAN.fase.map((f) => f.offsetHari)).toEqual([-30, -14, -7, -1, 0, 1]);
+    expect(TEMPLATE_PANDUAN.fase.map((f) => f.urutan)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('setiap fase punya minimal satu item dan merujuk divisi yang sah', () => {
+    for (const fase of TEMPLATE_PANDUAN.fase) {
+      expect(fase.items.length, `fase "${fase.label}" tanpa item`).toBeGreaterThan(0);
+      for (const item of fase.items) {
+        expect(item.divisiUrutan, `item "${item.judul}"`).toBeGreaterThanOrEqual(1);
+        expect(item.divisiUrutan, `item "${item.judul}"`).toBeLessThanOrEqual(DIVISI_BAKU.length);
+        expect(item.judul.trim(), `item fase "${fase.label}" kosong`).not.toBe('');
+      }
+    }
+  });
+
+  it('setiap item diawali "Contoh:" — teksnya jadi panduan pengisian manual', () => {
+    for (const fase of TEMPLATE_PANDUAN.fase) {
+      for (const item of fase.items) {
+        expect(item.judul.startsWith('Contoh:'), `item "${item.judul}" tidak diawali "Contoh:"`).toBe(true);
+      }
+    }
+  });
+
+  it('jenis acaranya ada di daftar jenis baku (Custom)', () => {
+    expect(JENIS_ACARA_BAKU.map((j) => j.nama)).toContain(TEMPLATE_PANDUAN.jenisAcaraNama);
   });
 
   it('total item template contoh minimal 20', () => {

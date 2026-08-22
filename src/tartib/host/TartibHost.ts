@@ -19,7 +19,8 @@ export type CetakPayload =
   | { jenis: 'lembarTugas'; acaraId: string; picNama: string }
   | { jenis: 'bukuAcara'; acaraId: string }
   | { jenis: 'ikhtisarEksekusi'; acaraId: string } // laporan progres/acara — Batch T (K-13)
-  | { jenis: 'eksporMarkdown'; acaraId: string };
+  | { jenis: 'eksporMarkdown'; acaraId: string }
+  | { jenis: 'panduanTemplate'; templateId: string }; // panduan manual pengisian SOP — sesi 15
 
 export interface TartibHost {
   // Instans Dexie milik host (di standalone: tartib-db; di v3: db v3).
