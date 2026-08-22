@@ -4,13 +4,22 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-19 — 2026-08-22 — Sesi 14: audit pratinjau impor — daftar item yang dibuang wajib terlihat; ekspor .docx diuji pembaca ketat, bukan round-trip sendiri
+
+Ahmed mengaudit pratinjau impor atas dokumen asli dan menunjuk tiga risiko. Keputusan:
+
+1. **Klaim heuristik harus bisa diverifikasi dari UI (kelas RUSAK).** "84 item di luar linimasa tidak diimpor" adalah deklarasi, bukan bukti — item yang gagal dikenali akan hilang diam-diam. Sejak `a7a651f` parser mempertahankan teks item terbuang beserta heading bagiannya (`itemLuarLinimasa`), dan pratinjau menampilkan daftarnya (dilipat, dikelompokkan per BAGIAN). Audit walk independen atas dokumen contoh membuktikan 84 = 39 (BAGIAN 4 ceklis perlengkapan) + 33 (BAGIAN 5 peminjaman/pengembalian) + 12 (BAGIAN 6 protokol khusus); nol item linimasa yang hilang.
+2. **Ekspor .docx cukup diuji round-trip dengan pembaca sendiri — TIDAK.** Bug nyata ditemukan justru oleh pembaca ketat: field ukuran central directory di EOCD ditulis 12 byte terlalu besar (dihitung dari `pos` yang sudah maju ke dalam EOCD), sehingga `unzip` menolak ("missing 12 bytes") dan `textutil` gagal membaca — sementara `bacaZip` (pembaca produksi sendiri, tidak memakai cdSize) lolos. Sejak `0d53a04` ekspor lulus `unzip -t` + `textutil`, dan invariant EOCD dikunci test regresi. Pelajaran: **format berkas yang ditulis manual harus divalidasi dengan pembaca pihak ketiga yang ketat, bukan hanya pembaca sendiri.** Unduhan .docx sebelum fix korup dan harus diunduh ulang.
+3. **Fallback Ketua Panitia dipertahankan** — kriteria Ahmed: bila lebih dari separuh item jatuh ke fallback, heuristik tidak menghasilkan nilai dan lebih jujur dikosongkan. Dokumen contoh: 14/57 (24,6%) — jauh di bawah ambang, dan yang jatuh memang tugas generik ("Tetapkan tanggal, jam mulai…"). Hitungan tebakan vs fallback kini tampil di pratinjau SEBELUM simpan agar bisa dihakimi sebelum menyimpan.
+4. **⚠️ pada label fase adalah isi dokumen** — heading asli dokumen contoh tertulis `"H-21 — Kunci pengisi acara ⚠️"`; aplikasi menyalin apa adanya (fidelitas isi), bukan ikon UI yang butuh legenda.
+
 ## K-18 — 2026-08-22 — Batch W: impor SOP dipindah ke tab Template; ekspor template .docx lokal & Google Drive (membatalkan K-17 poin 1)
 
 Arahan Ahmed: *"salah posisi, mestinya fungsi import ini di tab template, berikan juga fungsi export, local dn gdrive"*. Keputusan:
 
 1. **Titik masuk impor dipindah** dari daftar acara `?view=evaluasi` ke daftar template `?view=template` — **membatalkan K-17 poin 1**. Tab Evaluasi kembali hanya lembar evaluasi per divisi + promosi usulan. Hasil impor tetap template biasa (bisa dibaca / diduplikasi / dimodifikasi di editor template).
 2. **Ekspor template dengan dua target**:
-   - **Lokal** — unduh `.docx` (`lib/ekspor/tulisDocx.ts`): template → DOCX minimal (nama, jenis — catatan, fase tebal `H-offset — label`, item `☐ judul`), ZIP ditulis manual (`buatZip`/`crc32` di `lib/impor/zip.ts`). Round-trip terbukti: hasilnya terbaca ulang oleh `bacaZip` (importer sendiri) dan terbuka di Word/LibreOffice.
+   - **Lokal** — unduh `.docx` (`lib/ekspor/tulisDocx.ts`): template → DOCX minimal (nama, jenis — catatan, fase tebal `H-offset — label`, item `☐ judul`), ZIP ditulis manual (`buatZip`/`crc32` di `lib/impor/zip.ts`). Round-trip terbukti: hasilnya terbaca ulang oleh `bacaZip` (importer sendiri) dan terbuka di Word/LibreOffice. *(Koreksi K-19 poin 2: klaim "terbuka di Word/LibreOffice" keliru — penulis punya bug cdSize 12 byte yang baru terlihat saat diuji `unzip`/`textutil`; lihat K-19.)*
    - **Google Drive** — OAuth 2.0 implicit flow (popup, `response_type=token`, scope `drive.file`, state nonce), token di localStorage `tartib.gdrive.token` (±1 jam, tanpa refresh), unggah dua langkah (POST `uploadType=media` → PATCH `files/{id}`). Client ID diambil dari Google Cloud Console, dimasukkan pengguna sekali di panel ekspor, disimpan di browser ini (`tartib.gdrive.clientId`). Authorized JS origins & redirect URIs yang perlu didaftarkan: `http://localhost:3000/` dan `https://ugi577.github.io/tartib/`.
 3. **Tanpa library baru tetap berlaku** (BRIEF Bagian 4): ZIP ditulis manual (CRC32 tabel 0xedb88320, `CompressionStream('deflate-raw')`), OAuth & unggah Drive memakai `fetch` polos.
 
