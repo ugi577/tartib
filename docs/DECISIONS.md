@@ -4,6 +4,18 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-21 — 2026-08-22 — Sesi 16: identitas header (ikon kalender-ceklis), tab Pengaturan, dan cadangan data sebagai fitur wajib
+
+Tiga arahan Ahmed: *(1) "ganti headernya dengan gradasi warna, tulisan, icon seperti ini" + gambar referensi*, *(2) "buat tab baru pengaturan, dan tambahkan seting dari saran terbaik kamu, termasuk juga masukkan tab 'tentang' yg ada ke dalam tab pengaturan ini, dan rapikan kembali isinya sesuai data yang ada"*, *(3) "icon LogoTartib.tsx ini tdk pas yg lebih pas, isyarat acara dan kotak centang cek list"*. Keputusan:
+
+1. **Ikon aplikasi = kalender berisi ceklis** (dua tercentang, satu menunggu). Iterasi dokumen+panah-grafik dari gambar referensi dibuang atas koreksi Ahmed: ikon harus membawa dua isyarat produk sekaligus — **acara bertanggal** (kalender) dan **item SOP yang dikerjakan** (kotak centang). Artwork tetap kembar dengan favicon `src/app/icon.svg` (aturan lama dipertahankan). Judul header tetap "Tartib — Pembuat SOP Acara" (arahan Ahmed sesi 15), kata "Tartib —" dibuang dari tagline agar tidak berulang; gradasi header dipertegas sky→emerald.
+2. **Pengaturan disimpan di localStorage, BUKAN IndexedDB.** Isinya preferensi milik perangkat (kop cetak, nilai baku porsi), bukan data acara — alasan yang sama dengan client ID Drive (K-18). Konsekuensi yang disengaja: pengaturan **tidak ikut** dalam berkas cadangan data, dan skema Dexie tidak perlu naik versi. `bacaPengaturan` wajib mengembalikan objek sah untuk masukan apa pun (rusak/tipe salah/di luar batas → klem + nilai baku): pengaturan yang tidak terbaca tidak boleh menjatuhkan aplikasi.
+3. **Cadangan & pemulihan .json adalah fitur wajib, bukan pelengkap.** Tartib offline penuh tanpa akun (K-09): membersihkan data peramban = seluruh data acara hilang tanpa jejak, dan sampai sesi 16 tidak ada jalan keluar sama sekali. Pemulihan mengganti SELURUH isi basis data dalam satu transaksi (`clear` + `bulkAdd` semua tabel) — separuh terpulihkan lebih berbahaya daripada gagal, dan berkas asing ditolak sebelum menyentuh data (validasi `aplikasi`/`versi`/tiap tabel/`id` tiap baris).
+4. **Tab "Tentang" dihapus dari navigasi utama** dan menjadi bagian di dalam tab Pengaturan (sub-navigasi Umum / Data & Cadangan / Tentang). Tautan lama `?view=tentang` **tidak dimatikan** — dipetakan ke Pengaturan dengan bagian Tentang terpilih, tab Pengaturan tetap tersorot. Jumlah tab utama tetap enam (aturan mobile sesi 15: semua tab selalu terlihat).
+5. **Isi Tentang harus mencerminkan data & fitur yang benar-benar ada** — daftar kemampuan disusun per tab dan menyebut yang selama ini tak tercatat (impor .docx, ekspor .docx/Drive, cetak panduan A4, cadangan). Angka yang bisa dihitung diambil dari sumbernya (jumlah divisi baku dibaca dari `DIVISI_BAKU`, bukan diketik manual) agar tidak basi diam-diam.
+6. **Kop cetak lembaga** dari Pengaturan disisipkan ke SEMUA blok cetak (buku acara, laporan eksekusi, lembar tugas, panduan template) lewat satu komponen `KopCetak` (`print:block`). Kosong = lembar tanpa kop, persis perilaku sebelum sesi 16.
+7. **WIP Capacitor Ahmed AKHIRNYA dikomit** atas perintah *"push semua"* — 53 berkas proyek Android (~780 KB) dengan hasil build dikecualikan lewat `.gitignore` yang sudah disiapkan Ahmed sendiri.
+
 ## K-20 — 2026-08-22 — Sesi 15: header berlogo; template baku sebagai panduan manual pengisian (cetak A4 + .docx)
 
 Dua arahan Ahmed: header memuat judul + ikon aplikasi; tab Template punya template baku yang bisa diunduh/diekspor dan dicetak sebagai panduan manual pengisian. Keputusan:

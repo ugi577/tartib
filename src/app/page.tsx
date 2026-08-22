@@ -11,13 +11,16 @@ import { AcaraView } from '../tartib/components/AcaraView';
 import { EvaluasiView } from '../tartib/components/EvaluasiView';
 import { TemplateView } from '../tartib/components/TemplateView';
 import { TamuView } from '../tartib/components/TamuView';
-import { TentangView } from '../tartib/components/TentangView';
+import { PengaturanView } from '../tartib/components/PengaturanView';
 import { jalankanSeed } from '../tartib/db/seed';
 import { KELAS } from '../tartib/ui/kelas';
 import { LogoTartib } from '../tartib/components/LogoTartib';
 import { BintangDelapan, PitaIslami } from '../tartib/components/OrnamenIslami';
 
-type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'tentang';
+// 'tentang' bukan lagi tab tersendiri (sesi 16) — tab "Tentang" dipindah
+// menjadi bagian di dalam tab Pengaturan. Nilainya dipertahankan di tipe ini
+// agar tautan lama `?view=tentang` tetap membuka isi yang sama.
+type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'pengaturan' | 'tentang';
 
 // BUG-U2 (Batch U): sebelumnya enam <Link> ditulis satu per satu di dalam
 // `flex` tanpa wrap — di lebar ponsel dua tab terakhir (Evaluasi, Tentang)
@@ -29,7 +32,7 @@ const TAB: ReadonlyArray<{ view: View; label: string }> = [
   { view: 'acara', label: 'Acara' },
   { view: 'tamu', label: 'Tamu & Porsi' },
   { view: 'evaluasi', label: 'Evaluasi' },
-  { view: 'tentang', label: 'Tentang' },
+  { view: 'pengaturan', label: 'Pengaturan' },
 ];
 
 // Kartu pintu masuk di beranda. Sebelum Batch U hanya ada tiga (Template,
@@ -57,42 +60,54 @@ const PINTU_MASUK: ReadonlyArray<{ view: View; judul: string; keterangan: string
     keterangan: 'Catat evaluasi tiap divisi seusai acara, lalu promosikan usulan jadi versi template baru.',
   },
   {
-    view: 'tentang',
-    judul: 'Tentang Tartib',
-    keterangan: 'Posisi produk: dari dokumen SOP menjadi mesin eksekusi acara, dan apa yang sengaja tidak dikerjakan.',
+    view: 'pengaturan',
+    judul: 'Pengaturan',
+    keterangan: 'Kop cetak lembaga, nilai baku kalkulator porsi, Google Drive, cadangan data, dan tentang aplikasi.',
   },
 ];
 
 function Konten() {
   const params = useSearchParams();
   const view = (params.get('view') as View | null) ?? 'beranda';
+  // Tab Pengaturan yang menampung bagian Tentang: tautan lama ?view=tentang
+  // langsung membuka bagian itu, dan tab Pengaturan tetap tersorot.
+  const viewTab: View = view === 'tentang' ? 'pengaturan' : view;
   const aktif = (v: View) =>
-    view === v
+    viewTab === v
       ? 'bg-gradient-to-b from-aksen-500 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-white/30'
       : 'bg-white/60 text-teks-sedang ring-1 ring-inset ring-white/70 backdrop-blur-sm hover:bg-white/80 hover:text-teks-utama';
 
   return (
     <div className="min-h-screen">
-      {/* Bilah header (sesi 15, arahan Ahmed): ornamen islami bintang 8 di
+      {/* Bilah header (sesi 15–16, arahan Ahmed): ornamen islami bintang 8 di
           area identitas + pita pemisah, lalu baris tab TERPISAH di bawahnya
           dengan latar sendiri. Aturan mobile: keenam tab selalu terlihat
-          penuh (grid 3×2 di layar sempit), tanpa overflow. */}
+          penuh (grid 3×2 di layar sempit), tanpa overflow. Sesi 16 (referensi
+          gambar Ahmed): gradasi biru→hijau lebih tegas, judul tebal, dan ikon
+          dokumen-grafik di atas cahaya putih. */}
       <header className="sticky top-0 z-40 print:hidden">
         {/* Area identitas: logo + judul, latar glass gradasi + ornamen samar */}
-        <div className="relative overflow-hidden border-b border-white/70 bg-gradient-to-r from-sky-100/90 via-white/90 to-emerald-100/90 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
+        <div className="relative overflow-hidden border-b border-white/70 bg-gradient-to-r from-sky-200/95 via-sky-50/95 to-emerald-200/90 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
           <BintangDelapan className="pointer-events-none absolute -right-3 -top-4 h-24 w-24 text-emerald-700/10" />
           <BintangDelapan className="pointer-events-none absolute -bottom-5 -left-4 h-20 w-20 text-emerald-700/10" />
           <BintangDelapan className="pointer-events-none absolute left-1/3 -top-3 h-12 w-12 text-emerald-700/[0.08]" />
           <div className="relative mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-3">
-            <LogoTartib
-              judul="Logo Tartib"
-              className="h-10 w-10 shrink-0 drop-shadow-[0_8px_16px_rgb(5_150_105/0.35)] sm:h-11 sm:w-11"
-            />
+            {/* Cahaya putih di belakang ikon — sesuai referensi gambar. */}
+            <span className="relative flex h-11 w-11 shrink-0 items-center justify-center sm:h-12 sm:w-12">
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full bg-white/75 blur-[6px]"
+              />
+              <LogoTartib
+                judul="Logo Tartib"
+                className="relative h-9 w-9 drop-shadow-[0_6px_14px_rgb(2_132_199/0.28)] sm:h-10 sm:w-10"
+              />
+            </span>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-semibold text-teks-utama sm:text-xl">
+              <h1 className="truncate text-lg font-bold tracking-tight text-teks-utama sm:text-2xl">
                 Tartib — Pembuat SOP Acara
               </h1>
-              <p className="hidden truncate text-xs text-teks-halus sm:block sm:text-sm">
+              <p className="hidden truncate text-xs text-teks-sedang sm:block sm:text-sm">
                 Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
               </p>
             </div>
@@ -111,7 +126,7 @@ function Konten() {
               <Link
                 key={t.view}
                 href={`/?view=${t.view}`}
-                aria-current={view === t.view ? 'page' : undefined}
+                aria-current={viewTab === t.view ? 'page' : undefined}
                 className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-center text-sm font-medium sm:px-3 ${aktif(t.view)}`}
               >
                 {t.label}
@@ -126,7 +141,9 @@ function Konten() {
       {view === 'acara' && <AcaraView />}
       {view === 'tamu' && <TamuView />}
       {view === 'evaluasi' && <EvaluasiView />}
-      {view === 'tentang' && <TentangView />}
+      {(view === 'pengaturan' || view === 'tentang') && (
+        <PengaturanView bagianAwal={view === 'tentang' ? 'tentang' : 'umum'} />
+      )}
       {view === 'beranda' && (
         <div className="grid gap-4 sm:grid-cols-2">
           {PINTU_MASUK.map((p) => (
@@ -142,6 +159,14 @@ function Konten() {
         </div>
       )}
       </main>
+      {/* Watermark pengembang (sesi 16, arahan Ahmed): tampil di bawah
+          seluruh halaman; tidak menghalangi sentuhan (pointer-events-none)
+          dan tidak ikut tercetak. */}
+      <footer className="pointer-events-none fixed inset-x-0 bottom-0 z-10 print:hidden">
+        <p className="pb-1 text-center text-[11px] tracking-wide text-teks-redup/80">
+          dev achshoks@askarquran
+        </p>
+      </footer>
     </div>
   );
 }

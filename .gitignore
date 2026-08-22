@@ -13,3 +13,10 @@ out/
 
 # session/agent artifacts (tidak ikut publik)
 .claude/
+
+# capacitor / android (hasil build tidak ikut; proyek android tetap di-commit)
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/capacitor-cordova-android-plugins/

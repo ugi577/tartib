@@ -16,6 +16,7 @@ import * as tamuSvc from '../services/tamuService';
 import * as perlengkapanSvc from '../services/perlengkapanService';
 import { FormDialog, KonfirmasiDialog } from './AppDialog';
 import type { Acara, Divisi, KelompokTamu, Perlengkapan, Rsvp, StatusRsvp } from '../types';
+import { usePengaturan } from '../lib/usePengaturan';
 import { KELAS, badgeStatusRsvp } from '../ui/kelas';
 
 function pesanError(e: unknown): string {
@@ -54,12 +55,26 @@ export function TamuView() {
   });
   const [hapusRsvpTarget, setHapusRsvpTarget] = useState<Rsvp | null>(null);
 
+  // Nilai awal = nilai baku sebelum sesi 16; begitu pengaturan perangkat
+  // terbaca (setelah mount), ketiga angka baku di bawah ikut menyesuaikan.
   const [konteks, setKonteks] = useState({ santri: 0, panitia: 0, cadangan: 10, bufferPersen: 25, adaTimPencuci: true });
+  const pengaturan = usePengaturan();
   const [memuatPerlengkapan, setMemuatPerlengkapan] = useState(false);
 
   useEffect(() => {
     void daftarDivisi().then(setDivisiList);
   }, []);
+
+  // Nilai baku kalkulator dari tab Pengaturan. Jumlah santri & panitia tidak
+  // ikut — keduanya milik acara, bukan preferensi perangkat.
+  useEffect(() => {
+    setKonteks((s) => ({
+      ...s,
+      cadangan: pengaturan.porsiCadangan,
+      bufferPersen: pengaturan.porsiBufferPersen,
+      adaTimPencuci: pengaturan.adaTimPencuci,
+    }));
+  }, [pengaturan]);
 
   async function muatDetail(acara: Acara) {
     setMemuat(true);

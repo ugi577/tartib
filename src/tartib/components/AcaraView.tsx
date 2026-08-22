@@ -23,6 +23,7 @@ import * as tugasSvc from '../services/tugasService';
 import { standaloneHost } from '../host/standaloneHost';
 import { FormDialog } from './AppDialog';
 import type { Acara, AcaraDivisi, Divisi, Fase, JenisAcara, Template, Tugas } from '../types';
+import { KopCetak } from './KopCetak';
 import { KELAS, badgeStatusAcara, badgeStatusTugas } from '../ui/kelas';
 
 function pesanError(e: unknown): string {
@@ -416,6 +417,7 @@ export function AcaraView() {
       {/* Batch F: lembar tugas per PIC — satu halaman per orang (break-before-page). */}
       {cetakAktif === 'lembarTugas' && (
         <div className="hidden print:block">
+          <KopCetak />
           <div className="mb-5 border-b border-slate-300 pb-2">
             <h2 className="text-lg font-bold text-slate-900">Lembar Tugas — {terpilih.nama}</h2>
             <p className="mt-1 text-xs text-teks-sedang">
@@ -455,6 +457,7 @@ export function AcaraView() {
       {/* Batch F: buku acara — SOP lengkap satu acara, A4, per fase lalu per divisi. */}
       {cetakAktif === 'bukuAcara' && (
         <div className="hidden print:block">
+          <KopCetak />
           <div className="mb-6 text-center">
             <h2 className="text-xl font-bold text-slate-900">SOP ACARA — {terpilih.nama}</h2>
             <p className="mt-1 text-xs text-teks-sedang">
@@ -499,6 +502,7 @@ export function AcaraView() {
       {/* T-3: kop laporan khusus cetak — hanya muncul di kertas (print), bukan layar. */}
       {cetakAktif === 'ikhtisarEksekusi' && (
         <div className="mb-4 hidden print:block">
+          <KopCetak />
           <h2 className="text-lg font-bold text-slate-900">Laporan Eksekusi — {terpilih.nama}</h2>
           <p className="mt-1 text-xs text-teks-sedang">
             {jenis?.nama ?? 'Jenis tidak ditemukan'} · Hari-H {formatTanggalIndonesia(terpilih.tanggal)} · Status{' '}
