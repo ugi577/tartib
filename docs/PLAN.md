@@ -152,7 +152,7 @@ Branch: `batch-f-cetak`
 
 Branch: di **repo v3**, bukan di repo tartib.
 
-> **BATAL — 2026-08-22, keputusan final pisahkan (K-15).** Tartib dan mahadapp dipisahkan; integrasi **tidak dikerjakan** (bukan lagi ditunda). Penggantinya: info/link di mahadapp menunjuk ke aplikasi Tartib — contoh Ahmed: di Studio Print, entri "SOP acara" menunjuk ke aplikasi Tartib (tercatat di backlog PLAN v3; detail URL publik Tartib, penempatan, dan waktu belum diputuskan). G-1 (`ea10ea6`) & G-3 (`4c204af`) ter-commit inert di cabang `batch-g-integrasi-v3`, dibiarkan apa adanya (tidak di-push; cabang bisa dihapus kapan saja); G-2, G-4, G-5, dan Gate G **tidak akan dikerjakan**.
+> **BATAL — 2026-08-22, keputusan final pisahkan (K-15).** Tartib dan mahadapp dipisahkan; integrasi **tidak dikerjakan** (bukan lagi ditunda). Penggantinya: info/link di mahadapp menunjuk ke aplikasi Tartib — **dikerjakan 2026-08-22**: entri "SOP Acara" di Studio Print (v3 `f88dfe2`, wip) membuka https://ugi577.github.io/tartib/ via `window.open(..., "_blank")` — **menunggu uji manual di device**. Cabang `batch-g-integrasi-v3` (berisi G-1 `ea10ea6` & G-3 `4c204af`) **DIHAPUS** 2026-08-22 atas perintah pemilik — komit bisa dipulihkan via reflog (±90 hari), skema DB v3 tetap v37. G-2, G-4, G-5, dan Gate G **tidak akan dikerjakan**.
 
 1. Salin `src/tartib/` ke v3
 2. `mahadHost.ts` — implementasi `TartibHost` terhadap Dexie & tabel v3
@@ -171,6 +171,8 @@ Branch: di **repo v3**, bukan di repo tartib.
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.11** — **Pelaksanaan K-15 (sesi 9, perintah Ahmed: repo baru, link, bersihkan, rencana UI)**. (1) **Repo publik `ugi577/tartib`** dibuat (publik) + GitHub Pages aktif: https://ugi577.github.io/tartib/ (HTTP 200) — workflow deploy (checkout → pnpm 11 → node 22 → `pnpm install --frozen-lockfile` → `pnpm build` dengan `NEXT_PUBLIC_BASE_PATH=/tartib` → deploy-pages; `fix(ci)` node 22 karena pnpm 11.22 butuh Node ≥ 22.13); konten publik = snapshot bersih 59 file (README, workflow, `src/`, test) **tanpa `docs/` internal**. (2) **Link pengganti integrasi dikerjakan**: entri "SOP Acara" di Studio Print v3 membuka URL publik (`f88dfe2`, wip) — menunggu uji manual device. (3) **Cabang `batch-g-integrasi-v3` DIHAPUS** (G-1/G-3 pulih via reflog ±90 hari). (4) **`docs/PLAN-UI.md` ditulis** — rencana perbaikan/percantikan UI pakai MCP & tool lain (browser-use `control-browser`/`web-gui-tester`, audit per-view, verifikasi bersama Ahmed) — **menunggu persetujuan eksekusi**. Alur sinkron repo publik berikutnya belum diputuskan.
 
 - **2026-08-22 — v1.10** — **Keputusan final: pisahkan (K-15)** — Batch G integrasi v3 **batal** (bukan lagi ditunda). Ahmed: *"sy putuskan pisahkan, cukup nnt ditambahkan di mahadapp info ke app tartib ini, misal dalam studio print sop acara linknya ke app ini"* — latar: kedua aplikasi direncanakan fork dengan nama lain untuk rilis publik. Pengganti integrasi: info/link di mahadapp menunjuk ke Tartib (contoh: Studio Print, entri SOP acara) — belum diimplementasikan, tercatat di backlog PLAN v3; detail (URL publik Tartib, penempatan, waktu) menunggu keputusan. Komit G-1/G-3 tetap inert di cabang `batch-g-integrasi-v3` (tidak di-push; bisa dihapus kapan saja, komit bisa dipulihkan via reflog).
 

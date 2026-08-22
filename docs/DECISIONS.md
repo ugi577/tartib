@@ -13,6 +13,8 @@ Keputusan final Ahmed — *"sy putuskan pisahkan, cukup nnt ditambahkan di mahad
 3. **Komit G-1 (`ea10ea6`) dan G-3 (`4c204af`) tetap di cabang `batch-g-integrasi-v3`** — tidak di-revert, tidak dihapus, tidak di-push (keputusan K-14 poin 2 dipertahankan). Cabang bisa dihapus kapan saja — komitnya bisa dipulihkan via reflog (±90 hari).
 4. Detail item info/link yang **belum diputuskan**: URL tujuan (Tartib belum di-hosting — tidak ada alamat publik; fork publik belum ada), penempatan persis, dan waktu pengerjaan.
 
+**Tambahan — 2026-08-22 (sesi 9, status pelaksanaan):** poin 2–4 K-15 terpenuhi. (a) **Tartib di-hosting publik**: repo `ugi577/tartib` (publik) dengan GitHub Pages https://ugi577.github.io/tartib/ (terverifikasi HTTP 200); konten publik = snapshot kode bersih **tanpa `docs/` internal**. (b) **Link dikerjakan**: entri "SOP Acara" di Studio Print v3 (`f88dfe2`, wip) membuka URL publik via `window.open(..., "_blank")` — **menunggu uji manual Ahmed di device**. (c) Cabang `batch-g-integrasi-v3` **DIHAPUS** 2026-08-22 atas perintah Ahmed ("bersihkan skrg") — komit G-1 (`ea10ea6`)/G-3 (`4c204af`) bisa dipulihkan via reflog (±90 hari), skema DB v3 tetap v37. Keputusan pisahkan tidak berubah.
+
 ## K-14 — 2026-08-22 — Tartib berdiri sendiri; integrasi ke mahadapp menunggu konfirmasi
 
 Ahmed memutuskan Tartib adalah **aplikasi mandiri** ("app ini saya buat berdiri sendiri"); opsi integrasi ke mahadapp **ditunda menunggu konfirmasi eksplisit** — "opsi integrasi tunggu konfirmasi", demi stabilitas tampilan UI dan sistem mahadapp. Keputusan:
