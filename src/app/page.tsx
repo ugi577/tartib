@@ -13,6 +13,7 @@ import { TemplateView } from '../tartib/components/TemplateView';
 import { TamuView } from '../tartib/components/TamuView';
 import { PengaturanView } from '../tartib/components/PengaturanView';
 import { EKonfirmasiView } from '../tartib/components/EKonfirmasiView';
+import { pasangUnduhanNative } from './unduhNative';
 import { jalankanSeed } from '../tartib/db/seed';
 import { KELAS } from '../tartib/ui/kelas';
 import { LogoTartib } from '../tartib/components/LogoTartib';
@@ -184,6 +185,9 @@ export default function Halaman() {
   // pnpm dev selalu mulai kosong; ini bug pra-Batch D, diperbaiki di sini.
   useEffect(() => {
     void jalankanSeed();
+    // Unduhan native (Capacitor): Android WebView mengabaikan anchor
+    // download — shell memasang handler Filesystem+Share (sesi 16).
+    pasangUnduhanNative();
   }, []);
 
   return (
