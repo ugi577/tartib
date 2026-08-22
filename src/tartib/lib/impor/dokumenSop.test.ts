@@ -63,6 +63,7 @@ describe('tebakDivisi', () => {
     expect(tebakDivisi('Petugas sandal di pintu')).toBe('Parkir & Sandal');
     expect(tebakDivisi('Bentuk panitia')).toBe('Ketua Panitia');
     expect(tebakDivisi('Buku tamu terisi')).toBe('Penerima Tamu');
+    expect(tebakDivisi('Jalankan rundown dari awal sampai akhir, tanpa tamu')).toBe('Acara & MC');
     expect(tebakDivisi('Kembalikan barang pinjaman')).toBe('Perlengkapan & Sound');
     expect(tebakDivisi('Uji sound di setiap sudut')).toBe('Perlengkapan & Sound');
     expect(tebakDivisi('Bukhur dinyalakan sebelum tamu masuk')).toBe('Aroma & Suasana');

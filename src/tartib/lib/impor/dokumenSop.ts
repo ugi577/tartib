@@ -76,7 +76,8 @@ export function labelFaseBersih(teks: string): string {
   return bersih.trim() || teks.trim();
 }
 
-// Kata kunci → divisi baku (urutan penting: yang lebih spesifik lebih dulu).
+// Kata kunci → divisi baku (urutan penting: yang lebih spesifik lebih dulu —
+// mis. "rundown … tanpa tamu" harus Acara & MC, bukan Penerima Tamu).
 const TEBAKAN_DIVISI: ReadonlyArray<readonly [RegExp, string]> = [
   [/bukhur|pengharum|kipas|arom/i, 'Aroma & Suasana'],
   [/parkir|sandal/i, 'Parkir & Sandal'],
@@ -86,10 +87,11 @@ const TEBAKAN_DIVISI: ReadonlyArray<readonly [RegExp, string]> = [
   [/dokumentasi|foto|video|streaming|kamera|live/i, 'Dokumentasi & Live'],
   [/p3k|obat|kesehatan|klinik/i, 'Kesehatan'],
   [/sampah|sapu|kebersihan/i, 'Kebersihan'],
-  [/buku tamu|sambut|tamu/i, 'Penerima Tamu'],
+  [/buku tamu|sambut/i, 'Penerima Tamu'],
+  [/rundown|\bmc\b|tilawah|pengisi|gladi|doa|maulid|naskah/i, 'Acara & MC'],
   [/undangan|surat|rekap|konfirmasi/i, 'Sekretaris'],
   [/anggaran|belanja|amplop|laporan|keuangan/i, 'Bendahara'],
-  [/rundown|\bmc\b|tilawah|pengisi|gladi|doa|maulid|syarat|naskah/i, 'Acara & MC'],
+  [/tamu/i, 'Penerima Tamu'],
   [/panitia/i, 'Ketua Panitia'],
 ];
 
@@ -139,7 +141,7 @@ export function dokumenXmlKeSop(akar: ElXml): HasilImporDokumen {
       hasil.judulDokumen = teks;
       continue;
     }
-    if (hasil.subJudul === null && !paragrafTebal(blok) && !teks.startsWith('☐')) {
+    if (hasil.subJudul === null && offsetDariLabel(teks) === null && !teks.startsWith('☐')) {
       hasil.subJudul = teks;
       continue;
     }
