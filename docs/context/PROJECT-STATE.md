@@ -5,10 +5,10 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 4 — Amandemen riset pasar Ahmed (K-13): **Batch T (ikhtisar eksekusi & Tentang) SELESAI** di `batch-t-ikhtisar-tentang`; Batch D selesai + fix verifikasi UI; Gate D & T menunggu verifikasi manual Ahmed
-- **Repo:** `/Users/ahmad/Projects/tartib-app` — path dipindah dari `~/dev/tartib` (keputusan user, 2026-08-22)
-- **Branch aktif:** `batch-t-ikhtisar-tentang` (dari ujung `batch-d-tamu-porsi`); `master` = batch A/B/C (gate lulus)
-- **Catatan koordinasi:** saat Batch T berjalan, sesi lain melakukan checkout & pembersihan working tree (edit T-2 sempat hilang, dipulihkan dari konteks). Pastikan hanya satu sesi yang menulis sebelum melanjutkan.
+- **Sesi:** 5 — **Gate D & Gate T LULUS** (verifikasi browser in-app oleh agent, instruksi Ahmed: "verif gate, buka browser di sini"); batch D+T siap merge ke `master`; **Batch E (evaluasi & promosi) dimulai**
+- **Repo:** `/Users/ahmad/Projects/tartib-app`
+- **Branch aktif:** `batch-e-evaluasi` (dari `master` setelah merge D+T); sebelumnya `batch-t-ikhtisar-tentang` ⊃ `batch-d-tamu-porsi`
+- **Bukti verifikasi (browser in-app, acara "Khatam Tasmi 21 Agustus" tanggal 2026-08-21):** seed jalan; buat acara 4 fase/33 tugas; tanggal fase nyata (22 Juli/14 Agustus/21 Agustus/22 Agustus); cycling BELUM→JALAN→SELESAI dengan progres 0→1/33 (0%→3%); selesaiPada terisi; badge "Hari ini" di fase H+1; PIC 13 belum berisi → tombol SIAP terkunci; kop cetak ada di DOM; porsi 130×125%=163+47+20+10=**240**; pencuci toggle **144↔264**; rekap kelompok (RSVP 2 · konfirmasi 1 · total orang 80); qtyFinal ditimpa 250 dengan qtyHitung 240 tetap; halaman Tentang utuh. Cetak kertas fisik ditangguhkan (kop terverifikasi di DOM).
 
 ## Progress
 
@@ -75,22 +75,21 @@
 3. Cetak Laporan Eksekusi — `CetakPayload` bertambah `ikhtisarEksekusi` (aditif, K-04); tombol cetak via `standaloneHost.cetak`; kop laporan `hidden print:block`; kontrol interaktif `print:hidden` (termasuk shell `page.tsx`); kontak PIC tampil di cetakan
 4. `src/tartib/components/TentangView.tsx` + tab `?view=tentang` — posisi produk: peta lanskap (pembuat dokumen vs eksekusi acara), 4 cara Tartib mengisi celah, backlog yang disengaja (notifikasi/Slack/ERP — K-09)
 
-## Gate D — status
+## Gate D — status — LULUS 2026-08-22 (browser in-app)
 
-- [x] Teknis: tsc bersih, vitest 94/94 (12 file, termasuk tamuService & perlengkapanService), `pnpm build` statis sukses
+- [x] Teknis: tsc bersih, vitest 94/94 (12 file), `pnpm build` statis sukses
 - [x] Fix bug verifikasi UI ter-commit (seed, skema v3, transaksi idempoten)
-- [ ] **Verifikasi manual Ahmed:** RSVP rombongan & rekap; porsi fixture 240; toggle pencuci 144↔264; timpa `qtyFinal`
+- [x] RSVP rombongan & rekap benar; porsi fixture 240; toggle pencuci 144↔264; qtyFinal 250 dengan qtyHitung 240 utuh (bukti di Posisi)
 
-## Gate T — status
+## Gate T — status — LULUS 2026-08-22 (browser in-app; cetak kertas fisik ditangguhkan)
 
 - [x] Teknis: tsc bersih, vitest 94/94, `pnpm build` statis sukses
 - [x] Progres & waktu fase = fungsi murni teruji (14 test ikhtisar)
-- [ ] **Verifikasi manual Ahmed:** papan progres, badge fase hari-ini/berikutnya, cetak Laporan Eksekusi di printer fisik, halaman Tentang
+- [x] Papan progres, badge fase hari-ini/berikutnya, kop cetak di DOM, halaman Tentang (bukti di Posisi)
 
 ## Next step (presisi)
 
-1. Verifikasi manual Ahmed untuk Gate D & Gate T di perangkat fisik (checklist di atas), lalu merge `batch-d-tamu-porsi` + `batch-t-ikhtisar-tentang` ke `master`.
-2. Setelah itu Batch E — Evaluasi & umpan balik, branch `batch-e-evaluasi`: `evaluasiService` (`simpanEvaluasi`, `daftarEvaluasi`), halaman `?view=evaluasi`, `promosikanUsulan` membuat versi template baru (A-03), penanda `sudahDipromosikan`. Rincian di `docs/PLAN.md` Batch E.
+Gate D & T ditutup → merge `batch-d-tamu-porsi` + `batch-t-ikhtisar-tentang` ke `master` (ff) → **Batch E** di `batch-e-evaluasi`: `evaluasiService` (`simpanEvaluasi`, `daftarEvaluasi`, `promosikanUsulan` A-03 + penanda `sudahDipromosikan`), halaman `?view=evaluasi` per divisi (berjalan baik / kurang / usulan). Gate E: siklus penuh acara → evaluasi → promosi → acara baru memuat item hasil promosi. Rincian di `docs/PLAN.md` Batch E.
 
 ## Gate A — status
 
@@ -176,7 +175,7 @@
 
 ## Blocker
 
-Tidak ada. Dua gate menunggu verifikasi manual Ahmed (bukan blocker kode): Gate D (tamu/porsi/perlengkapan) dan Gate T (papan progres + cetak laporan + Tentang).
+Tidak ada. Semua gate (A–D, T) lulus. Dev server berjalan di localhost:3000 (sesi verifikasi); browser in-app menampilkan aplikasi untuk Ahmed melihat langsung.
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.

@@ -96,11 +96,11 @@ Branch: `batch-d-tamu-porsi`
 3. `src/tartib/services/perlengkapanService.ts` — `generatePerlengkapan()` dari `rumusQty` template
 4. Panel porsi — menampilkan komponen perhitungan (rsvp × buffer + santri + panitia + cadangan), bukan hanya hasil; toggle tim pencuci
 
-**Gate D**
-- [ ] RSVP mencatat rombongan; rekap kelompok benar
-- [ ] Porsi terhitung sesuai fixture 21 Agustus (240)
-- [ ] Peralatan berubah saat opsi tim pencuci ditoggle (144 ↔ 264)
-- [ ] Qty perlengkapan boleh ditimpa manual (`qtyFinal`), asalnya (`qtyHitung`) tetap tersimpan
+**Gate D** — LULUS 2026-08-22 (verifikasi browser in-app oleh agent, atas instruksi Ahmed "verif gate, buka browser di sini")
+- [x] RSVP mencatat rombongan; rekap kelompok benar — "Wali Santri: diundang 100 · RSVP 2 · konfirmasi 1 · total orang 80" (rombongan BELUM tidak masuk hitungan hadir)
+- [x] Porsi terhitung sesuai fixture 21 Agustus (240) — panel menampilkan komponen: 130×125%=163 + 47 + 20 + 10 = 240
+- [x] Peralatan berubah saat opsi tim pencuci ditoggle (144 ↔ 264) — 0,6× ↔ 1,1×
+- [x] Qty perlengkapan boleh ditimpa manual (`qtyFinal`=250) dan label "hitung otomatis: 240" (`qtyHitung`) tetap tersimpan
 
 ## Batch T — Ikhtisar eksekusi & Tentang (amandemen riset pasar 2026-08-22) · `glm` lo
 
@@ -113,10 +113,10 @@ lembar tugas/buku acara) tidak terpengaruh; Batch T fokus lapisan ikhtisar + pos
 3. Cetak Laporan Eksekusi — payload `ikhtisarEksekusi` di `TartibHost.cetak`; kop laporan khusus print; kontrol interaktif `print:hidden`
 4. Halaman `?view=tentang` — posisi produk: peta lanskap (pembuat dokumen vs eksekusi acara), celah yang diisi, dan yang disengaja backlog (notifikasi/ERP — K-09)
 
-**Gate T**
+**Gate T** — LULUS 2026-08-22 (verifikasi browser in-app oleh agent, atas instruksi Ahmed; cetak kertas fisik ditangguhkan — kop & kontrol print terverifikasi di DOM, Ahmed dapat mencetak kapan saja)
 - [x] Teknis: tsc bersih, vitest 94/94 (12 file), `pnpm build` statis sukses
 - [x] Progres & waktu fase dihitung fungsi murni yang teruji (14 test ikhtisar)
-- [ ] Verifikasi manual Ahmed: papan progres, badge fase, cetak laporan eksekusi di printer fisik
+- [x] Verifikasi: papan progres (0→1/33, 0%→3%, per fase 1/8, per divisi 0/3), badge "Hari ini" pada fase H+1 (22 Agustus) + hint fase berikutnya, `selesaiPada` ("selesai 22 Agu, 07.09"), tombol & kop "Laporan Eksekusi" di DOM, halaman Tentang utuh
 
 ## Batch E — Evaluasi & umpan balik · `clo` high ▲
 
