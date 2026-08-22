@@ -247,7 +247,7 @@ export function EvaluasiView() {
       </div>
 
       {/* Promosi usulan (A-03) */}
-      <div className="mt-6 ${KELAS.kartuIsi}">
+      <div className={`mt-6 ${KELAS.kartuIsi}`}>
         <h3 className="font-medium text-teks-utama">Promosikan Usulan ke Template</h3>
         <p className="mt-1 text-sm text-teks-halus">
           Promosi membuat <strong>versi template baru</strong> berisi seluruh SOP lama + item usulan di fase

@@ -255,7 +255,7 @@ export function TamuView() {
 
         <div className="space-y-3">
           {daftar.items.map((a) => (
-            <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 ${KELAS.kartuIsi}">
+            <div key={a.id} className={`flex flex-wrap items-center justify-between gap-2 ${KELAS.kartuIsi}`}>
               <div>
                 <span className="font-medium text-teks-utama">{a.nama}</span>
                 <p className="mt-1 text-sm text-teks-halus">{formatTanggalIndonesia(a.tanggal)}</p>
