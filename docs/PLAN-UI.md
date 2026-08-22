@@ -1,6 +1,6 @@
 # PLAN-UI — Rencana perbaikan & percantikan tampilan Tartib
 
-> **Status: DIEKSEKUSI** — ditulis 2026-08-22 (sesi 9, item 5 Ahmed: *"plan mcp / tool lain untuk perbaiki / percantik uinya"*), disetujui 2026-08-22 (sesi 10: *"sy konfirmasi — lalu kerjakan"*), dieksekusi 2026-08-22 (sesi 10, Batch U, 6 commit) + dirapikan 2026-08-22 (sesi 10b, tindak lanjut audit: 11 kelas inline bernilai identik diganti token, `8e51183`). Terdaftar sebagai **Batch U** di `docs/PLAN.md`, branch `batch-u-ui`, ditutup oleh **Gate U** (teknis lulus; verifikasi manual Ahmed tersisa). Koreksi alat & klasifikasi temuan: **K-16**.
+> **Status: DIEKSEKUSI** — ditulis 2026-08-22 (sesi 9, item 5 Ahmed: *"plan mcp / tool lain untuk perbaiki / percantik uinya"*), disetujui 2026-08-22 (sesi 10: *"sy konfirmasi — lalu kerjakan"*), dieksekusi 2026-08-22 (sesi 10, Batch U, 6 commit) + dirapikan 2026-08-22 (sesi 10b, tindak lanjut audit: 11 kelas inline bernilai identik diganti token, `8e51183`). **Audit ulang sesi 11 (2026-08-22, arahan Ahmed "fokus ke ui app ini … kerjakan"):** audit browser kedua memakai skill `browser-use:control-browser` (tersedia di sesi ini — lihat koreksi K-16 di bawah) menemukan 2 bug sisa + 1 inkonsistensi token, diperbaiki `ed64c9c` & `7bd9331`. Terdaftar sebagai **Batch U** di `docs/PLAN.md`, branch `batch-u-ui`, ditutup oleh **Gate U** (teknis lulus; verifikasi manual Ahmed tersisa).
 
 ## Latar belakang
 
@@ -8,7 +8,7 @@ Ahmed meminta rencana penggunaan MCP / tool lain untuk memperbaiki dan mempercan
 
 ## Alat yang tersedia (tanpa library baru)
 
-> **Koreksi K-16 (2026-08-22).** Rencana ini semula menyebut skill MCP `browser-use:control-browser` dan `browser-use:web-gui-tester`. Skill tersebut **tidak tersedia** di sesi agen yang mengeksekusi, jadi diganti Browser pane bawaan yang cakupannya setara. *Aturan baru: jangan menyebut alat di rencana tanpa memastikan alat itu ada di sesi yang akan menjalankannya.*
+> **Koreksi K-16 (2026-08-22, diperbarui sesi 11).** Rencana ini semula menyebut skill MCP `browser-use:control-browser` dan `browser-use:web-gui-tester`. Skill tersebut **tidak tersedia** di sesi agen yang mengeksekusi (sesi 10), jadi diganti Browser pane bawaan yang cakupannya setara. **Sesi 11 membuktikan skill itu memang ada** di lingkungan ini — audit ulang UI berjalan penuh lewat `browser-use:control-browser` (snapshot DOM, computed style via evaluasi read-only, klik nyata, ubah viewport). *Aturan: jangan menyebut alat di rencana tanpa memastikan alat itu ada di sesi yang akan menjalankannya.*
 
 | Alat | Peran |
 |---|---|
@@ -74,4 +74,5 @@ Dark mode, font baru, set ikon baru, UI kit/komponen pihak ketiga, animasi besar
 - [x] U-4 Per view — `b7f5a9a`
 - [x] U-5 Regresi cetak — penanda cetak identik sebelum/sesudah (`print:hidden` 11, `print:block` 3, `break-before-page` 2, `break-inside-avoid` 2); `@page{size:A4;margin:14mm}` ada di CSS hasil build; satu-satunya perubahan di blok cetak adalah `text-slate-800` → `text-teks-utama` yang nilainya identik (`rgb(30,41,59)`, diperiksa lewat computed style)
 - [x] U-6 Regresi fungsional — `tsc` bersih, `vitest` 128/128 (17 berkas), `pnpm build` statis sukses; smoke di browser: klik "→ JALAN" mengubah satu tugas BELUM→JALAN (badge jadi `badgeInfo`, progres tetap 0/34 selesai + "1 sedang berjalan"); enam view di 375px tanpa scroll horizontal (diverifikasi ulang sesi 10b: `scrollWidth == clientWidth` == 375, enam link nav lengkap)
+- [x] **Audit ulang sesi 11** (`browser-use:control-browser`) — keenam view 1280px & 375px + detail (board, editor template, kelompok/RSVP, lembar evaluasi) + dialog 375px: nol overflow horizontal, semua kartu/panel/badge ber-token, dialog muat viewport, `colorScheme light`. **Temuan & perbaikan:** BUG-11A `${KELAS.kartuIsi}` sebagai string literal di `TamuView` (daftar acara) & `EvaluasiView` (panel promosi) — kartu tampil polos; `ed64c9c`. BUG-11B badge Aktif/Diarsipkan template memakai kelas inline sendiri (display block, berat 400) + `border-slate-200` mentah di kartu kelompok tamu; `7bd9331` → `KELAS.badgeAksen`/`badgeNetral`/`border-garis`. Terverifikasi di browser (kelas panel promosi = `rounded-kartu border border-garis bg-permukaan-kartu p-4 shadow-kartu`; badge Aktif = `inline-flex … font-medium … text-aksen-700`); `tsc` bersih, `vitest` 128/128, `pnpm build` sukses, penanda cetak utuh (11/3/2/2)
 - [ ] **Gate U — verifikasi manual Ahmed** (terang & gelap, ponsel & layar lebar, plus satu cetakan uji)
