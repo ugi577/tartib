@@ -7,10 +7,14 @@
 // error dari service (mis. PicBelumLengkapError) hanya ditampilkan.
 
 import { useCallback, useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { tartibDb } from '../db/schema';
 import { usePagedList } from '../lib/usePagedList';
 import { formatOffsetHari, formatTanggalIndonesia, geserTanggal, tanggalHariIni } from '../lib/tanggal';
 import { faseBerikutnya, ikhtisarPerDivisi, ikhtisarTugas, statusWaktuFase } from '../lib/ikhtisar';
+import { susunLembarTugas } from '../lib/cetak/lembarTugas';
+import { susunBukuAcara } from '../lib/cetak/bukuAcara';
+import { bukuAcaraKeMarkdown } from '../lib/ekspor/markdown';
 import { daftarDivisi } from '../services/divisiService';
 import * as acaraSvc from '../services/acaraService';
 import * as picSvc from '../services/acaraDivisiService';
@@ -70,6 +74,11 @@ export function AcaraView() {
   const [memuatPapan, setMemuatPapan] = useState(false);
 
   const [errorUmum, setErrorUmum] = useState<string | null>(null);
+
+  // Batch F: target cetak aktif menentukan bagian print yang ada di DOM,
+  // sehingga window.print() hanya mencetak dokumen yang diminta. Bawaan
+  // laporan eksekusi agar perilaku Batch T tidak berubah.
+  const [cetakAktif, setCetakAktif] = useState<'lembarTugas' | 'bukuAcara' | 'ikhtisarEksekusi'>('ikhtisarEksekusi');
 
   const [dialogBuat, setDialogBuat] = useState(false);
   const [errorDialog, setErrorDialog] = useState<string | null>(null);
@@ -207,6 +216,35 @@ export function AcaraView() {
     } catch (e) {
       setErrorUmum(pesanError(e));
     }
+  }
+
+  // ===== Cetak & ekspor (Batch F) =====
+  // flushSync memastikan bagian print sudah ter-commit ke DOM sebelum
+  // window.print() menangkap halaman (state update React bersifat async).
+
+  function cetakJenis(jenis: 'lembarTugas' | 'bukuAcara' | 'ikhtisarEksekusi') {
+    if (!terpilih) return;
+    flushSync(() => setCetakAktif(jenis));
+    if (jenis === 'lembarTugas') {
+      // picNama kosong = cetak semua lembar, satu halaman per PIC.
+      void standaloneHost.cetak({ jenis: 'lembarTugas', acaraId: terpilih.id, picNama: '' });
+    } else {
+      void standaloneHost.cetak({ jenis, acaraId: terpilih.id });
+    }
+  }
+
+  function eksporMarkdown() {
+    if (!terpilih) return;
+    const teks = bukuAcaraKeMarkdown(bukuAcara, formatTanggalIndonesia(hariIni));
+    const blob = new Blob([teks], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SOP-${terpilih.nama.replace(/\s+/g, '-')}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   // ===== Render =====
@@ -391,21 +429,115 @@ export function AcaraView() {
   const ikhtisar = ikhtisarTugas(tugas);
   const perDivisi = new Map(ikhtisarPerDivisi(tugas).map((i) => [i.divisiId, i]));
   const fBerikut = faseBerikutnya(fases, terpilih.tanggal, hariIni);
+  // Batch F: dokumen cetak & ekspor disusun murni dari data papan yang sudah termuat.
+  const bukuAcara = susunBukuAcara({
+    acara: terpilih,
+    jenisNama: jenis?.nama ?? 'Jenis tidak ditemukan',
+    fases,
+    divisi: divisiList,
+    tugas,
+  });
+  const lembarTugasList = susunLembarTugas({ acara: terpilih, fases, divisi: divisiList, acaraDivisi, tugas });
 
   return (
     <div>
+      {/* Batch F: lembar tugas per PIC — satu halaman per orang (break-before-page). */}
+      {cetakAktif === 'lembarTugas' && (
+        <div className="hidden print:block">
+          <div className="mb-5 border-b border-slate-300 pb-2">
+            <h2 className="text-lg font-bold text-slate-900">Lembar Tugas — {terpilih.nama}</h2>
+            <p className="mt-1 text-xs text-slate-600">
+              {jenis?.nama ?? 'Jenis tidak ditemukan'} · Hari-H {formatTanggalIndonesia(terpilih.tanggal)} · Template
+              v{terpilih.templateVersi} · Dicetak {formatTanggalIndonesia(hariIni)}
+            </p>
+          </div>
+          {lembarTugasList.map((l, i) => (
+            <div key={l.divisiId} className={i > 0 ? 'break-before-page' : ''}>
+              <div className="mb-3 border-b border-slate-300 pb-1">
+                <p className="text-base font-bold text-slate-900">{l.divisiNama}</p>
+                <p className="text-xs text-slate-600">
+                  PIC: {l.picNama}
+                  {l.picKontak ? ` · ${l.picKontak}` : ''} · {l.tugas.length} tugas
+                </p>
+              </div>
+              {l.tugas.length === 0 ? (
+                <p className="text-sm text-slate-500">Tidak ada tugas untuk divisi ini.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {l.tugas.map((t) => (
+                    <li key={`${t.faseUrutan}-${t.urutan}`} className="text-sm text-slate-700">
+                      <span className="font-medium">{t.faseLabel}</span>{' '}
+                      <span className="text-slate-400">({formatOffsetHari(t.offsetHari)})</span> — {t.judul}
+                      {t.wajib && <span className="text-amber-700"> (wajib)</span>}
+                      <span className="ml-1 text-xs text-slate-500">[{t.status}]</span>
+                      {t.catatan ? <span className="text-slate-500"> · {t.catatan}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Batch F: buku acara — SOP lengkap satu acara, A4, per fase lalu per divisi. */}
+      {cetakAktif === 'bukuAcara' && (
+        <div className="hidden print:block">
+          <div className="mb-6 text-center">
+            <h2 className="text-xl font-bold text-slate-900">SOP ACARA — {terpilih.nama}</h2>
+            <p className="mt-1 text-xs text-slate-600">
+              {bukuAcara.kop.jenisNama} · Hari-H {formatTanggalIndonesia(bukuAcara.kop.tanggal)}
+              {bukuAcara.kop.jam ? ` · ${bukuAcara.kop.jam}` : ''}
+              {bukuAcara.kop.lokasi ? ` · ${bukuAcara.kop.lokasi}` : ''}
+            </p>
+            <p className="text-xs text-slate-600">
+              Template v{bukuAcara.kop.templateVersi} · Status {bukuAcara.kop.status} · Dicetak{' '}
+              {formatTanggalIndonesia(hariIni)}
+            </p>
+          </div>
+          {bukuAcara.bagian.map((bagian) => (
+            <section key={bagian.faseUrutan} className="mb-6 break-inside-avoid">
+              <h3 className="mb-2 border-b border-slate-300 pb-1 text-base font-bold text-slate-900">
+                {bagian.faseUrutan}. {bagian.faseLabel}{' '}
+                <span className="text-sm font-normal text-slate-500">
+                  ({formatOffsetHari(bagian.offsetHari)}, {formatTanggalIndonesia(bagian.tanggalFase)})
+                </span>
+              </h3>
+              {bagian.kelompok.length === 0 && <p className="text-sm text-slate-500">Tidak ada tugas pada fase ini.</p>}
+              {bagian.kelompok.map((kel) => (
+                <div key={kel.divisiId} className="mb-3 break-inside-avoid">
+                  <p className="text-sm font-semibold text-slate-800">{kel.divisiNama}</p>
+                  <ul className="mt-1 space-y-1">
+                    {kel.tugas.map((t) => (
+                      <li key={t.urutan} className="text-sm text-slate-700">
+                        {t.urutan}. {t.judul}
+                        {t.wajib && <span className="text-amber-700"> (wajib)</span>}
+                        <span className="ml-1 text-xs text-slate-500">[{t.status}]</span>
+                        {t.catatan ? <span className="text-slate-500"> · {t.catatan}</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      )}
+
       {/* T-3: kop laporan khusus cetak — hanya muncul di kertas (print), bukan layar. */}
-      <div className="mb-4 hidden print:block">
-        <h2 className="text-lg font-bold text-slate-900">Laporan Eksekusi — {terpilih.nama}</h2>
-        <p className="mt-1 text-xs text-slate-600">
-          {jenis?.nama ?? 'Jenis tidak ditemukan'} · Hari-H {formatTanggalIndonesia(terpilih.tanggal)} · Status{' '}
-          {terpilih.status} · Template v{terpilih.templateVersi}
-        </p>
-        <p className="text-xs text-slate-600">
-          Progres: {ikhtisar.selesai}/{ikhtisar.total} tugas selesai ({ikhtisar.persenSelesai}%)
-          {ikhtisar.batal > 0 ? ` · ${ikhtisar.batal} batal` : ''} · Dicetak {formatTanggalIndonesia(hariIni)}
-        </p>
-      </div>
+      {cetakAktif === 'ikhtisarEksekusi' && (
+        <div className="mb-4 hidden print:block">
+          <h2 className="text-lg font-bold text-slate-900">Laporan Eksekusi — {terpilih.nama}</h2>
+          <p className="mt-1 text-xs text-slate-600">
+            {jenis?.nama ?? 'Jenis tidak ditemukan'} · Hari-H {formatTanggalIndonesia(terpilih.tanggal)} · Status{' '}
+            {terpilih.status} · Template v{terpilih.templateVersi}
+          </p>
+          <p className="text-xs text-slate-600">
+            Progres: {ikhtisar.selesai}/{ikhtisar.total} tugas selesai ({ikhtisar.persenSelesai}%)
+            {ikhtisar.batal > 0 ? ` · ${ikhtisar.batal} batal` : ''} · Dicetak {formatTanggalIndonesia(hariIni)}
+          </p>
+        </div>
+      )}
 
       <div className="mb-5">
         <button
@@ -467,12 +599,39 @@ export function AcaraView() {
             )}
           </div>
         )}
-        <button
-          onClick={() => void standaloneHost.cetak({ jenis: 'ikhtisarEksekusi', acaraId: terpilih.id })}
-          className="mt-3 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 print:hidden"
-        >
-          Cetak Laporan Eksekusi
-        </button>
+        {/* Batch F: cetak via host.cetak (standalone = window.print); ekspor
+            Markdown diunduh sebagai berkas .md (window.print tidak bisa
+            menghasilkan berkas, jadi tidak lewat host). */}
+        <div className="mt-3 flex flex-wrap gap-2 print:hidden">
+          <button
+            onClick={() => cetakJenis('ikhtisarEksekusi')}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Cetak Laporan Eksekusi
+          </button>
+          <button
+            onClick={() => cetakJenis('lembarTugas')}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Cetak Lembar Tugas (per PIC)
+          </button>
+          <button
+            onClick={() => cetakJenis('bukuAcara')}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Cetak Buku Acara (A4)
+          </button>
+          <button
+            onClick={eksporMarkdown}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Ekspor Markdown
+          </button>
+          <p className="w-full text-xs text-slate-500">
+            Lembar tugas: satu halaman per PIC berisi tugas divisinya. Buku acara: SOP lengkap acara ini dalam
+            format A4. Ekspor Markdown mengunduh berkas .md yang dapat dibuka ulang di editor teks mana pun.
+          </p>
+        </div>
       </div>
 
       {errorUmum && (
