@@ -5,6 +5,7 @@ Cara eksekusi proyek, batch demi batch. Sumber: `docs/BRIEF.md` Bagian 7.
 - Tiap batch: **branch sendiri**, commit kecil per sub-langkah.
 - Gate ditutup hanya dengan pernyataan eksplisit Ahmed untuk butir verifikasi manual.
 - Routing model: Batch A & C (`clo` high), E & G (`clo` high/xhigh) — di situ aturan yang tidak boleh salah. Batch B, D, F boleh `glm`/`cc-deep` effort lo.
+- **UI (perbaikan & percantikan tampilan):** rencana lengkap di `docs/PLAN-UI.md` — memakai MCP browser-use (`control-browser`, `web-gui-tester`) + token Tailwind; **eksekusi menunggu persetujuan Ahmed**.
 
 ---
 
