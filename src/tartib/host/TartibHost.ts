@@ -18,6 +18,7 @@ export interface Petugas {
 export type CetakPayload =
   | { jenis: 'lembarTugas'; acaraId: string; picNama: string }
   | { jenis: 'bukuAcara'; acaraId: string }
+  | { jenis: 'ikhtisarEksekusi'; acaraId: string } // laporan progres/acara — Batch T (K-13)
   | { jenis: 'eksporMarkdown'; acaraId: string };
 
 export interface TartibHost {

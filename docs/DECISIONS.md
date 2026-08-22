@@ -4,6 +4,17 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-13 — 2026-08-22 — Posisi produk: SOP sebagai mesin eksekusi untuk acara kecil–menengah (riset pasar)
+
+Riset lanskap Ahmed (2026-08-22): aplikasi pembuat SOP (AI SOP Genie, SOPmate, Quick SOP) berhenti di dokumen; aplikasi eksekusi acara (Coordon, ORGA) memulai dari SOP manual dan berat untuk skala kecil–menengah. Celah terbesar = jembatan dokumen ↔ eksekusi. Keputusan:
+
+1. **Tartib diposisikan sebagai "SOP yang dieksekusi"**, bukan generator dokumen: template → snapshot acara → papan tugas ber tanggal nyata → laporan eksekusi. Arsitektur K-03/K-11 sudah menjadi jembatan itu; Batch T menambah lapisan yang tampak pengguna: ikhtisar progres (`lib/ikhtisar`), fase hari-ini/berikutnya, dan cetak Laporan Eksekusi.
+2. **Halaman `?view=tentang`** mencatat posisi produk ini secara permanen di dalam aplikasi (peta lanskap, celah yang diisi, cara mengisinya).
+3. **Integrasi eksternal (Slack/ERP/QMS/notifikasi push) tetap backlog** — melanggar K-09 (offline penuh); dicatat jujur di halaman Tentang sebagai visi, bukan janji fitur. Integrasi terdekat yang sah tetap TartibHost → v3 (Batch G).
+4. Skala sasaran ditegaskan: **acara kecil–menengah** (tasyakuran, khataman, acara cabang) — kerumitan alat acara besar sengaja tidak dikejar.
+
+Konsekuensi teknis: `CetakPayload` bertambah `ikhtisarEksekusi` (perluasan aditif batas K-04); hitungan ikhtisar = fungsi murni teruji; persen selesai mengecualikan tugas BATAL dari penyebut agar membatalkan tugas tidak menurunkan progres.
+
 ## K-12 — 2026-08-22 — `rumusQty` ikut disnapshot ke tugas (perluasan K-03/A-02, Batch D)
 
 `tartib_tugas` menyimpan salinan `rumusQty` dari `tartib_templateItem` saat acara dibuat (sama seperti `judul`/`catatan`/`wajib`), bukan field baru yang dibaca belakangan. Alasan: `perlengkapanService.generatePerlengkapan()` (Batch D) perlu rumus qty per tugas untuk menghitung `qtyHitung`, tapi A-02 melarang kode apa pun membaca `tartib_templateItem` untuk acara yang sudah dibuat (diverifikasi grep, Gate C). Menyalin `rumusQty` ke `tugas` sekali di titik snapshot yang sama menjaga aturan itu tanpa jalur baca kedua ke template.

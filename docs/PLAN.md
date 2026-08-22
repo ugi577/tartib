@@ -96,11 +96,27 @@ Branch: `batch-d-tamu-porsi`
 3. `src/tartib/services/perlengkapanService.ts` — `generatePerlengkapan()` dari `rumusQty` template
 4. Panel porsi — menampilkan komponen perhitungan (rsvp × buffer + santri + panitia + cadangan), bukan hanya hasil; toggle tim pencuci
 
-**Gate D**
-- [ ] RSVP mencatat rombongan; rekap kelompok benar
-- [ ] Porsi terhitung sesuai fixture 21 Agustus (240)
-- [ ] Peralatan berubah saat opsi tim pencuci ditoggle (144 ↔ 264)
-- [ ] Qty perlengkapan boleh ditimpa manual (`qtyFinal`), asalnya (`qtyHitung`) tetap tersimpan
+**Gate D** — LULUS 2026-08-22 (verifikasi browser in-app oleh agent, atas instruksi Ahmed "verif gate, buka browser di sini")
+- [x] RSVP mencatat rombongan; rekap kelompok benar — "Wali Santri: diundang 100 · RSVP 2 · konfirmasi 1 · total orang 80" (rombongan BELUM tidak masuk hitungan hadir)
+- [x] Porsi terhitung sesuai fixture 21 Agustus (240) — panel menampilkan komponen: 130×125%=163 + 47 + 20 + 10 = 240
+- [x] Peralatan berubah saat opsi tim pencuci ditoggle (144 ↔ 264) — 0,6× ↔ 1,1×
+- [x] Qty perlengkapan boleh ditimpa manual (`qtyFinal`=250) dan label "hitung otomatis: 240" (`qtyHitung`) tetap tersimpan
+
+## Batch T — Ikhtisar eksekusi & Tentang (amandemen riset pasar 2026-08-22) · `glm` lo
+
+Branch: `batch-t-ikhtisar-tentang` — ditambahkan dari riset lanskap Ahmed (K-13): celah terbesar
+adalah jembatan dokumen SOP ↔ eksekusi real-time untuk acara kecil–menengah. Batch F (cetak
+lembar tugas/buku acara) tidak terpengaruh; Batch T fokus lapisan ikhtisar + posisi produk.
+
+1. `src/tartib/lib/ikhtisar.ts` — fungsi murni: `ikhtisarTugas` (persen selesai, BATAL dikecualikan dari penyebut), `ikhtisarPerDivisi`, `statusWaktuFase` (LALU/HARI_INI/MENDATANG), `faseHariIni`, `faseBerikutnya`
+2. Papan acara — progres keseluruhan (bar + persen), badge Hari ini/Mendatang per fase, x/y selesai per fase, progres per divisi di baris PIC
+3. Cetak Laporan Eksekusi — payload `ikhtisarEksekusi` di `TartibHost.cetak`; kop laporan khusus print; kontrol interaktif `print:hidden`
+4. Halaman `?view=tentang` — posisi produk: peta lanskap (pembuat dokumen vs eksekusi acara), celah yang diisi, dan yang disengaja backlog (notifikasi/ERP — K-09)
+
+**Gate T** — LULUS 2026-08-22 (verifikasi browser in-app oleh agent, atas instruksi Ahmed; cetak kertas fisik ditangguhkan — kop & kontrol print terverifikasi di DOM, Ahmed dapat mencetak kapan saja)
+- [x] Teknis: tsc bersih, vitest 94/94 (12 file), `pnpm build` statis sukses
+- [x] Progres & waktu fase dihitung fungsi murni yang teruji (14 test ikhtisar)
+- [x] Verifikasi: papan progres (0→1/33, 0%→3%, per fase 1/8, per divisi 0/3), badge "Hari ini" pada fase H+1 (22 Agustus) + hint fase berikutnya, `selesaiPada` ("selesai 22 Agu, 07.09"), tombol & kop "Laporan Eksekusi" di DOM, halaman Tentang utuh
 
 ## Batch E — Evaluasi & umpan balik · `clo` high ▲
 
@@ -153,6 +169,8 @@ Branch: di **repo v3**, bukan di repo tartib.
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.5** — Amandemen riset pasar (K-13): Batch T `batch-t-ikhtisar-tentang` ditambahkan & langsung selesai (4 commit `feat(tartib)`): `lib/ikhtisar.ts` murni + 14 test, progres eksekusi di papan acara (persen keseluruhan, fase hari-ini/berikutnya, per fase & per divisi), cetak Laporan Eksekusi (payload `ikhtisarEksekusi`, kop khusus print, kontrol `print:hidden`), halaman `?view=tentang` (posisi produk). PRD diamandemen (§8). Gate T teknis lulus (tsc, 94/94, build statis); tersisa verifikasi manual Ahmed. Batch D juga di-fix saat verifikasi UI (seed di titik masuk, skema v3 + pemetaan tabel, transaksi idempoten).
 
 - **2026-08-22 — v1.4** — Batch D selesai diimplementasi (branch `batch-d-tamu-porsi`, 5 commit `feat(tartib)` + 1 `fix(tartib)`). Yang dibangun: `tamuService` (kelompok tamu CRUD, RSVP dengan jumlah rombongan, `hitungRekapKelompok`/`rekapKelompok`), `perlengkapanService` (`generatePerlengkapan` dari `rumusQty` tugas — bukan templateItem, A-02 tetap terjaga; qtyFinal manual bertahan saat regenerate), halaman `?view=tamu` (kelompok & RSVP, kalkulator porsi dengan komponen perhitungan + toggle tim pencuci, ceklis perlengkapan). Keputusan baru: K-12 (`rumusQty` ikut disnapshot ke tugas). Tiga bug ditemukan & diperbaiki saat verifikasi UI langsung di browser (pra-ada, bukan regresi Batch D): (1) properti tabel Dexie (`tartibDb.divisi` dst.) selalu `undefined` di runtime karena nama field class tidak cocok dengan key `stores()` berprefix `tartib_` — Dexie butuh pemetaan eksplisit `this.divisi = this.table('tartib_divisi')`; (2) `seedTemplateContoh` query `where('nama')` pada `tartib_jenisAcara` tanpa index nama (skema v3 menambahkannya); (3) `jalankanSeed()` tidak pernah dipanggil dari aplikasi (ditambahkan di `page.tsx`, dibungkus transaksi per fungsi agar idempoten walau React StrictMode memanggil efek dua kali). Setelah ketiga fix, seluruh alur emas Batch A–D diverifikasi langsung di browser: buat acara dari template, papan tugas, PIC, RSVP rombongan, porsi persis fixture 240/144/264, toggle tim pencuci, override qty manual bertahan. Gate D teknis: tsc bersih, vitest 80/80 (11 file), build statis sukses, grep bebas `window.confirm`/`as any`/impor `next/*` di `src/tartib`, `templateItem` tetap hanya di schema/seed/templateService. Tersisa verifikasi manual Ahmed di perangkat fisik.
 - **2026-08-22 — v1.3** — Batch C selesai diimplementasi (branch `batch-c-acara-pic`, 6 commit `feat(tartib)` + 1 docs). Yang dibangun: `acaraService.buatDariTemplate()` snapshot sekali (K-03/A-02: item → `tartib_tugas`, fase → salinan `tartib_fase` milik acara K-11), `setStatus` menegakkan A-01 (`PicBelumLengkapError`), `tugasService` (status cycling + `selesaiPada`), `acaraDivisiService` (PIC), `lib/tanggal.ts` (geserTanggal/format Indonesia/H-offset, kalender lokal), halaman `?view=acara` penuh (daftar + buat dari template + papan tugas per fase dengan tanggal nyata + PIC + indikator kesiapan). Gate C teknis: tsc bersih, vitest 70/70 (9 file), build statis sukses, audit A-02 (`templateItem` hanya di schema/seed/templateService), bebas `window.confirm`/`as any`/impor `next/*` di `src/tartib`. Tersisa verifikasi manual Ahmed di perangkat fisik.

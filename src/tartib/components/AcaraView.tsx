@@ -10,11 +10,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { tartibDb } from '../db/schema';
 import { usePagedList } from '../lib/usePagedList';
 import { formatOffsetHari, formatTanggalIndonesia, geserTanggal, tanggalHariIni } from '../lib/tanggal';
+import { faseBerikutnya, ikhtisarPerDivisi, ikhtisarTugas, statusWaktuFase } from '../lib/ikhtisar';
 import { daftarDivisi } from '../services/divisiService';
 import * as acaraSvc from '../services/acaraService';
 import * as picSvc from '../services/acaraDivisiService';
 import * as ts from '../services/templateService';
 import * as tugasSvc from '../services/tugasService';
+import { standaloneHost } from '../host/standaloneHost';
 import { FormDialog } from './AppDialog';
 import type { Acara, AcaraDivisi, Divisi, Fase, JenisAcara, StatusAcara, StatusTugas, Template, Tugas } from '../types';
 
@@ -384,11 +386,32 @@ export function AcaraView() {
   // C-6: indikator kesiapan PIC — blokir naik ke SIAP selama ada divisi bertugas tanpa PIC (A-01).
   const jumlahTanpaPic = acaraDivisi.filter((r) => r.picNama.trim() === '').length;
   const picBelumLengkap = terpilih.status === 'DRAF' && jumlahTanpaPic > 0;
+  // T-2: lapisan eksekusi real-time (K-13) — progres & posisi waktu fase.
+  const hariIni = tanggalHariIni();
+  const ikhtisar = ikhtisarTugas(tugas);
+  const perDivisi = new Map(ikhtisarPerDivisi(tugas).map((i) => [i.divisiId, i]));
+  const fBerikut = faseBerikutnya(fases, terpilih.tanggal, hariIni);
 
   return (
     <div>
+      {/* T-3: kop laporan khusus cetak — hanya muncul di kertas (print), bukan layar. */}
+      <div className="mb-4 hidden print:block">
+        <h2 className="text-lg font-bold text-slate-900">Laporan Eksekusi — {terpilih.nama}</h2>
+        <p className="mt-1 text-xs text-slate-600">
+          {jenis?.nama ?? 'Jenis tidak ditemukan'} · Hari-H {formatTanggalIndonesia(terpilih.tanggal)} · Status{' '}
+          {terpilih.status} · Template v{terpilih.templateVersi}
+        </p>
+        <p className="text-xs text-slate-600">
+          Progres: {ikhtisar.selesai}/{ikhtisar.total} tugas selesai ({ikhtisar.persenSelesai}%)
+          {ikhtisar.batal > 0 ? ` · ${ikhtisar.batal} batal` : ''} · Dicetak {formatTanggalIndonesia(hariIni)}
+        </p>
+      </div>
+
       <div className="mb-5">
-        <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-emerald-700 hover:underline">
+        <button
+          onClick={kembaliKeDaftar}
+          className="mb-3 text-sm font-medium text-emerald-700 hover:underline print:hidden"
+        >
           ← Kembali ke daftar acara
         </button>
         <div className="flex flex-wrap items-center gap-2">
@@ -401,8 +424,34 @@ export function AcaraView() {
           {jam ? ` · ${jam}` : ''}
           {terpilih.lokasi ? ` · ${terpilih.lokasi}` : ''} · {fases.length} fase · {tugas.length} tugas
         </p>
+        {tugas.length > 0 && (
+          <div className="mt-3 max-w-xl">
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <span>
+                {ikhtisar.selesai} dari {ikhtisar.total} tugas selesai
+                {ikhtisar.batal > 0 ? ` · ${ikhtisar.batal} batal` : ''}
+                {ikhtisar.jalan > 0 ? ` · ${ikhtisar.jalan} sedang berjalan` : ''}
+              </span>
+              <span className="font-medium text-slate-700">{ikhtisar.persenSelesai}%</span>
+            </div>
+            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all"
+                style={{ width: `${ikhtisar.persenSelesai}%` }}
+              />
+            </div>
+            {fBerikut && terpilih.status !== 'SELESAI' && terpilih.status !== 'DIEVALUASI' && (
+              <p className="mt-2 text-xs text-slate-500">
+                Fase berikutnya:{' '}
+                <span className="font-medium text-slate-700">{fBerikut.label}</span> ·{' '}
+                {formatTanggalIndonesia(geserTanggal(terpilih.tanggal, fBerikut.offsetHari))} ·{' '}
+                {formatOffsetHari(fBerikut.offsetHari)}
+              </p>
+            )}
+          </div>
+        )}
         {statusBerikut && (
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3 print:hidden">
             <button
               onClick={lanjutkanStatusAcara}
               disabled={picBelumLengkap}
@@ -418,12 +467,20 @@ export function AcaraView() {
             )}
           </div>
         )}
+        <button
+          onClick={() => void standaloneHost.cetak({ jenis: 'ikhtisarEksekusi', acaraId: terpilih.id })}
+          className="mt-3 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 print:hidden"
+        >
+          Cetak Laporan Eksekusi
+        </button>
       </div>
 
-      {errorUmum && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorUmum}</p>}
+      {errorUmum && (
+        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 print:hidden">{errorUmum}</p>
+      )}
 
       {memuatPapan ? (
-        <p className="text-sm text-slate-500">Memuat…</p>
+        <p className="text-sm text-slate-500 print:hidden">Memuat…</p>
       ) : (
         <div className="space-y-4">
           {fases.length === 0 && (
@@ -437,8 +494,15 @@ export function AcaraView() {
           {fases.map((fase) => {
             const tugasFase = tugas.filter((t) => t.faseId === fase.id);
             const tanggalFase = geserTanggal(terpilih.tanggal, fase.offsetHari);
+            const waktu = statusWaktuFase(terpilih.tanggal, fase.offsetHari, hariIni);
+            const faseIkhtisar = ikhtisarTugas(tugasFase);
             return (
-              <div key={fase.id} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div
+                key={fase.id}
+                className={`rounded-xl border bg-white p-4 ${
+                  waktu === 'HARI_INI' ? 'border-emerald-300 ring-2 ring-emerald-200' : 'border-slate-200'
+                }`}
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-slate-800">
@@ -450,7 +514,17 @@ export function AcaraView() {
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
                       {formatTanggalIndonesia(tanggalFase)}
                     </span>
-                    <span className="text-xs text-slate-400">{tugasFase.length} tugas</span>
+                    {waktu === 'HARI_INI' && (
+                      <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white">
+                        Hari ini
+                      </span>
+                    )}
+                    {waktu === 'MENDATANG' && (
+                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-700">Mendatang</span>
+                    )}
+                    <span className="text-xs text-slate-400">
+                      {faseIkhtisar.selesai}/{faseIkhtisar.total} selesai
+                    </span>
                   </div>
                 </div>
 
@@ -481,7 +555,7 @@ export function AcaraView() {
                         </div>
                         <button
                           onClick={() => geserStatusTugas(t)}
-                          className={klasAksi}
+                          className={`${klasAksi} print:hidden`}
                           title={`Ubah status ke ${tugasSvc.statusBerikutnya(t.status)}`}
                         >
                           → {tugasSvc.statusBerikutnya(t.status)}
@@ -521,15 +595,24 @@ export function AcaraView() {
                 const divisi = divisiMap.get(r.divisiId);
                 const isi = formPic[r.id] ?? { picNama: '', picKontak: '' };
                 const sudah = isi.picNama.trim() !== '';
+                const prog = perDivisi.get(r.divisiId);
                 return (
                   <div key={r.id} className="flex flex-wrap items-end gap-2 rounded-lg bg-slate-50 px-3 py-2">
                     <div className="w-36">
                       <p className="text-sm font-medium text-slate-700">{divisi?.nama ?? 'Divisi tidak ditemukan'}</p>
                       <p className={`text-xs ${sudah ? 'text-emerald-600' : 'text-red-500'}`}>
                         {sudah ? `PIC: ${isi.picNama}` : 'belum ada PIC'}
+                        {sudah && isi.picKontak && (
+                          <span className="hidden print:inline text-slate-500"> · {isi.picKontak}</span>
+                        )}
                       </p>
+                      {prog && prog.total > 0 && (
+                        <p className="text-xs text-slate-400">
+                          {prog.selesai}/{prog.total} tugas selesai
+                        </p>
+                      )}
                     </div>
-                    <label className="min-w-36 flex-1 text-sm">
+                    <label className="min-w-36 flex-1 text-sm print:hidden">
                       <span className="sr-only">Nama PIC {divisi?.nama}</span>
                       <input
                         value={isi.picNama}
@@ -538,7 +621,7 @@ export function AcaraView() {
                         className="w-full rounded-lg border border-slate-300 px-3 py-2"
                       />
                     </label>
-                    <label className="min-w-36 flex-1 text-sm">
+                    <label className="min-w-36 flex-1 text-sm print:hidden">
                       <span className="sr-only">Kontak PIC {divisi?.nama}</span>
                       <input
                         value={isi.picKontak}
@@ -547,11 +630,11 @@ export function AcaraView() {
                         className="w-full rounded-lg border border-slate-300 px-3 py-2"
                       />
                     </label>
-                    <button onClick={() => simpanPic(r)} className={klasAksi}>
+                    <button onClick={() => simpanPic(r)} className={`${klasAksi} print:hidden`}>
                       Simpan
                     </button>
                     {sudah && (
-                      <button onClick={() => kosongkanPic(r)} className={klasDanger}>
+                      <button onClick={() => kosongkanPic(r)} className={`${klasDanger} print:hidden`}>
                         Kosongkan
                       </button>
                     )}

@@ -221,4 +221,16 @@ Langkah 9 adalah pembuktian bahwa aplikasi menyelesaikan masalah Bagian 1. Tanpa
 
 ---
 
+## 8. Amandemen — 2026-08-22 (K-13): lapisan eksekusi & posisi produk
+
+Sumber: riset lanskap aplikasi SOP/acara oleh Ahmed (pembuat dokumen: AI SOP Genie, SOPmate, Quick SOP; eksekusi: Coordon, ORGA). Celah pasar: jembatan dokumen ↔ eksekusi untuk acara kecil–menengah. Tambahan lingkup (2.1):
+
+1. **Ikhtisar eksekusi** di papan acara — persen selesai keseluruhan (tugas BATAL dikecualikan dari penyebut), x/y selesai per fase, badge Hari ini/Mendatang per fase, progres per divisi; dihitung fungsi murni `lib/ikhtisar.ts` (teruji).
+2. **Cetak Laporan Eksekusi** — payload `CetakPayload` bertambah `{ jenis: 'ikhtisarEksekusi'; acaraId }` (perluasan aditif §5.5); standalone: `window.print()` dengan kop laporan khusus print.
+3. **Halaman `?view=tentang`** — posisi produk tercatat di dalam aplikasi: peta lanskap, celah yang diisi, dan backlog yang disengaja (notifikasi/Slack/ERP — tetap di luar lingkup §2.2 karena K-09).
+
+Tidak mengubah aturan §5.3 maupun definisi selesai §6.
+
+---
+
 *Dokumen ini otoritatif. Perubahan spesifikasi wajib melalui entry baru di `docs/DECISIONS.md`, lalu PRD diperbarui.*
