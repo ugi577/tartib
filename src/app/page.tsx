@@ -8,12 +8,13 @@ import Link from 'next/link';
 import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AcaraView } from '../tartib/components/AcaraView';
+import { EvaluasiView } from '../tartib/components/EvaluasiView';
 import { TemplateView } from '../tartib/components/TemplateView';
 import { TamuView } from '../tartib/components/TamuView';
 import { TentangView } from '../tartib/components/TentangView';
 import { jalankanSeed } from '../tartib/db/seed';
 
-type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'tentang';
+type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'tentang';
 
 function Konten() {
   const params = useSearchParams();
@@ -40,6 +41,9 @@ function Konten() {
           <Link href="/?view=tamu" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tamu')}`}>
             Tamu & Porsi
           </Link>
+          <Link href="/?view=evaluasi" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('evaluasi')}`}>
+            Evaluasi
+          </Link>
           <Link href="/?view=tentang" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tentang')}`}>
             Tentang
           </Link>
@@ -49,6 +53,7 @@ function Konten() {
       {view === 'template' && <TemplateView />}
       {view === 'acara' && <AcaraView />}
       {view === 'tamu' && <TamuView />}
+      {view === 'evaluasi' && <EvaluasiView />}
       {view === 'tentang' && <TentangView />}
       {view === 'beranda' && (
         <div className="grid gap-4 sm:grid-cols-2">
