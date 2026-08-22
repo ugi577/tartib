@@ -1,14 +1,15 @@
 'use client';
 
 // Generator e-Konfirmasi Kehadiran (sesi 16, arahan Ahmed): menu dari beranda
-// membuka halaman ini — pilih acara, bidang khusus disesuaikan kategori acara
-// (preset per jenis, bisa ditambah/diubah/dihapus), lalu hasilnya dipratinjau
-// dan diunduh sebagai satu berkas HTML mandiri dengan judul "e-Konfirmasi
+// membuka halaman ini — SEMUA isian manual (judul, tanggal, waktu, tempat,
+// maps, WhatsApp; arahan Ahmed: "kosongkan yg perlu dikosongkan, dan ganti
+// dgn input manual"), kategori acara dipilih manual untuk preset bidang
+// khusus (bisa ditambah/diubah/dihapus), lalu hasilnya dipratinjau dan
+// diunduh sebagai satu berkas HTML mandiri dengan judul "e-Konfirmasi
 // Kehadiran - Ma'had Askar Qur'an" (lihat lib/konfirmasi/eKonfirmasi).
 
-import { useEffect, useMemo, useState } from 'react';
-import { tartibDb } from '../db/schema';
-import { formatTanggalIndonesia } from '../lib/tanggal';
+import { useMemo, useState } from 'react';
+import { JENIS_ACARA_BAKU } from '../db/seed';
 import {
   JUDUL_TITLE,
   PRESET_KATEGORI,
@@ -16,18 +17,9 @@ import {
   type BidangKonfirmasi,
 } from '../lib/konfirmasi/eKonfirmasi';
 import { KELAS } from '../ui/kelas';
-import type { Acara, JenisAcara } from '../types';
-
-function pesanError(e: unknown): string {
-  return e instanceof Error ? e.message : 'Terjadi kesalahan';
-}
 
 export function EKonfirmasiView() {
-  const [acaraList, setAcaraList] = useState<Acara[]>([]);
-  const [jenisMap, setJenisMap] = useState<Map<string, JenisAcara>>(new Map());
-  const [error, setError] = useState<string | null>(null);
-
-  const [pilihAcaraId, setPilihAcaraId] = useState('');
+  const [kategori, setKategori] = useState('');
   const [judulAcara, setJudulAcara] = useState('');
   const [tanggal, setTanggal] = useState('');
   const [waktu, setWaktu] = useState('');
@@ -37,41 +29,13 @@ export function EKonfirmasiView() {
   const [bidang, setBidang] = useState<BidangKonfirmasi[]>([]);
   const [pesan, setPesan] = useState<string | null>(null);
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [acaras, jenis] = await Promise.all([
-          tartibDb.acara.toArray(),
-          tartibDb.jenisAcara.toArray(),
-        ]);
-        acaras.sort((a, b) => (a.tanggal < b.tanggal ? 1 : a.tanggal > b.tanggal ? -1 : 0));
-        setAcaraList(acaras);
-        setJenisMap(new Map(jenis.map((j) => [j.id, j])));
-      } catch (e) {
-        setError(pesanError(e));
-      }
-    })();
-  }, []);
-
-  const kategoriTerpilih = pilihAcaraId
-    ? jenisMap.get(acaraList.find((a) => a.id === pilihAcaraId)?.jenisAcaraId ?? '')?.nama ?? ''
-    : '';
-
-  function pilihAcara(id: string) {
-    setPilihAcaraId(id);
-    const a = acaraList.find((x) => x.id === id);
-    if (!a) return;
-    setJudulAcara(a.nama);
-    setTanggal(formatTanggalIndonesia(a.tanggal));
-  }
-
   function isiSesuaiKategori() {
-    const preset = PRESET_KATEGORI[kategoriTerpilih] ?? [];
+    const preset = PRESET_KATEGORI[kategori] ?? [];
     setBidang(preset.map((b) => ({ ...b, opsi: b.opsi ? [...b.opsi] : undefined })));
     setPesan(
       preset.length > 0
-        ? `Bidang khusus untuk kategori "${kategoriTerpilih}" sudah diisi (${preset.length} bidang) — bisa diubah atau dihapus.`
-        : `Kategori "${kategoriTerpilih || '(belum dipilih)'}" tidak punya preset — tambahkan bidang khusus manual.`,
+        ? `Bidang khusus untuk kategori "${kategori}" sudah diisi (${preset.length} bidang) — bisa diubah atau dihapus.`
+        : `Kategori "${kategori || '(belum dipilih)'}" tidak punya preset — tambahkan bidang khusus manual.`,
     );
   }
 
@@ -117,36 +81,43 @@ export function EKonfirmasiView() {
         </p>
       </div>
 
-      {error && <p className={`${KELAS.error}`}>{error}</p>}
       {pesan && <p className="rounded-lg bg-aksen-50 px-3 py-2 text-sm text-aksen-700">{pesan}</p>}
 
-      {/* Pilih acara + identitas */}
+      {/* Identitas acara — SEMUA manual (arahan Ahmed) */}
       <div className={KELAS.kartuIsi}>
         <h3 className="font-medium text-teks-utama">Acara</h3>
-        <label className="mt-2 block text-sm">
-          <span className="mb-1 block font-medium text-teks-kuat">Pilih acara</span>
-          <select value={pilihAcaraId} onChange={(e) => pilihAcara(e.target.value)} className={KELAS.input}>
-            <option value="">— pilih acara —</option>
-            {acaraList.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.nama} · {formatTanggalIndonesia(a.tanggal)}
-              </option>
-            ))}
-          </select>
-        </label>
-        {kategoriTerpilih && (
-          <p className="mt-1 text-xs text-teks-halus">
-            Kategori: <span className="font-medium text-aksen-700">{kategoriTerpilih}</span>
-          </p>
-        )}
+        <p className="mt-1 text-sm text-teks-halus">
+          Isi manual — tidak diambil dari data acara yang tersimpan.
+        </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
+            <span className="mb-1 block font-medium text-teks-kuat">Kategori acara (untuk bidang khusus)</span>
+            <select value={kategori} onChange={(e) => setKategori(e.target.value)} className={KELAS.input}>
+              <option value="">— pilih kategori —</option>
+              {JENIS_ACARA_BAKU.map((j) => (
+                <option key={j.nama} value={j.nama}>
+                  {j.nama}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm">
             <span className="mb-1 block font-medium text-teks-kuat">Judul acara</span>
-            <input value={judulAcara} onChange={(e) => setJudulAcara(e.target.value)} className={KELAS.input} />
+            <input
+              value={judulAcara}
+              onChange={(e) => setJudulAcara(e.target.value)}
+              placeholder="mis. Khataman Tasmi' 30 Juz & Maulid Nabi"
+              className={KELAS.input}
+            />
           </label>
           <label className="block text-sm">
             <span className="mb-1 block font-medium text-teks-kuat">Hari & tanggal</span>
-            <input value={tanggal} onChange={(e) => setTanggal(e.target.value)} className={KELAS.input} />
+            <input
+              value={tanggal}
+              onChange={(e) => setTanggal(e.target.value)}
+              placeholder="mis. Jum'at, 21 Agustus 2026 M / 8 Rabi'ul Awwal 1448 H"
+              className={KELAS.input}
+            />
           </label>
           <label className="block text-sm">
             <span className="mb-1 block font-medium text-teks-kuat">Waktu (opsional)</span>
@@ -194,7 +165,7 @@ export function EKonfirmasiView() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-medium text-teks-utama">Bidang khusus sesuai kategori acara</h3>
           <button onClick={isiSesuaiKategori} className={KELAS.tombolSekunderKecil}>
-            Isi sesuai kategori{kategoriTerpilih ? ` (${kategoriTerpilih})` : ''}
+            Isi sesuai kategori{kategori ? ` (${kategori})` : ''}
           </button>
         </div>
         <p className="mt-1 text-sm text-teks-halus">
