@@ -1,10 +1,13 @@
-// Pembaca ZIP minimal untuk impor dokumen (Batch V).
+// Pembaca & penulis ZIP minimal untuk impor/ekspor dokumen (Batch V, W).
 //
 // DOCX adalah arsip ZIP; Tartib tidak menambah library (BRIEF Bagian 4),
 // jadi arsip dibaca langsung: end-of-central-directory → central directory →
 // local header → data, lalu inflate dengan DecompressionStream('deflate-raw')
 // yang tersedia di browser modern & Node ≥ 18. Hanya metode 0 (stored) dan
 // 8 (deflate) yang didukung — cukup untuk DOCX buatan Word/LibreOffice.
+// Penulisan (buatZip) memakai kebalikannya: CRC32 tabel baku (polinomial
+// 0xedb88320), deflate via CompressionStream('deflate-raw'), dan tanggal DOS
+// 0x0021 (1 Jan 1980) supaya byte arsip deterministik.
 
 /** Isi satu berkas dalam arsip ZIP. */
 export interface BerkasZip {
@@ -99,4 +102,105 @@ export async function bacaZip(buffer: ArrayBuffer): Promise<Map<string, Uint8Arr
     hasil.set(nama, data);
   }
   return hasil;
+}
+
+// ===== Penulis (Batch W, untuk ekspor .docx — lihat lib/ekspor/tulisDocx) =====
+
+const TABEL_CRC: number[] = (() => {
+  const t: number[] = new Array(256);
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+/** CRC-32 (IEEE 802.3, polinomial 0xedb88320) — nilai header entry ZIP. */
+export function crc32(data: Uint8Array): number {
+  let c = 0xffffffff;
+  for (let i = 0; i < data.length; i += 1) c = TABEL_CRC[(c ^ data[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+async function deflate(data: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
+  const cs = new CompressionStream('deflate-raw');
+  const aliran = new Blob([salin(data)]).stream().pipeThrough(cs);
+  return new Uint8Array(await new Response(aliran).arrayBuffer());
+}
+
+export interface EntryZip {
+  nama: string;
+  isi: Uint8Array;
+  /** 0 = stored tanpa kompresi, 8 = deflate (bawaan). */
+  metode?: 0 | 8;
+}
+
+/** Bangun arsip ZIP berisi beberapa entry — bisa dibaca ulang oleh bacaZip. */
+export async function buatZip(entries: EntryZip[]): Promise<Uint8Array<ArrayBuffer>> {
+  const disiapkan = await Promise.all(
+    entries.map(async (e) => {
+      const nama = new TextEncoder().encode(e.nama);
+      const asli = salin(e.isi);
+      const metode = e.metode ?? 8;
+      const data = metode === 0 ? asli : await deflate(asli);
+      return { nama, data, crc: crc32(asli), metode, ukuranAsli: asli.length };
+    }),
+  );
+  const panjangLokal = disiapkan.reduce((s, d) => s + 30 + d.nama.length + d.data.length, 0);
+  const panjangCd = disiapkan.reduce((s, d) => s + 46 + d.nama.length, 0);
+  const buf = new Uint8Array(panjangLokal + panjangCd + 22);
+  const dv = new DataView(buf.buffer);
+  let pos = 0;
+  const ofset: number[] = [];
+
+  for (const d of disiapkan) {
+    ofset.push(pos);
+    dv.setUint32(pos, TANDA_LOKAL, true); pos += 4;
+    dv.setUint16(pos, 20, true); pos += 2; // versi
+    dv.setUint16(pos, 0, true); pos += 2; // flag
+    dv.setUint16(pos, d.metode, true); pos += 2;
+    dv.setUint16(pos, 0, true); pos += 2; // waktu
+    dv.setUint16(pos, 0x0021, true); pos += 2; // tanggal (1 Jan 1980)
+    dv.setUint32(pos, d.crc, true); pos += 4;
+    dv.setUint32(pos, d.data.length, true); pos += 4;
+    dv.setUint32(pos, d.ukuranAsli, true); pos += 4;
+    dv.setUint16(pos, d.nama.length, true); pos += 2;
+    dv.setUint16(pos, 0, true); pos += 2; // ekstra
+    buf.set(d.nama, pos); pos += d.nama.length;
+    buf.set(d.data, pos); pos += d.data.length;
+  }
+
+  const cdMulai = pos;
+  for (let i = 0; i < disiapkan.length; i += 1) {
+    const d = disiapkan[i];
+    dv.setUint32(pos, TANDA_CD, true); pos += 4;
+    dv.setUint16(pos, 20, true); pos += 2; // dibuat oleh
+    dv.setUint16(pos, 20, true); pos += 2; // butuh versi
+    dv.setUint16(pos, 0, true); pos += 2; // flag
+    dv.setUint16(pos, d.metode, true); pos += 2;
+    dv.setUint16(pos, 0, true); pos += 2; // waktu
+    dv.setUint16(pos, 0x0021, true); pos += 2; // tanggal
+    dv.setUint32(pos, d.crc, true); pos += 4;
+    dv.setUint32(pos, d.data.length, true); pos += 4;
+    dv.setUint32(pos, d.ukuranAsli, true); pos += 4;
+    dv.setUint16(pos, d.nama.length, true); pos += 2;
+    dv.setUint16(pos, 0, true); pos += 2; // ekstra
+    dv.setUint16(pos, 0, true); pos += 2; // komentar
+    dv.setUint16(pos, 0, true); pos += 2; // disk
+    dv.setUint16(pos, 0, true); pos += 2; // atribut internal
+    dv.setUint32(pos, 0, true); pos += 4; // atribut eksternal
+    dv.setUint32(pos, ofset[i], true); pos += 4; // ofset lokal
+    buf.set(d.nama, pos); pos += d.nama.length;
+  }
+
+  dv.setUint32(pos, TANDA_EOCD, true); pos += 4;
+  dv.setUint16(pos, 0, true); pos += 2; // disk ini
+  dv.setUint16(pos, 0, true); pos += 2; // disk CD
+  dv.setUint16(pos, disiapkan.length, true); pos += 2;
+  dv.setUint16(pos, disiapkan.length, true); pos += 2;
+  dv.setUint32(pos, pos - cdMulai, true); pos += 4; // ukuran CD
+  dv.setUint32(pos, cdMulai, true); pos += 4; // ofset CD
+  dv.setUint16(pos, 0, true); pos += 2; // komentar
+  return buf;
 }
