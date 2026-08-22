@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tartib</string>
+    <string name="title_activity_main">Tartib</string>
+    <string name="package_name">id.tartib.app</string>
+    <string name="custom_url_scheme">id.tartib.app</string>
+</resources>
