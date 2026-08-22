@@ -16,6 +16,19 @@ import { jalankanSeed } from '../tartib/db/seed';
 
 type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'tentang';
 
+// BUG-U2 (Batch U): sebelumnya enam <Link> ditulis satu per satu di dalam
+// `flex` tanpa wrap — di lebar ponsel dua tab terakhir (Evaluasi, Tentang)
+// keluar batas kontainer dan tidak terjangkau. Daftar tab dijadikan data agar
+// satu kelas berlaku untuk semua dan tidak ada tab yang terlewat lagi.
+const TAB: ReadonlyArray<{ view: View; label: string }> = [
+  { view: 'beranda', label: 'Beranda' },
+  { view: 'template', label: 'Template' },
+  { view: 'acara', label: 'Acara' },
+  { view: 'tamu', label: 'Tamu & Porsi' },
+  { view: 'evaluasi', label: 'Evaluasi' },
+  { view: 'tentang', label: 'Tentang' },
+];
+
 function Konten() {
   const params = useSearchParams();
   const view = (params.get('view') as View | null) ?? 'beranda';
@@ -28,25 +41,17 @@ function Konten() {
         <p className="mt-1 text-sm text-slate-500">
           Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai hari-H.
         </p>
-        <nav className="mt-4 flex gap-2">
-          <Link href="/?view=beranda" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('beranda')}`}>
-            Beranda
-          </Link>
-          <Link href="/?view=template" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('template')}`}>
-            Template
-          </Link>
-          <Link href="/?view=acara" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('acara')}`}>
-            Acara
-          </Link>
-          <Link href="/?view=tamu" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tamu')}`}>
-            Tamu & Porsi
-          </Link>
-          <Link href="/?view=evaluasi" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('evaluasi')}`}>
-            Evaluasi
-          </Link>
-          <Link href="/?view=tentang" className={`rounded-lg px-4 py-2 text-sm font-medium ${aktif('tentang')}`}>
-            Tentang
-          </Link>
+        <nav className="mt-4 flex flex-wrap gap-2">
+          {TAB.map((t) => (
+            <Link
+              key={t.view}
+              href={`/?view=${t.view}`}
+              aria-current={view === t.view ? 'page' : undefined}
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium sm:px-4 ${aktif(t.view)}`}
+            >
+              {t.label}
+            </Link>
+          ))}
         </nav>
       </header>
 

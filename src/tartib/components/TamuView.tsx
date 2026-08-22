@@ -312,7 +312,7 @@ export function TamuView() {
         <div className="space-y-6">
           {/* Kelompok tamu */}
           <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <h3 className="font-medium text-slate-800">Kelompok Tamu</h3>
               <button onClick={bukaDialogKelompokBaru} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700">
                 Tambah Kelompok

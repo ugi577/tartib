@@ -296,7 +296,7 @@ export function TemplateView() {
   if (!terpilih) {
     return (
       <div>
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold text-slate-800">Template SOP Acara</h2>
             <p className="text-sm text-slate-500">
