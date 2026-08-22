@@ -5,10 +5,10 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 6 — **Gate E LULUS** (verifikasi browser in-app oleh agent, instruksi Ahmed: "verif gate, buka browser di sini dulu baru lanjut evaluasi"); **Batch E (evaluasi & promosi) selesai**, siap merge ke `master`; berikutnya **Batch F (cetak & ekspor)**
+- **Sesi:** 7 — **Batch F (cetak & ekspor) selesai**: tsc bersih, vitest 121/121 (16 file), build statis OK, verifikasi browser in-app (rantai tombol → `host.cetak()` → dialog cetak terbukti; ekspor Markdown terunduh nyata ke disk & dibuka ulang); siap merge ke `master`; tersisa **cetak fisik Ahmed** (Gate F item terakhir)
 - **Repo:** `/Users/ahmad/Projects/tartib-app`
-- **Branch aktif:** `batch-e-evaluasi` (dari `master` setelah merge D+T); sebelumnya `batch-t-ikhtisar-tentang` ⊃ `batch-d-tamu-porsi`
-- **Bukti verifikasi Gate E (browser in-app, siklus penuh dijalankan nyata):** evaluasi diisi untuk Konsumsi ("Sediakan rak tiris tambahan untuk tim pencuci") & Kebersihan (badge "tersimpan"); promosi usulan Konsumsi → template "Tasyakuran Khatam" naik ke **versi 2** (versi 1 nonaktif, utuh); usulan yang sudah dipromosikan terkunci (badge "sudah dipromosikan", tak bisa dipromosikan lagi); acara baru "Khatam Tasmi Berikutnya" (2026-09-21) dibuat dari template v2 memuat item hasil promosi — **34 tugas = 33 + 1**
+- **Branch aktif:** `batch-f-cetak` (dari `master` setelah merge E); sebelumnya `batch-e-evaluasi`
+- **Bukti verifikasi Batch F (browser in-app):** (1) klik "Cetak Lembar Tugas (per PIC)" membuka dialog cetak sistem — rantai tombol → `cetakJenis` → `flushSync` → `host.cetak` → `window.print` terbukti end-to-end (dialog memblokir webview, tab ditutup); (2) ekspor Markdown mengunduh `SOP-Khatam-Tasmi-Berikutnya.md` (3,8 KB) ke `~/Downloads` — dibuka ulang, isinya diverifikasi: `# SOP ACARA`, kop jenis/tanggal, `## 1. Persiapan H-30 (H-30, 22 Agustus 2026)`, tugas per divisi dengan `_(wajib)_` & status
 
 ## Progress
 
@@ -23,6 +23,7 @@
 - [x] Batch D — tamu, porsi, perlengkapan (4 commit `feat(tartib)` + 1 fix verifikasi UI)
 - [x] Batch T — ikhtisar eksekusi & Tentang, amandemen riset pasar K-13 (4 commit `feat(tartib)`)
 - [x] Batch E — evaluasi per divisi & promosi usulan → versi template baru (2 commit `feat(tartib)`)
+- [x] Batch F — cetak & ekspor: lembar tugas per PIC, buku acara A4, ekspor Markdown (4 commit `feat(tartib)`)
 
 ## Batch A — hasil
 
@@ -100,9 +101,24 @@
 - [x] Usulan sudah dipromosikan tidak bisa dipromosikan lagi — tombol → badge; `EvaluasiError`; usulan yang berubah boleh promosi ulang
 - [x] Teknis: tsc bersih, vitest 101/101 (13 file), `pnpm build` statis sukses
 
+## Batch F — hasil
+
+1. `src/tartib/lib/cetak/lembarTugas.ts` + 6 test — `susunLembarTugas({ acara, fases, divisi, acaraDivisi, tugas })` murni → `LembarPic[]`: hanya baris acaraDivisi ber-PIC, urut per urutan divisi, tugas diisi hanya dari divisinya (fase diurutkan, lalu urutan tugas); lembar tetap dihasilkan walau divisi tanpa tugas
+2. `src/tartib/lib/cetak/bukuAcara.ts` + 7 test — `susunBukuAcara({ acara, jenisNama, fases, divisi, tugas })` murni → `BukuAcara` (kop + bagian per fase): `tanggalFase = geserTanggal(acara.tanggal, offsetHari)`, tugas dikelompokkan per divisi (urut urutan divisi), jam = `jamMulai–jamSelesai` bila terisi
+3. `src/tartib/lib/ekspor/markdown.ts` + 7 test — `bukuAcaraKeMarkdown(buku, dicetakPada)` → Markdown rapi: `# SOP ACARA`, kop baris (jenis · Hari-H · waktu · lokasi), `## {urutan}. {fase} (offset, tanggal)`, `### {divisi}`, `- judul — catatan _(wajib)_ Status: …`, fase kosong diberi keterangan; tanpa spasi menggantung
+4. `AcaraView.tsx` — state `cetakAktif` (`'lembarTugas' | 'bukuAcara' | 'ikhtisarEksekusi'`, default ikhtisar); `cetakJenis()` pakai `flushSync` (react-dom) sebelum `host.cetak()` agar bagian print ter-commit ke DOM; ekspor Markdown = Blob + tautan unduh (`SOP-{nama}.md`); bagian print `hidden print:block`, kontrol `print:hidden`; lembar tugas per PIC pakai `break-before-page` (halaman baru per orang), buku acara `break-inside-avoid` per kelompok; `@page { size: A4; margin: 14mm }` di `globals.css`
+
+## Gate F — status (teknis & browser; fisik menunggu Ahmed)
+
+- [x] Teknis: tsc bersih, vitest 121/121 (16 file), `pnpm build` statis sukses
+- [x] Lembar tugas per PIC — isi diuji 6 test `susunLembarTugas` (hanya tugas divisi sendiri, urutan fase & tugas, PIC tanpa kontak, divisi tanpa tugas); satu halaman per orang via `break-before-page`; rantai tombol → `host.cetak()` → dialog cetak sistem terbukti end-to-end di browser
+- [x] Buku acara A4 — isi diuji 7 test `susunBukuAcara` (tanggal fase nyata, urutan, pengelompokan divisi); batas kertas diamankan `@page A4 14mm`; media print tidak bisa diemulasi di webview IAB, jadi pemisahan halaman diverifikasi lewat test + CSS statis
+- [x] Ekspor Markdown dapat dibuka ulang — unduhan nyata `SOP-Khatam-Tasmi-Berikutnya.md` (3,8 KB) ke `~/Downloads`, dibuka ulang, isi diverifikasi
+- [ ] **Ahmed mencetak fisik** lembar tugas & buku acara, lalu menyatakan lulus (Gate F tertutup hanya dengan pernyataan ini)
+
 ## Next step (presisi)
 
-Gate E ditutup → merge `batch-e-evaluasi` ke `master` (ff) → **Batch F (cetak & ekspor)** di `batch-f-cetak`: `lib/cetak/bukuAcara.ts` merender hasil akhir SOP ke A4 (kop, fase, tugas per PIC, tabel evaluasi — sesuai pemetaan dokumen contoh "SOP ACARA - Mahad Askar Quran" yang sudah dianalisis), lembar tugas per PIC, ekspor CSV. Rincian di `docs/PLAN.md` Batch F.
+Batch F selesai → merge `batch-f-cetak` ke `master` (ff) → **Batch G (integrasi v3)** di repo v3: salin `src/tartib/`, `mahadHost.ts` (implementasi `TartibHost` terhadap Dexie v3), skema v3 + migrasi aditif (hanya menambah tabel `tartib_*`), titik masuk menu & routing `?m=tartib`, `cetak` disambungkan ke Studio Print. Sebelum itu Ahmed mencetak fisik hasil Batch F (lembar tugas per PIC + buku acara A4) untuk menutup Gate F.
 
 ## Gate A — status
 
@@ -196,9 +212,21 @@ Gate E ditutup → merge `batch-e-evaluasi` ke `master` (ff) → **Batch F (ceta
 - `61d591c` feat(tartib): evaluasiService — simpan/daftar evaluasi per divisi + promosikanUsulan versi template baru (A-03, Batch E-1)
 - `9a6d3c0` feat(tartib): halaman ?view=evaluasi — lembar per divisi + promosi usulan versi template baru (Batch E-2)
 
+## Files touched (Batch F)
+
+- `src/tartib/lib/cetak/lembarTugas.ts` + `lembarTugas.test.ts`, `src/tartib/lib/cetak/bukuAcara.ts` + `bukuAcara.test.ts`, `src/tartib/lib/ekspor/markdown.ts` + `markdown.test.ts`, `src/tartib/components/AcaraView.tsx` (tombol cetak & ekspor, bagian print), `src/app/globals.css` (@page A4)
+- `docs/PLAN.md` (Gate F + changelog v1.7), `docs/context/PROJECT-STATE.md`
+
+## Riwayat commit (Batch F)
+
+- `2777705` feat(tartib): lembar tugas per PIC — satu halaman per orang, hanya tugas divisinya (Batch F-1)
+- `688719e` feat(tartib): buku acara — SOP lengkap satu acara untuk A4 (Batch F-2)
+- `893b2d7` feat(tartib): ekspor Markdown — buku acara ke berkas .md yang dapat dibuka ulang (Batch F-3)
+- `f8413fe` feat(tartib): tombol cetak lembar tugas/buku acara via host.cetak + ekspor Markdown + halaman A4 (Batch F-4)
+
 ## Blocker
 
-Tidak ada. Semua gate (A–E, T) lulus. Dev server berjalan di localhost:3000 (sesi verifikasi); browser in-app menampilkan aplikasi untuk Ahmed melihat langsung.
+Tidak ada. Gate A–E, T, dan F (teknis) lulus; Gate F tersisa cetak fisik Ahmed. Dev server berjalan di localhost:3000 (sesi verifikasi); browser in-app menampilkan aplikasi untuk Ahmed melihat langsung.
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.

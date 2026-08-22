@@ -142,10 +142,10 @@ Branch: `batch-f-cetak`
 3. `src/tartib/lib/ekspor/markdown.ts` — ekspor Markdown
 4. Tombol cetak lewat `host.cetak()` (standalone: `window.print()`)
 
-**Gate F**
-- [ ] Lembar tugas per PIC tercetak, satu halaman per orang
-- [ ] Buku acara A4 rapi, tidak ada teks menembus batas
-- [ ] Ekspor Markdown dapat dibuka ulang
+**Gate F** — teknis & verifikasi browser 2026-08-22; cetak fisik menunggu Ahmed
+- [x] Lembar tugas per PIC tercetak, satu halaman per orang — `break-before-page` + 6 test `susunLembarTugas`; rantai tombol → `host.cetak()` → dialog cetak terbukti end-to-end
+- [x] Buku acara A4 rapi, tidak ada teks menembus batas — `@page A4 14mm` + 7 test `susunBukuAcara`; pemisahan halaman & media print terverifikasi lewat test, bukan emulasi browser
+- [x] Ekspor Markdown dapat dibuka ulang — berkas `.md` terunduh nyata ke disk, dibuka ulang & isinya diverifikasi
 - [ ] **Ahmed mencetak fisik dan menyatakan lulus**
 
 ## Batch G — Integrasi v3 · `clo` xhigh ▲
@@ -169,6 +169,8 @@ Branch: di **repo v3**, bukan di repo tartib.
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.7** — Batch F selesai (branch `batch-f-cetak`, 4 commit `feat(tartib)`): `lib/cetak/lembarTugas.ts` — satu halaman per PIC (`break-before-page`), berisi hanya tugas divisinya (6 test); `lib/cetak/bukuAcara.ts` — SOP lengkap satu acara untuk A4: kop, fase dengan tanggal nyata, tugas per divisi (7 test); `lib/ekspor/markdown.ts` — buku acara → berkas `.md` yang dapat dibuka ulang (7 test); tombol cetak di `AcaraView` via `host.cetak()` (state `cetakAktif` + `flushSync` sebelum print; payload `lembarTugas`/`bukuAcara`, `picNama` kosong = semua lembar) + `@page { size: A4; margin: 14mm }`. Gate F teknis: tsc bersih, vitest 121/121 (16 file), build statis OK. Verifikasi browser: rantai tombol → cetak → dialog sistem terbukti end-to-end; ekspor Markdown terunduh nyata (`SOP-Khatam-Tasmi-Berikutnya.md`) dan isinya diverifikasi (kop, 4 fase, tugas per divisi, penanda wajib & status). Tersisa **verifikasi fisik Ahmed**: mencetak lembar tugas & buku acara dan menyatakan lulus.
 
 - **2026-08-22 — v1.6** — Batch E selesai (branch `batch-e-evaluasi`, 2 commit `feat(tartib)`): `evaluasiService` (input evaluasi per divisi: berjalan baik / kurang / usulan, `promosikanUsulan` membuat versi template baru berisi item dari usulan dengan transaksi atomik, penanda `sudahDipromosikan`, `EvaluasiError`) + 7 test; halaman `?view=evaluasi` (lembar per divisi, daftar usulan siap promosi, badge "tersimpan"/"sudah dipromosikan"). Gate E **LULUS 2026-08-22** lewat verifikasi browser in-app: siklus penuh acara → evaluasi → promosi → template v2 → acara baru memuat item hasil promosi (34 tugas), usulan terkunci setelah dipromosikan. tsc bersih, vitest 101/101 (13 file), build statis OK.
 
