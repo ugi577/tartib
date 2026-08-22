@@ -292,3 +292,90 @@ export async function pindahItem(itemId: string, arah: 'atas' | 'bawah'): Promis
     await tartibDb.templateItem.update(tetangga.id, { urutan: item.urutan });
   });
 }
+
+// ===== Impor SOP dari dokumen (Batch V) =====
+
+export interface InputFaseImpor {
+  label: string;
+  offsetHari: number;
+  items: InputItem[];
+}
+
+export interface InputImporTemplate {
+  jenisAcaraId: string;
+  nama: string;
+  catatan?: string;
+  fases: InputFaseImpor[];
+}
+
+export interface StrukturImpor {
+  template: Template;
+  fases: Fase[];
+  items: TemplateItem[];
+}
+
+/**
+ * Bangun template + fase + item hasil impor (murni, diuji tanpa IndexedDB).
+ * Semua validasi (nama/label/judul wajib, divisi dikenal, rumusQty sah)
+ * berjalan di sini sehingga transaksi penyimpanan tidak bisa gagal di tengah.
+ */
+export function bangunStrukturImpor(
+  input: InputImporTemplate,
+  divisiIds: ReadonlySet<string>,
+  jenisAcaraIdValid: string,
+): StrukturImpor {
+  const template: Template = {
+    id: buatId(),
+    jenisAcaraId: jenisAcaraIdValid,
+    versi: 1,
+    nama: wajibIsi(input.nama, 'Nama template'),
+    catatan: input.catatan?.trim() ?? '',
+    dibuatPada: new Date().toISOString(),
+    aktif: true,
+  };
+  const fases: Fase[] = [];
+  const items: TemplateItem[] = [];
+
+  input.fases.forEach((f, iFase) => {
+    const faseId = buatId();
+    fases.push({
+      id: faseId,
+      templateId: template.id,
+      urutan: iFase + 1,
+      label: wajibIsi(f.label, 'Label fase'),
+      offsetHari: f.offsetHari,
+    });
+    f.items.forEach((it, iItem) => {
+      if (!divisiIds.has(it.divisiId)) throw new TemplateError('Divisi tidak ditemukan');
+      validasiRumusQty(it.rumusQty);
+      items.push({
+        id: buatId(),
+        templateId: template.id,
+        faseId,
+        divisiId: it.divisiId,
+        judul: wajibIsi(it.judul, 'Judul item'),
+        catatan: it.catatan ?? '',
+        wajib: it.wajib,
+        rumusQty: it.rumusQty?.trim() || undefined,
+        urutan: iItem + 1,
+      });
+    });
+  });
+
+  return { template, fases, items };
+}
+
+/** Simpan hasil impor dokumen sebagai template baru — atomik (gagal satu, batal semua). */
+export async function imporTemplate(input: InputImporTemplate): Promise<Template> {
+  const jenisAcara = await tartibDb.jenisAcara.get(input.jenisAcaraId);
+  if (!jenisAcara) throw new TemplateError('Jenis acara tidak ditemukan');
+  const divisiIds = new Set((await tartibDb.divisi.toArray()).map((d) => d.id));
+  const { template, fases, items } = bangunStrukturImpor(input, divisiIds, jenisAcara.id);
+
+  await tartibDb.transaction('rw', tartibDb.template, tartibDb.fase, tartibDb.templateItem, async () => {
+    await tartibDb.template.add(template);
+    if (fases.length > 0) await tartibDb.fase.bulkAdd(fases);
+    if (items.length > 0) await tartibDb.templateItem.bulkAdd(items);
+  });
+  return template;
+}

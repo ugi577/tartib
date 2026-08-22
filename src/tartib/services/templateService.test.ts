@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  bangunStrukturImpor,
   salinStrukturTemplate,
   templateUntukDuplikat,
   templateVersiBaru,
@@ -89,5 +90,74 @@ describe('templateVersiBaru', () => {
     expect(baru.aktif).toBe(true);
     expect(sumber.versi).toBe(1);
     expect(sumber.aktif).toBe(true);
+  });
+});
+
+describe('bangunStrukturImpor', () => {
+  const divisiIds = new Set(['d1', 'd5']);
+
+  it('membangun template, fase, dan item dengan urutan & keterhubungan benar', () => {
+    const { template, fases, items } = bangunStrukturImpor(
+      {
+        jenisAcaraId: 'j1',
+        nama: 'SOP Acara Mahad',
+        catatan: 'dari dokumen',
+        fases: [
+          {
+            label: 'Penetapan',
+            offsetHari: -30,
+            items: [
+              { judul: 'Tetapkan tanggal', divisiId: 'd1', wajib: true },
+              { judul: 'Tentukan anggaran', divisiId: 'd5', wajib: false, rumusQty: 'porsi' },
+            ],
+          },
+          { label: 'Hari-H', offsetHari: 0, items: [{ judul: 'Sambut tamu', divisiId: 'd1', wajib: true }] },
+        ],
+      },
+      divisiIds,
+      'j1',
+    );
+    expect(template.nama).toBe('SOP Acara Mahad');
+    expect(template.jenisAcaraId).toBe('j1');
+    expect(template.versi).toBe(1);
+    expect(template.aktif).toBe(true);
+    expect(template.catatan).toBe('dari dokumen');
+    expect(fases.map((f) => [f.label, f.offsetHari, f.urutan])).toEqual([
+      ['Penetapan', -30, 1],
+      ['Hari-H', 0, 2],
+    ]);
+    expect(items).toHaveLength(3);
+    expect(items[0]).toMatchObject({ faseId: fases[0].id, judul: 'Tetapkan tanggal', urutan: 1, wajib: true });
+    expect(items[1]).toMatchObject({ faseId: fases[0].id, urutan: 2, rumusQty: 'porsi' });
+    expect(items[2]).toMatchObject({ faseId: fases[1].id, urutan: 1 });
+    // Semua item menunjuk template yang sama.
+    for (const i of items) expect(i.templateId).toBe(template.id);
+  });
+
+  it('menolak divisi yang tidak dikenal', () => {
+    expect(() =>
+      bangunStrukturImpor(
+        { jenisAcaraId: 'j1', nama: 'X', fases: [{ label: 'F', offsetHari: 0, items: [{ judul: 'T', divisiId: 'tidak-ada', wajib: true }] }] },
+        divisiIds,
+        'j1',
+      ),
+    ).toThrow(TemplateError);
+  });
+
+  it('menolak judul kosong dan rumusQty tidak sah', () => {
+    expect(() =>
+      bangunStrukturImpor(
+        { jenisAcaraId: 'j1', nama: 'X', fases: [{ label: 'F', offsetHari: 0, items: [{ judul: '   ', divisiId: 'd1', wajib: true }] }] },
+        divisiIds,
+        'j1',
+      ),
+    ).toThrow(/Judul item/);
+    expect(() =>
+      bangunStrukturImpor(
+        { jenisAcaraId: 'j1', nama: 'X', fases: [{ label: 'F', offsetHari: 0, items: [{ judul: 'T', divisiId: 'd1', wajib: true, rumusQty: 'alert(1)' }] }] },
+        divisiIds,
+        'j1',
+      ),
+    ).toThrow(TemplateError);
   });
 });
