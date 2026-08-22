@@ -35,6 +35,7 @@ import {
 import { hitungPeralatan, hitungPorsi } from '../lib/porsi';
 import { siarkanPengaturan } from '../lib/usePengaturan';
 import * as cadanganSvc from '../services/cadanganService';
+import { unduhBerkas } from '../lib/unduh';
 import { KELAS } from '../ui/kelas';
 import { KonfirmasiDialog } from './AppDialog';
 import { TentangView } from './TentangView';
@@ -139,17 +140,12 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
       const isi = await cadanganSvc.ambilIsiCadangan();
       const cadangan = cadanganSvc.susunCadangan(isi, new Date().toISOString());
       const nama = cadanganSvc.namaBerkasCadangan(cadangan.dibuatPada);
-      const blob = new Blob([JSON.stringify(cadangan)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = nama;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      const hasil = await unduhBerkas(nama, new Blob([JSON.stringify(cadangan)], { type: 'application/json' }));
+      if (hasil.dibatalkan) return;
       setPesanData(
-        `Berkas ${nama} diunduh — ${cadanganSvc.hitungBaris(isi)} baris data. Simpan di luar perangkat ini (Drive, email, atau flashdisk).`,
+        hasil.cara === 'share'
+          ? `Berkas ${nama} dibagikan — ${cadanganSvc.hitungBaris(isi)} baris data. Simpan di luar perangkat ini (Drive, email, atau flashdisk).`
+          : `Berkas ${nama} diunduh — ${cadanganSvc.hitungBaris(isi)} baris data. Simpan di luar perangkat ini (Drive, email, atau flashdisk).`,
       );
     } catch (e) {
       setErrorData(pesanError(e));

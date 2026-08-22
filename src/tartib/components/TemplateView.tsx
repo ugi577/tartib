@@ -14,6 +14,7 @@ import { standaloneHost } from '../host/standaloneHost';
 import { usePagedList } from '../lib/usePagedList';
 import { formatOffsetHari, formatTanggalIndonesia, tanggalHariIni } from '../lib/tanggal';
 import { bacaZip } from '../lib/impor/zip';
+import { unduhBerkas } from '../lib/unduh';
 import { parseXmlLite } from '../lib/impor/xml';
 import { dokumenXmlKeSop, sopDariJson, type HasilImporDokumen } from '../lib/impor/dokumenSop';
 import { tulisDocx, type DataTulisDocx } from '../lib/ekspor/tulisDocx';
@@ -490,19 +491,18 @@ export function TemplateView() {
     try {
       const data = await dataDocxUntukEkspor();
       const berkas = await tulisDocx(data);
-      const blob = new Blob([berkas], {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = namaBerkasDocx();
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      const nama = namaBerkasDocx();
+      const hasil = await unduhBerkas(
+        nama,
+        new Blob([berkas], {
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        }),
+      );
+      if (hasil.dibatalkan) return;
       setPesanEkspor(
-        `Berkas ${namaBerkasDocx()} diunduh — bisa dibuka di Word/LibreOffice dan diimpor ulang di tab Template.`,
+        hasil.cara === 'share'
+          ? `Berkas ${nama} dibagikan — bisa dibuka di Word/LibreOffice dan diimpor ulang di tab Template.`
+          : `Berkas ${nama} diunduh — bisa dibuka di Word/LibreOffice dan diimpor ulang di tab Template.`,
       );
     } catch (e) {
       setErrorEkspor(pesanError(e));

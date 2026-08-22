@@ -15,6 +15,7 @@ import { faseBerikutnya, ikhtisarPerDivisi, ikhtisarTugas, statusWaktuFase } fro
 import { susunLembarTugas } from '../lib/cetak/lembarTugas';
 import { susunBukuAcara } from '../lib/cetak/bukuAcara';
 import { bukuAcaraKeMarkdown } from '../lib/ekspor/markdown';
+import { unduhBerkas } from '../lib/unduh';
 import { daftarDivisi } from '../services/divisiService';
 import * as acaraSvc from '../services/acaraService';
 import * as picSvc from '../services/acaraDivisiService';
@@ -207,18 +208,13 @@ export function AcaraView() {
     }
   }
 
-  function eksporMarkdown() {
+  async function eksporMarkdown() {
     if (!terpilih) return;
     const teks = bukuAcaraKeMarkdown(bukuAcara, formatTanggalIndonesia(hariIni));
-    const blob = new Blob([teks], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `SOP-${terpilih.nama.replace(/\s+/g, '-')}.md`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    await unduhBerkas(
+      `SOP-${terpilih.nama.replace(/\s+/g, '-')}.md`,
+      new Blob([teks], { type: 'text/markdown;charset=utf-8' }),
+    );
   }
 
   // ===== Render =====

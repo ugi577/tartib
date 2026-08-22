@@ -20,6 +20,7 @@ import {
   type BidangKonfirmasi,
 } from '../lib/konfirmasi/eKonfirmasi';
 import { KELAS } from '../ui/kelas';
+import { unduhBerkas } from '../lib/unduh';
 
 export function EKonfirmasiView() {
   const [kategori, setKategori] = useState('');
@@ -67,17 +68,15 @@ export function EKonfirmasiView() {
     [judulAcara, tanggal, waktu, tempat, mapsUrl, noWhatsApp, bidang, kopArab, kopLatin, tag],
   );
 
-  function unduhHtml() {
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `e-Konfirmasi-${(judulAcara || 'acara').replace(/\s+/g, '-')}.html`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    setPesan('Berkas HTML e-Konfirmasi diunduh — bagikan ke wali santri/undangan.');
+  async function unduhHtml() {
+    const nama = `e-Konfirmasi-${(judulAcara || 'acara').replace(/\s+/g, '-')}.html`;
+    const hasil = await unduhBerkas(nama, new Blob([html], { type: 'text/html;charset=utf-8' }));
+    if (hasil.dibatalkan) return;
+    setPesan(
+      hasil.cara === 'share'
+        ? 'Berkas e-Konfirmasi dibagikan — bagikan ke wali santri/undangan.'
+        : 'Berkas HTML e-Konfirmasi diunduh — bagikan ke wali santri/undangan.',
+    );
   }
 
   return (
