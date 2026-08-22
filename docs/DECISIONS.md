@@ -4,6 +4,16 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-20 — 2026-08-22 — Sesi 15: header berlogo; template baku sebagai panduan manual pengisian (cetak A4 + .docx)
+
+Dua arahan Ahmed: header memuat judul + ikon aplikasi; tab Template punya template baku yang bisa diunduh/diekspor dan dicetak sebagai panduan manual pengisian. Keputusan:
+
+1. **Template baku dipilih BERISI TEKS CONTOH, bukan kosong** — setiap item diawali "Contoh:" (17 item, 6 fase H-30…H+1, jenis Custom) supaya dokumen cetak/unduhan sekaligus mengajarkan model data: fase ber-offset, item milik divisi, PIC per tugas. Nama: "SOP Baku (Panduan Manual)".
+2. **Seed panduan idempoten PER NAMA**, bukan "hanya bila tabel template kosong" (beda dengan seed template contoh) — supaya template ini muncul juga pada data pengguna yang sudah berisi template lain.
+3. **Cetak panduan lewat `host.cetak`** dengan varian `CetakPayload` baru `{ jenis: 'panduanTemplate'; templateId }` (perluasan aditif K-04, pola Batch F: `flushSync` → cetak). Formulir kertas A4: kop template + kolom identitas acara (nama/tanggal Hari-H/lokasi) + per fase kolom tanggal + per item divisi & kolom PIC — garis kosong untuk tulisan tangan. Tombol ada di panel "Ekspor & Cetak Template" dan berlaku untuk template mana pun, bukan hanya template baku.
+4. **Header: `LogoTartib`** (SVG inline, squircle candy glass berisi ceklis berprogres; artwork identik favicon `icon.svg`) + judul "Tartib — Pembuat SOP Acara". Rupa **liquid glass** (WIP Ahmed di working tree: token alpha, backdrop-blur, pil) dikomit utuh setelah diverifikasi karena token tetap semantik — keputusan branding masa depan tetap cukup mengubah `tailwind.config.ts`. **WIP Capacitor Ahmed TIDAK ikut dikomit** (menunggu keputusannya sendiri).
+5. **Catatan proses:** commit `a7a651f` tanpa sengaja menyertakan UI "Hapus template" milik WIP (fungsi service-nya baru dikomit `0295761`) — pelajaran tercatat: **periksa diff per berkas sebelum `git add`** pada working tree yang memuat pekerjaan orang lain.
+
 ## K-19 — 2026-08-22 — Sesi 14: audit pratinjau impor — daftar item yang dibuang wajib terlihat; ekspor .docx diuji pembaca ketat, bukan round-trip sendiri
 
 Ahmed mengaudit pratinjau impor atas dokumen asli dan menunjuk tiga risiko. Keputusan:
