@@ -68,35 +68,47 @@ function Konten() {
   const aktif = (v: View) =>
     view === v
       ? 'bg-gradient-to-b from-aksen-500 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-white/30'
-      : 'bg-permukaan-kartu text-teks-sedang shadow-kartu backdrop-blur-md hover:bg-white/75 hover:text-teks-utama';
+      : 'bg-white/60 text-teks-sedang ring-1 ring-inset ring-white/70 backdrop-blur-sm hover:bg-white/80 hover:text-teks-utama';
 
   return (
-    <main className="mx-auto min-h-screen max-w-3xl px-4 py-8">
-      <header className="mb-6 print:hidden">
-        <div className="flex items-center gap-3">
-          <LogoTartib judul="Logo Tartib" className="h-11 w-11 shrink-0 drop-shadow-[0_8px_16px_rgb(5_150_105/0.35)]" />
-          <div>
-            <h1 className="text-2xl font-semibold text-teks-utama">Tartib — Pembuat SOP Acara</h1>
-            <p className="mt-1 text-sm text-teks-halus">
-              Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
-            </p>
+    <div className="min-h-screen">
+      {/* Bilah header penuh menempel tepi atas (referensi Ahmed, sesi 15):
+          glass gradasi biru→hijau muda, logo + judul di kiri, tab pil di
+          kanan (turun baris sendiri di layar sempit — keenam tab tetap
+          terjangkau), garis pemisah putih + bayangan lembut di bawahnya. */}
+      <header className="sticky top-0 z-40 print:hidden">
+        <div className="border-b border-white/70 bg-gradient-to-r from-sky-50/80 via-white/70 to-emerald-50/80 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
+          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+            <LogoTartib
+              judul="Logo Tartib"
+              className="h-11 w-11 shrink-0 drop-shadow-[0_8px_16px_rgb(5_150_105/0.35)]"
+            />
+            <div className="min-w-0 flex-1 sm:flex-none">
+              <h1 className="truncate text-lg font-semibold text-teks-utama sm:text-xl">
+                Tartib — Pembuat SOP Acara
+              </h1>
+              <p className="truncate text-xs text-teks-halus sm:text-sm">
+                Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
+              </p>
+            </div>
+            <nav aria-label="Navigasi utama" className="flex flex-1 flex-wrap gap-1.5 sm:flex-none sm:justify-end">
+              {TAB.map((t) => (
+                <Link
+                  key={t.view}
+                  href={`/?view=${t.view}`}
+                  aria-current={view === t.view ? 'page' : undefined}
+                  className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${aktif(t.view)}`}
+                >
+                  {t.label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </div>
-        <nav className="mt-4 flex flex-wrap gap-2">
-          {TAB.map((t) => (
-            <Link
-              key={t.view}
-              href={`/?view=${t.view}`}
-              aria-current={view === t.view ? 'page' : undefined}
-              className={`whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium ring-1 ring-inset ring-white/60 sm:px-4 ${aktif(t.view)}`}
-            >
-              {t.label}
-            </Link>
-          ))}
-        </nav>
       </header>
 
-      {view === 'template' && <TemplateView />}
+      <main className="mx-auto max-w-3xl px-4 pb-10 pt-6">
+        {view === 'template' && <TemplateView />}
       {view === 'acara' && <AcaraView />}
       {view === 'tamu' && <TamuView />}
       {view === 'evaluasi' && <EvaluasiView />}
@@ -115,7 +127,8 @@ function Konten() {
           ))}
         </div>
       )}
-    </main>
+      </main>
+    </div>
   );
 }
 
