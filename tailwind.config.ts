@@ -36,6 +36,7 @@ const config: Config = {
         },
         teks: {
           utama: colors.slate[800],
+          kuat: colors.slate[700],
           sedang: colors.slate[600],
           halus: colors.slate[500],
           redup: colors.slate[400],

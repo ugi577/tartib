@@ -108,14 +108,14 @@ export function EvaluasiView() {
       <div>
         <div className="mb-5">
           <h2 className={KELAS.judulHalaman}>Evaluasi</h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-teks-halus">
             {daftar.total} acara — pilih acara untuk mengisi lembar evaluasi per divisi dan mempromosikan usulan.
           </p>
         </div>
-        {daftar.memuat && <p className="text-sm text-slate-500">Memuat…</p>}
+        {daftar.memuat && <p className="text-sm text-teks-halus">Memuat…</p>}
         {!daftar.memuat && daftar.items.length === 0 && (
           <div className={KELAS.kosong}>
-            <p className="text-sm text-slate-500">Belum ada acara untuk dievaluasi. Buat acara dulu di tab Acara.</p>
+            <p className="text-sm text-teks-halus">Belum ada acara untuk dievaluasi. Buat acara dulu di tab Acara.</p>
           </div>
         )}
         <div className="space-y-3">
@@ -123,8 +123,8 @@ export function EvaluasiView() {
             <div key={a.id} className={KELAS.kartuIsi}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <span className="font-medium text-slate-800">{a.nama}</span>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <span className="font-medium text-teks-utama">{a.nama}</span>
+                  <p className="mt-1 text-sm text-teks-halus">
                     {formatTanggalIndonesia(a.tanggal)} · status {a.status}
                   </p>
                 </div>
@@ -139,7 +139,7 @@ export function EvaluasiView() {
           ))}
         </div>
         {daftar.totalHalaman > 1 && (
-          <div className="mt-5 flex items-center justify-center gap-3 text-sm text-slate-600">
+          <div className="mt-5 flex items-center justify-center gap-3 text-sm text-teks-sedang">
             <button
               onClick={() => daftar.setHalaman(daftar.halaman - 1)}
               disabled={daftar.halaman <= 1}
@@ -180,7 +180,7 @@ export function EvaluasiView() {
       </button>
       <div className="mb-5">
         <h2 className={KELAS.judulHalaman}>Evaluasi — {terpilih.nama}</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-teks-halus">
           {formatTanggalIndonesia(terpilih.tanggal)} · isi per divisi: satu yang berjalan baik, satu yang kurang,
           satu usulan perbaikan.
         </p>
@@ -198,7 +198,7 @@ export function EvaluasiView() {
           return (
             <div key={d.id} className={KELAS.kartuIsi}>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-medium text-slate-800">{d.nama}</span>
+                <span className="font-medium text-teks-utama">{d.nama}</span>
                 {tersimpan && (
                   <span className={KELAS.badgeAksen}>
                     tersimpan
@@ -208,7 +208,7 @@ export function EvaluasiView() {
               </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-3">
                 <label className="text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Berjalan baik</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Berjalan baik</span>
                   <textarea
                     rows={2}
                     aria-label={`Berjalan baik ${d.nama}`}
@@ -218,7 +218,7 @@ export function EvaluasiView() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Kurang</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Kurang</span>
                   <textarea
                     rows={2}
                     aria-label={`Kurang ${d.nama}`}
@@ -228,7 +228,7 @@ export function EvaluasiView() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Usulan perbaikan</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Usulan perbaikan</span>
                   <textarea
                     rows={2}
                     aria-label={`Usulan perbaikan ${d.nama}`}
@@ -248,8 +248,8 @@ export function EvaluasiView() {
 
       {/* Promosi usulan (A-03) */}
       <div className="mt-6 ${KELAS.kartuIsi}">
-        <h3 className="font-medium text-slate-800">Promosikan Usulan ke Template</h3>
-        <p className="mt-1 text-sm text-slate-500">
+        <h3 className="font-medium text-teks-utama">Promosikan Usulan ke Template</h3>
+        <p className="mt-1 text-sm text-teks-halus">
           Promosi membuat <strong>versi template baru</strong> berisi seluruh SOP lama + item usulan di fase
           terakhir. Versi lama tetap terbaca; satu usulan hanya bisa dipromosikan sekali.
         </p>
@@ -257,12 +257,12 @@ export function EvaluasiView() {
           <p className="mt-3 text-sm text-amber-700">Tidak ada template aktif — tidak ada target promosi.</p>
         )}
         {usulanTersedia.length === 0 && (
-          <p className="mt-3 text-sm text-slate-400">Belum ada evaluasi berisi usulan.</p>
+          <p className="mt-3 text-sm text-teks-redup">Belum ada evaluasi berisi usulan.</p>
         )}
         {templates.length > 0 && usulanTersedia.length > 0 && (
           <>
             <label className="mt-3 block text-sm">
-              <span className="mb-1 block font-medium text-slate-700">Template target</span>
+              <span className="mb-1 block font-medium text-teks-kuat">Template target</span>
               <select
                 value={templatePromosi}
                 onChange={(e) => setTemplatePromosi(e.target.value)}
@@ -284,8 +284,8 @@ export function EvaluasiView() {
                     className="flex flex-wrap items-center justify-between gap-2 rounded-kontrol bg-permukaan-halus px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-700">{e.usulan}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm font-medium text-teks-kuat">{e.usulan}</p>
+                      <p className="text-xs text-teks-halus">
                         {divisi?.nama ?? 'Divisi tidak ditemukan'}
                         {e.kurang ? ` · catatan kurang: ${e.kurang}` : ''}
                       </p>

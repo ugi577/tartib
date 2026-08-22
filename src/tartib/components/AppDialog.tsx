@@ -39,11 +39,11 @@ export function AppDialog({ terbuka, judul, onTutup, children, lebar = 'md' }: P
         className={`relative w-full ${LEBAR[lebar]} max-h-[85vh] overflow-y-auto rounded-xl bg-white p-5 shadow-2xl`}
       >
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-slate-800">{judul}</h2>
+          <h2 className="text-lg font-semibold text-teks-utama">{judul}</h2>
           <button
             onClick={onTutup}
             aria-label="Tutup dialog"
-            className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-md p-1 text-teks-redup hover:bg-slate-100 hover:text-teks-sedang"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
               <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
@@ -77,7 +77,7 @@ export function KonfirmasiDialog({
 }: PropsKonfirmasi) {
   return (
     <AppDialog terbuka={terbuka} judul={judul} onTutup={onBatal} lebar="sm">
-      <p className="text-sm text-slate-600">{pesan}</p>
+      <p className="text-sm text-teks-sedang">{pesan}</p>
       <div className="mt-5 flex justify-end gap-2">
         <button
           onClick={onBatal}

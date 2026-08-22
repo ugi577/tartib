@@ -9,8 +9,9 @@
 // Aturan pakai:
 // - Aksi utama satu layar hanya SATU: `tombolUtama`.
 // - Aksi pendamping: `tombolSekunder`; aksi baris/daftar: `tombolHalus`.
-// - Aksi merusak: `tombolBahaya` (di baris) atau `tombolBahayaSolid` (di
-//   dialog konfirmasi, saat pengguna sudah sadar konsekuensinya).
+// - Aksi merusak: `tombolBahaya` (berdiri sendiri), `tombolBahayaHalus`
+//   (berulang tiap baris), `tombolBahayaSolid` (dialog konfirmasi, saat
+//   pengguna sudah sadar konsekuensinya).
 // - Radius: `rounded-kontrol` untuk kontrol, `rounded-kartu` untuk kartu,
 //   `rounded-full` hanya untuk badge & bar progres.
 
@@ -48,6 +49,13 @@ export const KELAS = {
   /** Aksi ringan di dalam baris daftar — tanpa garis, tanpa isian. */
   tombolHalus: `${TOMBOL_DASAR} ${UKURAN_KECIL} text-teks-sedang hover:bg-netral-100`,
   tombolBahaya: `${TOMBOL_DASAR} ${UKURAN_KECIL} text-red-600 hover:bg-red-50`,
+  /**
+   * Aksi merusak yang berulang di setiap baris daftar (mis. Hapus item
+   * template, 33 baris sekaligus). Netral sampai disorot, supaya merah tidak
+   * jadi elemen paling mencolok di halaman; konfirmasi tetap lewat
+   * KonfirmasiDialog. Aksi merusak yang berdiri sendiri tetap `tombolBahaya`.
+   */
+  tombolBahayaHalus: `${TOMBOL_DASAR} ${UKURAN_KECIL} text-teks-halus hover:bg-red-50 hover:text-red-600`,
   tombolBahayaSolid: `${TOMBOL_DASAR} ${UKURAN_NORMAL} bg-red-600 text-white hover:bg-red-700`,
   /** Tombol ikon persegi (pindah urutan ↑ ↓, tutup dialog). */
   tombolIkon: `${TOMBOL_DASAR} h-8 w-8 text-teks-halus hover:bg-netral-100 hover:text-teks-sedang`,
@@ -60,7 +68,8 @@ export const KELAS = {
   label: 'block text-sm font-medium text-teks-sedang',
 
   // ── Badge ────────────────────────────────────────────────────────────────
-  badgeNetral: 'inline-flex items-center rounded-full bg-netral-100 px-2 py-0.5 text-xs font-medium text-teks-sedang',
+  badgeNetral:
+    'inline-flex items-center rounded-full bg-netral-100 px-2 py-0.5 text-xs font-medium text-teks-sedang ring-1 ring-inset ring-netral-200',
   badgeAksen: 'inline-flex items-center rounded-full bg-aksen-50 px-2 py-0.5 text-xs font-medium text-aksen-700',
   badgeAksenPekat: 'inline-flex items-center rounded-full bg-aksen-600 px-2 py-0.5 text-xs font-medium text-white',
   badgePeringatan: 'inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700',

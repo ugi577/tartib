@@ -44,21 +44,21 @@ export function TentangView() {
     <div className="space-y-6">
       <section className={`${KELAS.kartu} p-6`}>
         <h2 className={KELAS.judulHalaman}>Tentang Tartib</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
+        <p className="mt-2 text-sm leading-relaxed text-teks-sedang">
           Tartib adalah pembuat SOP acara yang menyatukan <strong>dokumen</strong> dan{' '}
           <strong>eksekusi</strong> dalam satu alur: susun template SOP (fase, item, divisi, rumus
           kuantitas), buat acara dari template, lalu kawal tugas panitia di papan eksekusi sampai
           hari-H dan cetak laporannya.
         </p>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
+        <p className="mt-2 text-sm leading-relaxed text-teks-sedang">
           Berjalan sepenuhnya offline di perangkat Anda, dan dirancang sebagai modul yang dapat
           diintegrasikan ke aplikasi induk melalui satu titik sambungan (TartibHost).
         </p>
       </section>
 
       <section className={`${KELAS.kartu} p-6`}>
-        <h3 className="font-semibold text-slate-800">Posisi produk — riset lanskap 2026-08-22</h3>
-        <p className="mt-1 text-sm text-slate-500">
+        <h3 className="font-semibold text-teks-utama">Posisi produk — riset lanskap 2026-08-22</h3>
+        <p className="mt-1 text-sm text-teks-halus">
           Riset terhadap aplikasi SOP dan manajemen acara yang sudah ada menemukan satu celah besar:
           aplikasi pembuat SOP berhenti di dokumen, aplikasi eksekusi acara memulai dari nol — tidak
           ada yang menghubungkan keduanya untuk acara kecil–menengah.
@@ -66,33 +66,33 @@ export function TentangView() {
         <div className="mt-4 space-y-3">
           {LANSKAP.map((l) => (
             <div key={l.nama} className="rounded-lg bg-slate-50 p-4">
-              <p className="text-sm font-medium text-slate-700">{l.nama}</p>
+              <p className="text-sm font-medium text-teks-kuat">{l.nama}</p>
               <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-emerald-700">{l.fokus}</p>
-              <p className="mt-1 text-sm text-slate-600">{l.catatan}</p>
+              <p className="mt-1 text-sm text-teks-sedang">{l.catatan}</p>
             </div>
           ))}
         </div>
-        <p className="mt-4 text-sm leading-relaxed text-slate-600">
+        <p className="mt-4 text-sm leading-relaxed text-teks-sedang">
           Tartib mengisi celah itu: template SOP yang sekali dibuat langsung menjadi mesin
           eksekusi — bukan dokumen yang dilupakan di rak.
         </p>
       </section>
 
       <section className={`${KELAS.kartu} p-6`}>
-        <h3 className="font-semibold text-slate-800">Bagaimana Tartib mengisi celah itu</h3>
+        <h3 className="font-semibold text-teks-utama">Bagaimana Tartib mengisi celah itu</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {CARA_MENGISI_CELAH.map((c) => (
             <div key={c.judul} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <p className="text-sm font-medium text-slate-700">{c.judul}</p>
-              <p className="mt-1 text-sm leading-relaxed text-slate-600">{c.isi}</p>
+              <p className="text-sm font-medium text-teks-kuat">{c.judul}</p>
+              <p className="mt-1 text-sm leading-relaxed text-teks-sedang">{c.isi}</p>
             </div>
           ))}
         </div>
       </section>
 
       <section className={`${KELAS.kartu} p-6`}>
-        <h3 className="font-semibold text-slate-800">Yang disengaja belum ada</h3>
-        <p className="mt-1 text-sm leading-relaxed text-slate-600">
+        <h3 className="font-semibold text-teks-utama">Yang disengaja belum ada</h3>
+        <p className="mt-1 text-sm leading-relaxed text-teks-sedang">
           Notifikasi push, sinkronisasi Slack/WhatsApp, dan integrasi ERP/QMS membutuhkan jaringan —
           bertentangan dengan prinsip offline penuh Tartib. Semua tercatat sebagai visi jangka
           panjang (backlog), bukan janji fitur. Langkah integrasi terdekat yang direncanakan adalah

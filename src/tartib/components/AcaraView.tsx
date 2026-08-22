@@ -231,7 +231,7 @@ export function AcaraView() {
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className={KELAS.judulHalaman}>Acara</h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-teks-halus">
               {daftar.total} acara — dibuat dari template; perubahan template tidak mengubah acara yang sudah dibuat.
             </p>
           </div>
@@ -245,10 +245,10 @@ export function AcaraView() {
 
         {errorUmum && <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>}
 
-        {daftar.memuat && <p className="text-sm text-slate-500">Memuat…</p>}
+        {daftar.memuat && <p className="text-sm text-teks-halus">Memuat…</p>}
         {!daftar.memuat && daftar.items.length === 0 && (
           <div className={KELAS.kosong}>
-            <p className="text-sm text-slate-500">Belum ada acara. Buat acara pertama dari tombol di atas.</p>
+            <p className="text-sm text-teks-halus">Belum ada acara. Buat acara pertama dari tombol di atas.</p>
           </div>
         )}
 
@@ -261,11 +261,11 @@ export function AcaraView() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-800">{a.nama}</span>
+                      <span className="font-medium text-teks-utama">{a.nama}</span>
                       <span className={badgeStatusAcara(a.status)}>{a.status}</span>
                       <span className={KELAS.badgeNetral}>v{a.templateVersi}</span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-teks-halus">
                       {jenis?.nama ?? 'Jenis tidak ditemukan'} · {formatTanggalIndonesia(a.tanggal)}
                       {jam ? ` · ${jam}` : ''}
                       {a.lokasi ? ` · ${a.lokasi}` : ''}
@@ -281,7 +281,7 @@ export function AcaraView() {
         </div>
 
         {daftar.totalHalaman > 1 && (
-          <div className="mt-5 flex items-center justify-center gap-3 text-sm text-slate-600">
+          <div className="mt-5 flex items-center justify-center gap-3 text-sm text-teks-sedang">
             <button
               onClick={() => daftar.setHalaman(daftar.halaman - 1)}
               disabled={daftar.halaman <= 1}
@@ -319,7 +319,7 @@ export function AcaraView() {
             ) : (
               <>
                 <label className="block text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Template SOP</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Template SOP</span>
                   <select
                     value={formBuat.templateId}
                     onChange={(e) => setFormBuat({ ...formBuat, templateId: e.target.value })}
@@ -333,7 +333,7 @@ export function AcaraView() {
                   </select>
                 </label>
                 <label className="block text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Nama acara</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Nama acara</span>
                   <input
                     value={formBuat.nama}
                     onChange={(e) => setFormBuat({ ...formBuat, nama: e.target.value })}
@@ -343,7 +343,7 @@ export function AcaraView() {
                   />
                 </label>
                 <label className="block text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Tanggal (hari-H)</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Tanggal (hari-H)</span>
                   <input
                     type="date"
                     value={formBuat.tanggal}
@@ -353,7 +353,7 @@ export function AcaraView() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block text-sm">
-                    <span className="mb-1 block font-medium text-slate-700">Jam mulai (opsional)</span>
+                    <span className="mb-1 block font-medium text-teks-kuat">Jam mulai (opsional)</span>
                     <input
                       type="time"
                       value={formBuat.jamMulai}
@@ -362,7 +362,7 @@ export function AcaraView() {
                     />
                   </label>
                   <label className="block text-sm">
-                    <span className="mb-1 block font-medium text-slate-700">Jam selesai (opsional)</span>
+                    <span className="mb-1 block font-medium text-teks-kuat">Jam selesai (opsional)</span>
                     <input
                       type="time"
                       value={formBuat.jamSelesai}
@@ -372,7 +372,7 @@ export function AcaraView() {
                   </label>
                 </div>
                 <label className="block text-sm">
-                  <span className="mb-1 block font-medium text-slate-700">Lokasi (opsional)</span>
+                  <span className="mb-1 block font-medium text-teks-kuat">Lokasi (opsional)</span>
                   <input
                     value={formBuat.lokasi}
                     onChange={(e) => setFormBuat({ ...formBuat, lokasi: e.target.value })}
@@ -418,7 +418,7 @@ export function AcaraView() {
         <div className="hidden print:block">
           <div className="mb-5 border-b border-slate-300 pb-2">
             <h2 className="text-lg font-bold text-slate-900">Lembar Tugas — {terpilih.nama}</h2>
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="mt-1 text-xs text-teks-sedang">
               {jenis?.nama ?? 'Jenis tidak ditemukan'} · Hari-H {formatTanggalIndonesia(terpilih.tanggal)} · Template
               v{terpilih.templateVersi} · Dicetak {formatTanggalIndonesia(hariIni)}
             </p>
@@ -427,22 +427,22 @@ export function AcaraView() {
             <div key={l.divisiId} className={i > 0 ? 'break-before-page' : ''}>
               <div className="mb-3 border-b border-slate-300 pb-1">
                 <p className="text-base font-bold text-slate-900">{l.divisiNama}</p>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-teks-sedang">
                   PIC: {l.picNama}
                   {l.picKontak ? ` · ${l.picKontak}` : ''} · {l.tugas.length} tugas
                 </p>
               </div>
               {l.tugas.length === 0 ? (
-                <p className="text-sm text-slate-500">Tidak ada tugas untuk divisi ini.</p>
+                <p className="text-sm text-teks-halus">Tidak ada tugas untuk divisi ini.</p>
               ) : (
                 <ul className="space-y-1.5">
                   {l.tugas.map((t) => (
-                    <li key={`${t.faseUrutan}-${t.urutan}`} className="text-sm text-slate-700">
+                    <li key={`${t.faseUrutan}-${t.urutan}`} className="text-sm text-teks-kuat">
                       <span className="font-medium">{t.faseLabel}</span>{' '}
-                      <span className="text-slate-400">({formatOffsetHari(t.offsetHari)})</span> — {t.judul}
+                      <span className="text-teks-redup">({formatOffsetHari(t.offsetHari)})</span> — {t.judul}
                       {t.wajib && <span className="text-amber-700"> (wajib)</span>}
-                      <span className="ml-1 text-xs text-slate-500">[{t.status}]</span>
-                      {t.catatan ? <span className="text-slate-500"> · {t.catatan}</span> : null}
+                      <span className="ml-1 text-xs text-teks-halus">[{t.status}]</span>
+                      {t.catatan ? <span className="text-teks-halus"> · {t.catatan}</span> : null}
                     </li>
                   ))}
                 </ul>
@@ -457,12 +457,12 @@ export function AcaraView() {
         <div className="hidden print:block">
           <div className="mb-6 text-center">
             <h2 className="text-xl font-bold text-slate-900">SOP ACARA — {terpilih.nama}</h2>
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="mt-1 text-xs text-teks-sedang">
               {bukuAcara.kop.jenisNama} · Hari-H {formatTanggalIndonesia(bukuAcara.kop.tanggal)}
               {bukuAcara.kop.jam ? ` · ${bukuAcara.kop.jam}` : ''}
               {bukuAcara.kop.lokasi ? ` · ${bukuAcara.kop.lokasi}` : ''}
             </p>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-teks-sedang">
               Template v{bukuAcara.kop.templateVersi} · Status {bukuAcara.kop.status} · Dicetak{' '}
               {formatTanggalIndonesia(hariIni)}
             </p>
@@ -471,21 +471,21 @@ export function AcaraView() {
             <section key={bagian.faseUrutan} className="mb-6 break-inside-avoid">
               <h3 className="mb-2 border-b border-slate-300 pb-1 text-base font-bold text-slate-900">
                 {bagian.faseUrutan}. {bagian.faseLabel}{' '}
-                <span className="text-sm font-normal text-slate-500">
+                <span className="text-sm font-normal text-teks-halus">
                   ({formatOffsetHari(bagian.offsetHari)}, {formatTanggalIndonesia(bagian.tanggalFase)})
                 </span>
               </h3>
-              {bagian.kelompok.length === 0 && <p className="text-sm text-slate-500">Tidak ada tugas pada fase ini.</p>}
+              {bagian.kelompok.length === 0 && <p className="text-sm text-teks-halus">Tidak ada tugas pada fase ini.</p>}
               {bagian.kelompok.map((kel) => (
                 <div key={kel.divisiId} className="mb-3 break-inside-avoid">
-                  <p className="text-sm font-semibold text-slate-800">{kel.divisiNama}</p>
+                  <p className="text-sm font-semibold text-teks-utama">{kel.divisiNama}</p>
                   <ul className="mt-1 space-y-1">
                     {kel.tugas.map((t) => (
-                      <li key={t.urutan} className="text-sm text-slate-700">
+                      <li key={t.urutan} className="text-sm text-teks-kuat">
                         {t.urutan}. {t.judul}
                         {t.wajib && <span className="text-amber-700"> (wajib)</span>}
-                        <span className="ml-1 text-xs text-slate-500">[{t.status}]</span>
-                        {t.catatan ? <span className="text-slate-500"> · {t.catatan}</span> : null}
+                        <span className="ml-1 text-xs text-teks-halus">[{t.status}]</span>
+                        {t.catatan ? <span className="text-teks-halus"> · {t.catatan}</span> : null}
                       </li>
                     ))}
                   </ul>
@@ -500,11 +500,11 @@ export function AcaraView() {
       {cetakAktif === 'ikhtisarEksekusi' && (
         <div className="mb-4 hidden print:block">
           <h2 className="text-lg font-bold text-slate-900">Laporan Eksekusi — {terpilih.nama}</h2>
-          <p className="mt-1 text-xs text-slate-600">
+          <p className="mt-1 text-xs text-teks-sedang">
             {jenis?.nama ?? 'Jenis tidak ditemukan'} · Hari-H {formatTanggalIndonesia(terpilih.tanggal)} · Status{' '}
             {terpilih.status} · Template v{terpilih.templateVersi}
           </p>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-teks-sedang">
             Progres: {ikhtisar.selesai}/{ikhtisar.total} tugas selesai ({ikhtisar.persenSelesai}%)
             {ikhtisar.batal > 0 ? ` · ${ikhtisar.batal} batal` : ''} · Dicetak {formatTanggalIndonesia(hariIni)}
           </p>
@@ -514,7 +514,7 @@ export function AcaraView() {
       <div className="mb-5">
         <button
           onClick={kembaliKeDaftar}
-          className="mb-3 text-sm font-medium text-emerald-700 hover:underline print:hidden"
+          className="mb-3 text-sm font-medium text-aksen-700 hover:underline print:hidden"
         >
           ← Kembali ke daftar acara
         </button>
@@ -523,31 +523,31 @@ export function AcaraView() {
           <span className={badgeStatusAcara(terpilih.status)}>{terpilih.status}</span>
           <span className={KELAS.badgeNetral}>v{terpilih.templateVersi}</span>
         </div>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-teks-halus">
           {jenis?.nama ?? 'Jenis tidak ditemukan'} · {formatTanggalIndonesia(terpilih.tanggal)}
           {jam ? ` · ${jam}` : ''}
           {terpilih.lokasi ? ` · ${terpilih.lokasi}` : ''} · {fases.length} fase · {tugas.length} tugas
         </p>
         {tugas.length > 0 && (
           <div className="mt-3 max-w-xl">
-            <div className="flex items-center justify-between text-xs text-slate-500">
+            <div className="flex items-center justify-between text-xs text-teks-halus">
               <span>
                 {ikhtisar.selesai} dari {ikhtisar.total} tugas selesai
                 {ikhtisar.batal > 0 ? ` · ${ikhtisar.batal} batal` : ''}
                 {ikhtisar.jalan > 0 ? ` · ${ikhtisar.jalan} sedang berjalan` : ''}
               </span>
-              <span className="font-medium text-slate-700">{ikhtisar.persenSelesai}%</span>
+              <span className="font-medium text-teks-kuat">{ikhtisar.persenSelesai}%</span>
             </div>
-            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-netral-200">
               <div
-                className="h-full rounded-full bg-emerald-500 transition-all"
+                className="h-full rounded-full bg-aksen-500 transition-all"
                 style={{ width: `${ikhtisar.persenSelesai}%` }}
               />
             </div>
             {fBerikut && terpilih.status !== 'SELESAI' && terpilih.status !== 'DIEVALUASI' && (
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-teks-halus">
                 Fase berikutnya:{' '}
-                <span className="font-medium text-slate-700">{fBerikut.label}</span> ·{' '}
+                <span className="font-medium text-teks-kuat">{fBerikut.label}</span> ·{' '}
                 {formatTanggalIndonesia(geserTanggal(terpilih.tanggal, fBerikut.offsetHari))} ·{' '}
                 {formatOffsetHari(fBerikut.offsetHari)}
               </p>
@@ -574,32 +574,26 @@ export function AcaraView() {
         {/* Batch F: cetak via host.cetak (standalone = window.print); ekspor
             Markdown diunduh sebagai berkas .md (window.print tidak bisa
             menghasilkan berkas, jadi tidak lewat host). */}
-        <div className="mt-3 flex flex-wrap gap-2 print:hidden">
-          <button
-            onClick={() => cetakJenis('ikhtisarEksekusi')}
-            className={KELAS.tombolSekunder}
-          >
-            Cetak Laporan Eksekusi
-          </button>
-          <button
-            onClick={() => cetakJenis('lembarTugas')}
-            className={KELAS.tombolSekunder}
-          >
-            Cetak Lembar Tugas (per PIC)
-          </button>
-          <button
-            onClick={() => cetakJenis('bukuAcara')}
-            className={KELAS.tombolSekunder}
-          >
-            Cetak Buku Acara (A4)
-          </button>
-          <button
-            onClick={eksporMarkdown}
-            className={KELAS.tombolSekunder}
-          >
-            Ekspor Markdown
-          </button>
-          <p className="w-full text-xs text-slate-500">
+        {/* Batch U-4: empat tombol ini sebelumnya sebobot dengan aksi utama
+            "Lanjutkan ke …". Dikelompokkan dalam panel tenang berlabel agar
+            hierarki jelas: satu aksi utama, sisanya keluaran dokumen. */}
+        <div className="mt-4 rounded-kontrol border border-garis bg-permukaan-halus p-3 print:hidden">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-teks-halus">Cetak &amp; ekspor</p>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => cetakJenis('ikhtisarEksekusi')} className={KELAS.tombolSekunderKecil}>
+              Cetak Laporan Eksekusi
+            </button>
+            <button onClick={() => cetakJenis('lembarTugas')} className={KELAS.tombolSekunderKecil}>
+              Cetak Lembar Tugas (per PIC)
+            </button>
+            <button onClick={() => cetakJenis('bukuAcara')} className={KELAS.tombolSekunderKecil}>
+              Cetak Buku Acara (A4)
+            </button>
+            <button onClick={eksporMarkdown} className={KELAS.tombolSekunderKecil}>
+              Ekspor Markdown
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-teks-halus">
             Lembar tugas: satu halaman per PIC berisi tugas divisinya. Buku acara: SOP lengkap acara ini dalam
             format A4. Ekspor Markdown mengunduh berkas .md yang dapat dibuka ulang di editor teks mana pun.
           </p>
@@ -611,12 +605,12 @@ export function AcaraView() {
       )}
 
       {memuatPapan ? (
-        <p className="text-sm text-slate-500 print:hidden">Memuat…</p>
+        <p className="text-sm text-teks-halus print:hidden">Memuat…</p>
       ) : (
         <div className="space-y-4">
           {fases.length === 0 && (
             <div className={KELAS.kosong}>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-teks-halus">
                 Template ini tidak punya fase, jadi tidak ada tugas di acara ini.
               </p>
             </div>
@@ -630,21 +624,19 @@ export function AcaraView() {
             return (
               <div
                 key={fase.id}
-                className={`rounded-xl border bg-white p-4 ${
-                  waktu === 'HARI_INI' ? 'border-emerald-300 ring-2 ring-emerald-200' : 'border-slate-200'
+                className={`rounded-kartu border bg-permukaan-kartu p-4 shadow-kartu ${
+                  waktu === 'HARI_INI' ? 'border-aksen-300 ring-2 ring-aksen-200' : 'border-garis'
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-slate-800">
+                    <span className="font-medium text-teks-utama">
                       {fase.urutan}. {fase.label}
                     </span>
                     <span className={KELAS.badgeNetral}>
                       {formatOffsetHari(fase.offsetHari)}
                     </span>
-                    <span className={KELAS.badgeAksen}>
-                      {formatTanggalIndonesia(tanggalFase)}
-                    </span>
+                    <span className="text-xs text-teks-halus">{formatTanggalIndonesia(tanggalFase)}</span>
                     {waktu === 'HARI_INI' && (
                       <span className={KELAS.badgeAksenPekat}>
                         Hari ini
@@ -653,14 +645,14 @@ export function AcaraView() {
                     {waktu === 'MENDATANG' && (
                       <span className={KELAS.badgeInfo}>Mendatang</span>
                     )}
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-teks-redup">
                       {faseIkhtisar.selesai}/{faseIkhtisar.total} selesai
                     </span>
                   </div>
                 </div>
 
                 <div className="mt-3 space-y-2">
-                  {tugasFase.length === 0 && <p className="text-sm text-slate-400">Tidak ada tugas di fase ini.</p>}
+                  {tugasFase.length === 0 && <p className="text-sm text-teks-redup">Tidak ada tugas di fase ini.</p>}
                   {tugasFase.map((t) => {
                     const divisi = divisiMap.get(t.divisiId);
                     return (
@@ -670,7 +662,7 @@ export function AcaraView() {
                       >
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-medium text-slate-700">{t.judul}</span>
+                            <span className="text-sm font-medium text-teks-kuat">{t.judul}</span>
                             {t.wajib && (
                               <span className={KELAS.badgePeringatan}>wajib</span>
                             )}
@@ -678,7 +670,7 @@ export function AcaraView() {
                               {t.status}
                             </span>
                           </div>
-                          <p className="truncate text-xs text-slate-500">
+                          <p className="truncate text-xs text-teks-halus">
                             {divisi?.nama ?? 'Divisi tidak ditemukan'}
                             {t.catatan ? ` · ${t.catatan}` : ''}
                             {t.selesaiPada ? ` · selesai ${formatWaktu(t.selesaiPada)}` : ''}
@@ -702,7 +694,7 @@ export function AcaraView() {
           {/* PIC divisi bertugas */}
           <div className={KELAS.kartuIsi}>
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-slate-800">PIC Divisi</h3>
+              <h3 className="font-medium text-teks-utama">PIC Divisi</h3>
               <span className={KELAS.badgeNetral}>
                 {acaraDivisi.length} divisi bertugas
               </span>
@@ -717,10 +709,10 @@ export function AcaraView() {
                   </span>
                 ))}
             </div>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-teks-halus">
               Nama PIC wajib diisi untuk setiap divisi bertugas sebelum acara bisa dinaikkan ke SIAP.
             </p>
-            {acaraDivisi.length === 0 && <p className="mt-3 text-sm text-slate-400">Tidak ada divisi bertugas.</p>}
+            {acaraDivisi.length === 0 && <p className="mt-3 text-sm text-teks-redup">Tidak ada divisi bertugas.</p>}
             <div className="mt-3 space-y-2">
               {acaraDivisi.map((r) => {
                 const divisi = divisiMap.get(r.divisiId);
@@ -730,15 +722,15 @@ export function AcaraView() {
                 return (
                   <div key={r.id} className="flex flex-wrap items-end gap-2 rounded-lg bg-slate-50 px-3 py-2">
                     <div className="w-36">
-                      <p className="text-sm font-medium text-slate-700">{divisi?.nama ?? 'Divisi tidak ditemukan'}</p>
-                      <p className={`text-xs ${sudah ? 'text-emerald-600' : 'text-red-500'}`}>
+                      <p className="text-sm font-medium text-teks-kuat">{divisi?.nama ?? 'Divisi tidak ditemukan'}</p>
+                      <p className={`text-xs ${sudah ? 'text-aksen-600' : 'text-red-500'}`}>
                         {sudah ? `PIC: ${isi.picNama}` : 'belum ada PIC'}
                         {sudah && isi.picKontak && (
-                          <span className="hidden print:inline text-slate-500"> · {isi.picKontak}</span>
+                          <span className="hidden print:inline text-teks-halus"> · {isi.picKontak}</span>
                         )}
                       </p>
                       {prog && prog.total > 0 && (
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-teks-redup">
                           {prog.selesai}/{prog.total} tugas selesai
                         </p>
                       )}
