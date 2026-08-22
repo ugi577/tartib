@@ -5,10 +5,10 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 7 — **Batch F (cetak & ekspor) selesai**: tsc bersih, vitest 121/121 (16 file), build statis OK, verifikasi browser in-app (rantai tombol → `host.cetak()` → dialog cetak terbukti; ekspor Markdown terunduh nyata ke disk & dibuka ulang); siap merge ke `master`; tersisa **cetak fisik Ahmed** (Gate F item terakhir)
-- **Repo:** `/Users/ahmad/Projects/tartib-app`
-- **Branch aktif:** `batch-f-cetak` (dari `master` setelah merge E); sebelumnya `batch-e-evaluasi`
-- **Bukti verifikasi Batch F (browser in-app):** (1) klik "Cetak Lembar Tugas (per PIC)" membuka dialog cetak sistem — rantai tombol → `cetakJenis` → `flushSync` → `host.cetak` → `window.print` terbukti end-to-end (dialog memblokir webview, tab ditutup); (2) ekspor Markdown mengunduh `SOP-Khatam-Tasmi-Berikutnya.md` (3,8 KB) ke `~/Downloads` — dibuka ulang, isinya diverifikasi: `# SOP ACARA`, kop jenis/tanggal, `## 1. Persiapan H-30 (H-30, 22 Agustus 2026)`, tugas per divisi dengan `_(wajib)_` & status
+- **Sesi:** 8 — **Gate F ditutup**: Ahmed mencetak fisik dari dialog cetak aplikasi setelah driver EPSON terpasang — job CUPS `EPSON_L365_Series-1` selesai 08:10:53 — lalu menyatakan lanjut ("oke lanjut"). **Batch G (integrasi v3) dimulai** di repo `/Users/ahmad/Projects/mahad-askar-app-v3`
+- **Repo:** `/Users/ahmad/Projects/tartib-app` (Batch G berjalan di repo v3 `mahad-askar-app-v3`)
+- **Branch aktif:** `master` di tartib-app; branch `batch-g-integrasi-v3` di repo v3
+- **Bukti verifikasi Batch F (browser in-app):** (1) klik "Cetak Lembar Tugas (per PIC)" membuka dialog cetak sistem — rantai tombol → `cetakJenis` → `flushSync` → `host.cetak` → `window.print` terbukti end-to-end (dialog memblokir webview, tab ditutup); (2) ekspor Markdown mengunduh `SOP-Khatam-Tasmi-Berikutnya.md` (3,8 KB) ke `~/Downloads` — dibuka ulang, isinya diverifikasi: `# SOP ACARA`, kop jenis/tanggal, `## 1. Persiapan H-30 (H-30, 22 Agustus 2026)`, tugas per divisi dengan `_(wajib)_` & status; (3) **cetak fisik** — job CUPS `EPSON_L365_Series-1` selesai 2026-08-22 08:10:53 (`lpstat -W completed`); dialog cetak ulang terbuka dari tombol "Cetak Lembar Tugas (per PIC)" setelah driver terpasang (CGWindowList: jendela Print Center 900×450)
 
 ## Progress
 
@@ -108,17 +108,17 @@
 3. `src/tartib/lib/ekspor/markdown.ts` + 7 test — `bukuAcaraKeMarkdown(buku, dicetakPada)` → Markdown rapi: `# SOP ACARA`, kop baris (jenis · Hari-H · waktu · lokasi), `## {urutan}. {fase} (offset, tanggal)`, `### {divisi}`, `- judul — catatan _(wajib)_ Status: …`, fase kosong diberi keterangan; tanpa spasi menggantung
 4. `AcaraView.tsx` — state `cetakAktif` (`'lembarTugas' | 'bukuAcara' | 'ikhtisarEksekusi'`, default ikhtisar); `cetakJenis()` pakai `flushSync` (react-dom) sebelum `host.cetak()` agar bagian print ter-commit ke DOM; ekspor Markdown = Blob + tautan unduh (`SOP-{nama}.md`); bagian print `hidden print:block`, kontrol `print:hidden`; lembar tugas per PIC pakai `break-before-page` (halaman baru per orang), buku acara `break-inside-avoid` per kelompok; `@page { size: A4; margin: 14mm }` di `globals.css`
 
-## Gate F — status (teknis & browser; fisik menunggu Ahmed)
+## Gate F — status — LULUS 2026-08-22
 
 - [x] Teknis: tsc bersih, vitest 121/121 (16 file), `pnpm build` statis sukses
 - [x] Lembar tugas per PIC — isi diuji 6 test `susunLembarTugas` (hanya tugas divisi sendiri, urutan fase & tugas, PIC tanpa kontak, divisi tanpa tugas); satu halaman per orang via `break-before-page`; rantai tombol → `host.cetak()` → dialog cetak sistem terbukti end-to-end di browser
 - [x] Buku acara A4 — isi diuji 7 test `susunBukuAcara` (tanggal fase nyata, urutan, pengelompokan divisi); batas kertas diamankan `@page A4 14mm`; media print tidak bisa diemulasi di webview IAB, jadi pemisahan halaman diverifikasi lewat test + CSS statis
 - [x] Ekspor Markdown dapat dibuka ulang — unduhan nyata `SOP-Khatam-Tasmi-Berikutnya.md` (3,8 KB) ke `~/Downloads`, dibuka ulang, isi diverifikasi
-- [ ] **Ahmed mencetak fisik** lembar tugas & buku acara, lalu menyatakan lulus (Gate F tertutup hanya dengan pernyataan ini)
+- [x] **Ahmed mencetak fisik** — retry cetak setelah driver EPSON terpasang: dialog cetak terbuka dari "Cetak Lembar Tugas (per PIC)" (CGWindowList: jendela Print Center 900×450 di layar; webview tidak terblokir), job CUPS `EPSON_L365_Series-1` selesai 2026-08-22 08:10:53 (`lpstat -W completed`), Ahmed menyatakan lanjut ("oke lanjut")
 
 ## Next step (presisi)
 
-Batch F selesai → merge `batch-f-cetak` ke `master` (ff) → **Batch G (integrasi v3)** di repo v3: salin `src/tartib/`, `mahadHost.ts` (implementasi `TartibHost` terhadap Dexie v3), skema v3 + migrasi aditif (hanya menambah tabel `tartib_*`), titik masuk menu & routing `?m=tartib`, `cetak` disambungkan ke Studio Print. Sebelum itu Ahmed mencetak fisik hasil Batch F (lembar tugas per PIC + buku acara A4) untuk menutup Gate F.
+Gate F **tertutup** 2026-08-22 (cetak fisik job CUPS `EPSON_L365_Series-1` 08:10:53 + pernyataan Ahmed). **Batch G (integrasi v3)** berjalan di repo `/Users/ahmad/Projects/mahad-askar-app-v3` (branch `batch-g-integrasi-v3`): salin `src/tartib/`, `mahadHost.ts` (implementasi `TartibHost` terhadap Dexie v3), skema v3 + migrasi aditif (hanya menambah tabel `tartib_*`), titik masuk menu & routing `?m=tartib`, `cetak` disambungkan ke Studio Print. Gate G: modul berjalan di v3, diff skema tidak menyentuh tabel v3, migrasi naik-turun aman, tsc + vitest v3 hijau, uji APK perangkat fisik, verifikasi manual Ahmed.
 
 ## Gate A — status
 
@@ -226,7 +226,7 @@ Batch F selesai → merge `batch-f-cetak` ke `master` (ff) → **Batch G (integr
 
 ## Blocker
 
-Tidak ada. Gate A–E, T, dan F (teknis) lulus; Gate F tersisa cetak fisik Ahmed. Dev server berjalan di localhost:3000 (sesi verifikasi); browser in-app menampilkan aplikasi untuk Ahmed melihat langsung.
+Tidak ada. Gate A–E, T, dan F **lulus penuh** (termasuk cetak fisik Ahmed 2026-08-22). Batch G berjalan di repo `mahad-askar-app-v3`; dev server tartib tetap berjalan di localhost:3000 (sesi verifikasi).
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.

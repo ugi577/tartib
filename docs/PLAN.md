@@ -142,11 +142,11 @@ Branch: `batch-f-cetak`
 3. `src/tartib/lib/ekspor/markdown.ts` — ekspor Markdown
 4. Tombol cetak lewat `host.cetak()` (standalone: `window.print()`)
 
-**Gate F** — teknis & verifikasi browser 2026-08-22; cetak fisik menunggu Ahmed
+**Gate F** — LULUS 2026-08-22
 - [x] Lembar tugas per PIC tercetak, satu halaman per orang — `break-before-page` + 6 test `susunLembarTugas`; rantai tombol → `host.cetak()` → dialog cetak terbukti end-to-end
 - [x] Buku acara A4 rapi, tidak ada teks menembus batas — `@page A4 14mm` + 7 test `susunBukuAcara`; pemisahan halaman & media print terverifikasi lewat test, bukan emulasi browser
 - [x] Ekspor Markdown dapat dibuka ulang — berkas `.md` terunduh nyata ke disk, dibuka ulang & isinya diverifikasi
-- [ ] **Ahmed mencetak fisik dan menyatakan lulus**
+- [x] **Ahmed mencetak fisik dan menyatakan lulus** — retry cetak setelah driver EPSON terpasang: dialog cetak terbuka dari "Cetak Lembar Tugas (per PIC)" (terverifikasi via CGWindowList, jendela Print Center 900×450), job CUPS `EPSON_L365_Series-1` selesai 2026-08-22 08:10:53 (`lpstat -W completed`), lalu Ahmed menyatakan lanjut
 
 ## Batch G — Integrasi v3 · `clo` xhigh ▲
 
@@ -169,6 +169,8 @@ Branch: di **repo v3**, bukan di repo tartib.
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.8** — **Gate F ditutup**: Ahmed mencetak fisik dari dialog cetak aplikasi setelah driver printer EPSON terpasang (job CUPS `EPSON_L365_Series-1` selesai 08:10:53, `lpstat -W completed`) dan menyatakan lanjut. Catatan retry: klik "Cetak Lembar Tugas (per PIC)" → `host.cetak()` → dialog cetak macOS terbuka (terverifikasi via CGWindowList — jendela Print Center 900×450 di layar; kali ini webview tidak terblokir seperti sesi verifikasi sebelumnya). **Batch G (integrasi v3) dimulai** di repo `mahad-askar-app-v3`.
 
 - **2026-08-22 — v1.7** — Batch F selesai (branch `batch-f-cetak`, 4 commit `feat(tartib)`): `lib/cetak/lembarTugas.ts` — satu halaman per PIC (`break-before-page`), berisi hanya tugas divisinya (6 test); `lib/cetak/bukuAcara.ts` — SOP lengkap satu acara untuk A4: kop, fase dengan tanggal nyata, tugas per divisi (7 test); `lib/ekspor/markdown.ts` — buku acara → berkas `.md` yang dapat dibuka ulang (7 test); tombol cetak di `AcaraView` via `host.cetak()` (state `cetakAktif` + `flushSync` sebelum print; payload `lembarTugas`/`bukuAcara`, `picNama` kosong = semua lembar) + `@page { size: A4; margin: 14mm }`. Gate F teknis: tsc bersih, vitest 121/121 (16 file), build statis OK. Verifikasi browser: rantai tombol → cetak → dialog sistem terbukti end-to-end; ekspor Markdown terunduh nyata (`SOP-Khatam-Tasmi-Berikutnya.md`) dan isinya diverifikasi (kop, 4 fase, tugas per divisi, penanda wajib & status). Tersisa **verifikasi fisik Ahmed**: mencetak lembar tugas & buku acara dan menyatakan lulus.
 
