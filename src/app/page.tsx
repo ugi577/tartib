@@ -12,6 +12,7 @@ import { EvaluasiView } from '../tartib/components/EvaluasiView';
 import { TemplateView } from '../tartib/components/TemplateView';
 import { TamuView } from '../tartib/components/TamuView';
 import { PengaturanView } from '../tartib/components/PengaturanView';
+import { EKonfirmasiView } from '../tartib/components/EKonfirmasiView';
 import { jalankanSeed } from '../tartib/db/seed';
 import { KELAS } from '../tartib/ui/kelas';
 import { LogoTartib } from '../tartib/components/LogoTartib';
@@ -20,7 +21,7 @@ import { BintangDelapan, PitaIslami } from '../tartib/components/OrnamenIslami';
 // 'tentang' bukan lagi tab tersendiri (sesi 16) — tab "Tentang" dipindah
 // menjadi bagian di dalam tab Pengaturan. Nilainya dipertahankan di tipe ini
 // agar tautan lama `?view=tentang` tetap membuka isi yang sama.
-type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'pengaturan' | 'tentang';
+type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'pengaturan' | 'tentang' | 'konfirmasi';
 
 // BUG-U2 (Batch U): sebelumnya enam <Link> ditulis satu per satu di dalam
 // `flex` tanpa wrap — di lebar ponsel dua tab terakhir (Evaluasi, Tentang)
@@ -63,6 +64,11 @@ const PINTU_MASUK: ReadonlyArray<{ view: View; judul: string; keterangan: string
     view: 'pengaturan',
     judul: 'Pengaturan',
     keterangan: 'Kop cetak lembaga, nilai baku kalkulator porsi, Google Drive, cadangan data, dan tentang aplikasi.',
+  },
+  {
+    view: 'konfirmasi',
+    judul: 'Buat e-Konfirmasi Kehadiran',
+    keterangan: 'Susun halaman konfirmasi kehadiran untuk acara Anda — bidang menyesuaikan kategori acara, unduh HTML siap dibagikan.',
   },
 ];
 
@@ -144,6 +150,7 @@ function Konten() {
       {(view === 'pengaturan' || view === 'tentang') && (
         <PengaturanView bagianAwal={view === 'tentang' ? 'tentang' : 'umum'} />
       )}
+      {view === 'konfirmasi' && <EKonfirmasiView />}
       {view === 'beranda' && (
         <div className="grid gap-4 sm:grid-cols-2">
           {PINTU_MASUK.map((p) => (
