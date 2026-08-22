@@ -7,7 +7,8 @@
 // tampil sebagai badge.
 //
 // Aturan pakai:
-// - Aksi utama satu layar hanya SATU: `tombolUtama`.
+// - Aksi utama: `tombolUtama` — satu saja per kartu/panel, dan pada layar
+//   tanpa kartu satu saja untuk seluruh layar.
 // - Aksi pendamping: `tombolSekunder`; aksi baris/daftar: `tombolHalus`.
 // - Aksi merusak: `tombolBahaya` (berdiri sendiri), `tombolBahayaHalus`
 //   (berulang tiap baris), `tombolBahayaSolid` (dialog konfirmasi, saat

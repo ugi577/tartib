@@ -68,9 +68,10 @@ Dark mode, font baru, set ikon baru, UI kit/komponen pihak ketiga, animasi besar
 
 - [x] Disetujui Ahmed untuk eksekusi — 2026-08-22
 - [x] Baseline & audit (tahap 0) — 2 bug + 7 inkonsistensi tercatat
-- [ ] U-1 Bug tampilan dasar (mode gelap, nav ponsel, judul menumpuk)
-- [ ] U-2 Token desain
-- [ ] U-3 Komponen bersama
-- [ ] U-4 Per view
-- [ ] U-5–U-6 Regresi cetak & fungsional
-- [ ] **Gate U — verifikasi manual Ahmed**
+- [x] U-1 Bug tampilan dasar — `f8403a0` (mode gelap, nav ponsel, judul menumpuk)
+- [x] U-2 Token desain — `72fa1be`
+- [x] U-3 Komponen bersama — `72fa1be` (fondasi) + `c510eaa` (88 kelas inline diganti)
+- [x] U-4 Per view — `b7f5a9a`
+- [x] U-5 Regresi cetak — penanda cetak identik sebelum/sesudah (`print:hidden` 11, `print:block` 3, `break-before-page` 2, `break-inside-avoid` 2); `@page{size:A4;margin:14mm}` ada di CSS hasil build; satu-satunya perubahan di blok cetak adalah `text-slate-800` → `text-teks-utama` yang nilainya identik (`rgb(30,41,59)`, diperiksa lewat computed style)
+- [x] U-6 Regresi fungsional — `tsc` bersih, `vitest` 128/128 (17 berkas), `pnpm build` statis sukses; smoke di browser: klik "→ JALAN" mengubah satu tugas BELUM→JALAN (badge jadi `badgeInfo`, progres tetap 0/33 selesai + "1 sedang berjalan"); enam view di 375px tanpa scroll horizontal
+- [ ] **Gate U — verifikasi manual Ahmed** (terang & gelap, ponsel & layar lebar, plus satu cetakan uji)

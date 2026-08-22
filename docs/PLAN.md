@@ -187,17 +187,19 @@ Branch: `batch-u-ui`. Rencana rinci: `docs/PLAN-UI.md`.
 6. **U-6 Regresi fungsional** — `tsc` bersih, `vitest` hijau, `pnpm build` statis sukses
 
 **Gate U**
-- [ ] BUG-U1 hilang: dibuka di perangkat mode gelap, seluruh teks terbaca (bukti: `prefers-color-scheme: dark` + screenshot)
-- [ ] BUG-U2 hilang: pada lebar 375px seluruh 6 tab terjangkau dan tidak ada elemen menumpuk/keluar kontainer
-- [ ] Satu pola tombol, badge, kartu, input dipakai di semua view — grep: tidak ada lagi kelas tombol yang ditulis inline per komponen
-- [ ] Status (`BELUM/JALAN/SELESAI/BATAL`, `DRAF/SIAP/BERJALAN/SELESAI/DIEVALUASI`, RSVP) memakai satu helper warna bersama
-- [ ] Hasil cetak tidak berubah — lembar tugas per PIC, buku acara A4, laporan eksekusi
-- [ ] Teknis: `tsc` bersih, `vitest` hijau, `pnpm build` statis sukses
-- [ ] **Verifikasi manual Ahmed** di perangkat (terang & gelap, ponsel & layar lebar) — Gate ditutup hanya oleh pernyataan eksplisitnya
+- [x] BUG-U1 hilang: di `prefers-color-scheme: dark` halaman tetap terang & terbaca — `bodyBg` `rgb(248,250,252)`, `colorScheme` `light` (screenshot 375px mode gelap)
+- [x] BUG-U2 hilang: pada 375px keenam tab terjangkau (0 tab keluar batas), tidak ada scroll horizontal di keenam view, judul view tidak lagi tertimpa tombol
+- [x] Satu pola tombol, badge, kartu, input dipakai di semua view — grep kelas tombol inline: **0** (di luar hamparan gelap dialog `bg-slate-900/50`)
+- [x] Status (`BELUM/JALAN/SELESAI/BATAL`, `DRAF/SIAP/BERJALAN/SELESAI/DIEVALUASI`, RSVP) memakai satu helper bersama — `warnaStatus*` lokal tersisa: **0**; dikunci 7 test
+- [x] Hasil cetak tidak berubah — penanda cetak identik sebelum/sesudah, `@page{size:A4;margin:14mm}` ada di CSS hasil build, satu-satunya perubahan di blok cetak bernilai warna identik
+- [x] Teknis: `tsc` bersih, `vitest` 128/128 (17 berkas), `pnpm build` statis sukses
+- [ ] **Verifikasi manual Ahmed** di perangkat (terang & gelap, ponsel & layar lebar, plus satu cetakan uji) — Gate ditutup hanya oleh pernyataan eksplisitnya
 
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.13** — **Batch U selesai diimplementasi** (branch `batch-u-ui`, 5 commit): `309e12e` docs (K-16), `f8403a0` fix dua bug tampilan, `72fa1be` token desain + `src/tartib/ui/kelas.ts` + 7 test, `c510eaa` 88 kelas inline diganti token di enam komponen, `b7f5a9a` hierarki per view. Yang berubah bagi pengguna: aplikasi terbaca di perangkat mode gelap; keenam tab terjangkau di ponsel; beranda punya lima pintu masuk (Evaluasi & Tentang sebelumnya hanya lewat tab); satu gaya tombol dengan aksi utama tunggal per kartu; status tugas kini badge seperti status acara; tombol cetak/ekspor dikelompokkan sebagai panel "Cetak & ekspor"; editor template tidak lagi didominasi 33 tombol "Hapus" merah. Gate U teknis **lulus** (tsc bersih, vitest 128/128, build statis, penanda cetak identik). **Tersisa verifikasi manual Ahmed** — Gate U belum ditutup, belum di-merge ke `master`, belum disinkronkan ke repo publik. Catatan operasional: `pnpm build` dan `next dev` berebut direktori `.next` (chunk dev jadi 404) — jalankan build saat dev berhenti, atau restart dev setelah build.
 
 - **2026-08-22 — v1.12** — **Batch U (UI) disetujui & dimulai** (branch `batch-u-ui`). Koreksi rencana sebelum eksekusi (K-16): PLAN-UI v1 menyebut skill MCP `browser-use:control-browser`/`web-gui-tester` yang **tidak tersedia** di sesi agen ini — diganti Browser pane bawaan (`preview_start`, `navigate`, `read_page`, `computer` untuk klik/ketik/screenshot, `resize_window` untuk lebar ponsel & mode gelap, `javascript_tool` untuk membaca computed style). Audit baseline berjalan di `localhost:3000` dengan data nyata (seed template contoh + acara "Khatam Tasmi Angkatan 12", 33 tugas) dan menemukan **dua bug**, bukan sekadar soal rasa: **BUG-U1** aplikasi tidak terbaca di mode gelap, **BUG-U2** dua tab hilang & judul menumpuk tombol di lebar 375px. Keduanya masuk U-1 dan dikerjakan sebelum percantikan. Batch U + Gate U ditambahkan ke PLAN ini.
 
