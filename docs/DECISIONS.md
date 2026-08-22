@@ -4,6 +4,14 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-14 — 2026-08-22 — Tartib berdiri sendiri; integrasi ke mahadapp menunggu konfirmasi
+
+Ahmed memutuskan Tartib adalah **aplikasi mandiri** ("app ini saya buat berdiri sendiri"); opsi integrasi ke mahadapp **ditunda menunggu konfirmasi eksplisit** — "opsi integrasi tunggu konfirmasi", demi stabilitas tampilan UI dan sistem mahadapp. Keputusan:
+
+1. **Batch G (integrasi v3) DITUNDA** — sub-langkah G-2 (`mahadHost.ts`), G-4 (menu/rute), G-5 (cetak) dan Gate G tidak dikerjakan sampai Ahmed menyatakan konfirmasi.
+2. **Komit G-1 (`ea10ea6` salin `src/tartib/`) dan G-3 (`4c204af` skema v38 + backup VERSI 6) tetap di cabang `batch-g-integrasi-v3`** (pilihan Ahmed dari tiga opsi: simpan / revert / revert+hapus) — keduanya **inert**: modul belum dirujuk kode mana pun, skema hanya *menambah* tabel `tartib_*`, perilaku mahadapp tidak berubah. Tidak di-revert, tidak dihapus, tidak di-push.
+3. Status lanjut dibuka lagi hanya bila Ahmed menyatakan keputusan baru.
+
 ## K-13 — 2026-08-22 — Posisi produk: SOP sebagai mesin eksekusi untuk acara kecil–menengah (riset pasar)
 
 Riset lanskap Ahmed (2026-08-22): aplikasi pembuat SOP (AI SOP Genie, SOPmate, Quick SOP) berhenti di dokumen; aplikasi eksekusi acara (Coordon, ORGA) memulai dari SOP manual dan berat untuk skala kecil–menengah. Celah terbesar = jembatan dokumen ↔ eksekusi. Keputusan:

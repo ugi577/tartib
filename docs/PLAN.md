@@ -152,6 +152,8 @@ Branch: `batch-f-cetak`
 
 Branch: di **repo v3**, bukan di repo tartib.
 
+> **DITUNDA — 2026-08-22, menunggu konfirmasi integrasi (K-14).** Tartib berdiri sendiri; integrasi ke mahadapp dilanjutkan hanya dengan konfirmasi eksplisit Ahmed. G-1 & G-3 ter-commit inert di cabang `batch-g-integrasi-v3` dan dibiarkan apa adanya; G-2, G-4, G-5, dan Gate G ditangguhkan.
+
 1. Salin `src/tartib/` ke v3
 2. `mahadHost.ts` — implementasi `TartibHost` terhadap Dexie & tabel v3
 3. Naikkan versi skema Dexie v3 + migrasi (hanya **menambah** tabel `tartib_*`)
@@ -169,6 +171,8 @@ Branch: di **repo v3**, bukan di repo tartib.
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.9** — **Batch G DITUNDA menunggu konfirmasi integrasi (K-14)**: Tartib berdiri sendiri — Ahmed menyatakan *"app ini saya buat berdiri sendiri, opsi integrasi tunggu konfirmasi"* (keputusan 2026-08-22). Di repo v3 (cabang `batch-g-integrasi-v3`, tidak di-push): `ea10ea6` G-1 salin `src/tartib/` dan `4c204af` G-3 skema v38 (hanya menambah tabel `tartib_*`) + backup VERSI 6 tetap **inert** dan dibiarkan apa adanya (pilihan Ahmed dari opsi simpan/revert/revert+hapus). G-2 (`mahadHost.ts`), G-4 (menu/rute `?m=tartib`), G-5 (cetak Studio Print) dan Gate G ditangguhkan sampai konfirmasi eksplisit.
 
 - **2026-08-22 — v1.8** — **Gate F ditutup**: Ahmed mencetak fisik dari dialog cetak aplikasi setelah driver printer EPSON terpasang (job CUPS `EPSON_L365_Series-1` selesai 08:10:53, `lpstat -W completed`) dan menyatakan lanjut. Catatan retry: klik "Cetak Lembar Tugas (per PIC)" → `host.cetak()` → dialog cetak macOS terbuka (terverifikasi via CGWindowList — jendela Print Center 900×450 di layar; kali ini webview tidak terblokir seperti sesi verifikasi sebelumnya). **Batch G (integrasi v3) dimulai** di repo `mahad-askar-app-v3`.
 
