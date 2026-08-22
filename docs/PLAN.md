@@ -152,7 +152,7 @@ Branch: `batch-f-cetak`
 
 Branch: di **repo v3**, bukan di repo tartib.
 
-> **DITUNDA — 2026-08-22, menunggu konfirmasi integrasi (K-14).** Tartib berdiri sendiri; integrasi ke mahadapp dilanjutkan hanya dengan konfirmasi eksplisit Ahmed. G-1 & G-3 ter-commit inert di cabang `batch-g-integrasi-v3` dan dibiarkan apa adanya; G-2, G-4, G-5, dan Gate G ditangguhkan.
+> **BATAL — 2026-08-22, keputusan final pisahkan (K-15).** Tartib dan mahadapp dipisahkan; integrasi **tidak dikerjakan** (bukan lagi ditunda). Penggantinya: info/link di mahadapp menunjuk ke aplikasi Tartib — contoh Ahmed: di Studio Print, entri "SOP acara" menunjuk ke aplikasi Tartib (tercatat di backlog PLAN v3; detail URL publik Tartib, penempatan, dan waktu belum diputuskan). G-1 (`ea10ea6`) & G-3 (`4c204af`) ter-commit inert di cabang `batch-g-integrasi-v3`, dibiarkan apa adanya (tidak di-push; cabang bisa dihapus kapan saja); G-2, G-4, G-5, dan Gate G **tidak akan dikerjakan**.
 
 1. Salin `src/tartib/` ke v3
 2. `mahadHost.ts` — implementasi `TartibHost` terhadap Dexie & tabel v3
@@ -171,6 +171,8 @@ Branch: di **repo v3**, bukan di repo tartib.
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.10** — **Keputusan final: pisahkan (K-15)** — Batch G integrasi v3 **batal** (bukan lagi ditunda). Ahmed: *"sy putuskan pisahkan, cukup nnt ditambahkan di mahadapp info ke app tartib ini, misal dalam studio print sop acara linknya ke app ini"* — latar: kedua aplikasi direncanakan fork dengan nama lain untuk rilis publik. Pengganti integrasi: info/link di mahadapp menunjuk ke Tartib (contoh: Studio Print, entri SOP acara) — belum diimplementasikan, tercatat di backlog PLAN v3; detail (URL publik Tartib, penempatan, waktu) menunggu keputusan. Komit G-1/G-3 tetap inert di cabang `batch-g-integrasi-v3` (tidak di-push; bisa dihapus kapan saja, komit bisa dipulihkan via reflog).
 
 - **2026-08-22 — v1.9** — **Batch G DITUNDA menunggu konfirmasi integrasi (K-14)**: Tartib berdiri sendiri — Ahmed menyatakan *"app ini saya buat berdiri sendiri, opsi integrasi tunggu konfirmasi"* (keputusan 2026-08-22). Di repo v3 (cabang `batch-g-integrasi-v3`, tidak di-push): `ea10ea6` G-1 salin `src/tartib/` dan `4c204af` G-3 skema v38 (hanya menambah tabel `tartib_*`) + backup VERSI 6 tetap **inert** dan dibiarkan apa adanya (pilihan Ahmed dari opsi simpan/revert/revert+hapus). G-2 (`mahadHost.ts`), G-4 (menu/rute `?m=tartib`), G-5 (cetak Studio Print) dan Gate G ditangguhkan sampai konfirmasi eksplisit.
 

@@ -5,7 +5,7 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 8 — **Gate F ditutup**: Ahmed mencetak fisik dari dialog cetak aplikasi setelah driver EPSON terpasang — job CUPS `EPSON_L365_Series-1` selesai 08:10:53 — lalu menyatakan lanjut ("oke lanjut"). **Batch G (integrasi v3) DITUNDA menunggu konfirmasi integrasi (K-14)**: Tartib berdiri sendiri — *"app ini saya buat berdiri sendiri, opsi integrasi tunggu konfirmasi"*. Komit G-1/G-3 tetap di cabang `batch-g-integrasi-v3` (inert, pilihan Ahmed); G-2/G-4/G-5/Gate G ditangguhkan sampai konfirmasi eksplisit.
+- **Sesi:** 9 — **Keputusan final K-15 (2026-08-22): Tartib dan mahadapp DIPISAHKAN** — Ahmed: *"sy putuskan pisahkan, cukup nnt ditambahkan di mahadapp info ke app tartib ini, misal dalam studio print sop acara linknya ke app ini"*. **Integrasi (Batch G) BATAL** (bukan lagi ditunda); penggantinya: **info/link di mahadapp menunjuk ke aplikasi Tartib** — contoh: di Studio Print, entri "SOP acara" (belum dikerjakan, "nnt ditambahkan"; tercatat di backlog PLAN v3). Latar: kedua aplikasi direncanakan fork dengan nama lain untuk rilis publik. Komit G-1 (`ea10ea6`)/G-3 (`4c204af`) tetap inert di cabang `batch-g-integrasi-v3` (tidak di-push). Sesi-sesi sebelumnya: Gate A–E, T, F ditutup penuh (cetak fisik Ahmed, job CUPS `EPSON_L365_Series-1` 08:10:53, "oke lanjut").
 - **Repo:** `/Users/ahmad/Projects/tartib-app` (Batch G berjalan di repo v3 `mahad-askar-app-v3`)
 - **Branch aktif:** `master` di tartib-app; branch `batch-g-integrasi-v3` di repo v3 (tidak di-push)
 - **Bukti verifikasi Batch F (browser in-app):** (1) klik "Cetak Lembar Tugas (per PIC)" membuka dialog cetak sistem — rantai tombol → `cetakJenis` → `flushSync` → `host.cetak` → `window.print` terbukti end-to-end (dialog memblokir webview, tab ditutup); (2) ekspor Markdown mengunduh `SOP-Khatam-Tasmi-Berikutnya.md` (3,8 KB) ke `~/Downloads` — dibuka ulang, isinya diverifikasi: `# SOP ACARA`, kop jenis/tanggal, `## 1. Persiapan H-30 (H-30, 22 Agustus 2026)`, tugas per divisi dengan `_(wajib)_` & status; (3) **cetak fisik** — job CUPS `EPSON_L365_Series-1` selesai 2026-08-22 08:10:53 (`lpstat -W completed`); dialog cetak ulang terbuka dari tombol "Cetak Lembar Tugas (per PIC)" setelah driver terpasang (CGWindowList: jendela Print Center 900×450)
@@ -15,7 +15,7 @@
 - [x] `docs/BRIEF.md` — brief disalin (409 baris), commit `chore: brief awal Tartib`
 - [x] `docs/PRD.md` — spesifikasi otoritatif dari BRIEF Bagian 3–6
 - [x] `docs/PLAN.md` — batch A–G, gate checklist, protokol blocker, konvensi commit (changelog v1.1–v1.4)
-- [x] `docs/DECISIONS.md` — K-01 s/d K-14 (entry terbaru di atas)
+- [x] `docs/DECISIONS.md` — K-01 s/d K-15 (entry terbaru di atas)
 - [x] Scaffold Next.js 14 + TS strict + Dexie + Tailwind + Vitest, static export, tanpa fitur
 - [x] Batch A — fondasi & skema (6 sub-langkah, semua commit `feat(tartib)`)
 - [x] Batch B — template CRUD (5 commit `feat(tartib)`)
@@ -24,7 +24,7 @@
 - [x] Batch T — ikhtisar eksekusi & Tentang, amandemen riset pasar K-13 (4 commit `feat(tartib)`)
 - [x] Batch E — evaluasi per divisi & promosi usulan → versi template baru (2 commit `feat(tartib)`)
 - [x] Batch F — cetak & ekspor: lembar tugas per PIC, buku acara A4, ekspor Markdown (4 commit `feat(tartib)`)
-- [ ] Batch G — integrasi v3 — **DITUNDA menunggu konfirmasi integrasi (K-14)**: G-1 (`ea10ea6`) & G-3 (`4c204af`) ter-commit inert di cabang `batch-g-integrasi-v3`, dibiarkan apa adanya; G-2/G-4/G-5/Gate G ditangguhkan
+- [ ] Batch G — integrasi v3 — **BATAL — keputusan final pisahkan (K-15)**: G-1 (`ea10ea6`) & G-3 (`4c204af`) tetap ter-commit inert di cabang `batch-g-integrasi-v3` (tidak di-revert, tidak dihapus, tidak di-push); G-2/G-4/G-5/Gate G **tidak akan dikerjakan**. Pengganti: info/link di mahadapp menunjuk ke Tartib (contoh: Studio Print, entri "SOP acara") — tercatat di backlog PLAN v3, belum dikerjakan
 
 ## Batch A — hasil
 
@@ -119,7 +119,7 @@
 
 ## Next step (presisi)
 
-Gate F **tertutup** 2026-08-22 (cetak fisik job CUPS `EPSON_L365_Series-1` 08:10:53 + pernyataan Ahmed). **Batch G (integrasi v3) DITUNDA menunggu konfirmasi eksplisit Ahmed** (keputusan 2026-08-22, K-14: Tartib berdiri sendiri; "opsi integrasi tunggu konfirmasi"). Di repo v3 (cabang `batch-g-integrasi-v3`, TIDAK di-push): `ea10ea6` (G-1 salin `src/tartib/`) dan `4c204af` (G-3 skema v38 — hanya menambah tabel `tartib_*` — + backup VERSI 6) ter-commit **inert**: modul belum dirujuk kode mana pun, perilaku mahadapp tidak berubah; keduanya dibiarkan apa adanya (pilihan Ahmed). Yang menunggu keputusan: (a) **melanjutkan integrasi** — G-2 `mahadHost.ts` (impor `db` dari `@/lib/db` untuk cabang/santri/profil + `tartibDb` via schema untuk tabel `tartib_*`; ganti `standaloneHost` di `AcaraView` baris 23 & `TamuView` baris 13; hapus `standaloneHost.ts`; test pola fake-indexeddb) → G-4 (FeatureKey `tartib` on internal/off publik, berandaMenu, rute `/tartib`, Sidebar; bottomNav dilewati) → G-5 (cetak jsPDF gaya kuitansiPdf via `saveBase64`; eksporMarkdown via `saveBlob`) → Gate G (modul berjalan di v3, diff skema tak menyentuh tabel v3, migrasi naik-turun aman, tsc + vitest v3 hijau, build out/ ~22MB, uji APK, verifikasi manual Ahmed); atau (b) **membatalkan/menghapus cabang** `batch-g-integrasi-v3` (belum pernah di-push; komit hanya ada di mesin lokal, bisa dipulihkan via reflog). Tidak ada pekerjaan Batch G yang dikerjakan sebelum konfirmasi.
+Gate F **tertutup** 2026-08-22 (cetak fisik job CUPS `EPSON_L365_Series-1` 08:10:53 + pernyataan Ahmed). **Keputusan final K-15 (2026-08-22): Tartib dan mahadapp DIPISAHKAN — Batch G (integrasi v3) BATAL**, bukan lagi ditunda: G-2/G-4/G-5/Gate G **tidak akan dikerjakan**. Di repo v3 (cabang `batch-g-integrasi-v3`, TIDAK di-push): `ea10ea6` (G-1 salin `src/tartib/`) dan `4c204af` (G-3 skema v38 — hanya menambah tabel `tartib_*` — + backup VERSI 6) ter-commit **inert** dan dibiarkan apa adanya (keputusan K-14 poin 2 dipertahankan; cabang bisa dihapus kapan saja — komit bisa dipulihkan via reflog ±90 hari). **Item baru (pengganti integrasi): info/link di mahadapp menunjuk ke aplikasi Tartib** — contoh Ahmed: di Studio Print, entri "SOP acara" menunjuk ke aplikasi Tartib; **belum dikerjakan** ("nnt ditambahkan"), tercatat di backlog PLAN v3. Menunggu keputusan: (a) **URL tujuan** — Tartib belum di-hosting (static export, dev localhost:3000), fork publik belum ada → link belum bisa diisi; (b) **penempatan persis** — Studio Print seperti contohnya?; (c) **waktu pengerjaan**; (d) **nasib cabang `batch-g-integrasi-v3`** (biarkan atau hapus). Tidak ada pekerjaan item info/link yang dikerjakan sebelum keputusan tersebut.
 
 ## Gate A — status
 
@@ -227,7 +227,7 @@ Gate F **tertutup** 2026-08-22 (cetak fisik job CUPS `EPSON_L365_Series-1` 08:10
 
 ## Blocker
 
-Tidak ada blocker teknis. Gate A–E, T, dan F **lulus penuh** (termasuk cetak fisik Ahmed 2026-08-22). **Batch G DITUNDA menunggu konfirmasi integrasi** (keputusan Ahmed 2026-08-22, K-14) — bukan blocker teknis: G-1/G-3 ter-commit inert di cabang `batch-g-integrasi-v3`; G-2/G-4/G-5/Gate G ditangguhkan sampai konfirmasi eksplisit. Dev server tartib tetap berjalan di localhost:3000 (sesi verifikasi).
+Tidak ada blocker teknis. Gate A–E, T, dan F **lulus penuh** (termasuk cetak fisik Ahmed 2026-08-22). **Batch G (integrasi v3) BATAL — keputusan final pisahkan (K-15, 2026-08-22)**, bukan lagi ditunda: G-1/G-3 tetap inert di cabang `batch-g-integrasi-v3` (tidak di-push); G-2/G-4/G-5/Gate G tidak akan dikerjakan. Item pengganti (info/link mahadapp → Tartib, contoh Studio Print "SOP acara") belum dikerjakan — bukan blocker teknis, menunggu keputusan URL publik Tartib, penempatan, dan waktu. Dev server tartib tetap berjalan di localhost:3000 (sesi verifikasi).
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.

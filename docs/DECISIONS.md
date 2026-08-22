@@ -4,6 +4,15 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-15 — 2026-08-22 — Keputusan final: Tartib dan mahadapp dipisahkan; pengganti integrasi = info/link di mahadapp menunjuk ke Tartib
+
+Keputusan final Ahmed — *"sy putuskan pisahkan, cukup nnt ditambahkan di mahadapp info ke app tartib ini, misal dalam studio print sop acara linknya ke app ini"*. Latar belakang: kedua aplikasi direncanakan **fork dengan nama lain untuk rilis publik** (bukan rilis internal). Keputusan:
+
+1. **Integrasi (Batch G) BATAL** — bukan lagi "menunggu konfirmasi" (menutup status K-14 poin 1 & 3): Tartib dan mahadapp berjalan sebagai aplikasi terpisah. Keuntungan integrasi (cetak native + data bersama) dikalahkan konteks fork-publik (privasi data, stabilitas UI/sistem mahadapp, kemudahan rebranding); keduanya bisa ditambahkan ke Tartib standalone di kemudian hari.
+2. **Pengganti integrasi: info/link di mahadapp menunjuk ke aplikasi Tartib** — contoh Ahmed: di Studio Print, entri "SOP acara" menunjuk ke aplikasi Tartib. **Belum diimplementasikan** ("nnt ditambahkan"); tercatat di backlog PLAN v3.
+3. **Komit G-1 (`ea10ea6`) dan G-3 (`4c204af`) tetap di cabang `batch-g-integrasi-v3`** — tidak di-revert, tidak dihapus, tidak di-push (keputusan K-14 poin 2 dipertahankan). Cabang bisa dihapus kapan saja — komitnya bisa dipulihkan via reflog (±90 hari).
+4. Detail item info/link yang **belum diputuskan**: URL tujuan (Tartib belum di-hosting — tidak ada alamat publik; fork publik belum ada), penempatan persis, dan waktu pengerjaan.
+
 ## K-14 — 2026-08-22 — Tartib berdiri sendiri; integrasi ke mahadapp menunggu konfirmasi
 
 Ahmed memutuskan Tartib adalah **aplikasi mandiri** ("app ini saya buat berdiri sendiri"); opsi integrasi ke mahadapp **ditunda menunggu konfirmasi eksplisit** — "opsi integrasi tunggu konfirmasi", demi stabilitas tampilan UI dan sistem mahadapp. Keputusan:
