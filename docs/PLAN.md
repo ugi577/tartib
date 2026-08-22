@@ -5,7 +5,7 @@ Cara eksekusi proyek, batch demi batch. Sumber: `docs/BRIEF.md` Bagian 7.
 - Tiap batch: **branch sendiri**, commit kecil per sub-langkah.
 - Gate ditutup hanya dengan pernyataan eksplisit Ahmed untuk butir verifikasi manual.
 - Routing model: Batch A & C (`clo` high), E & G (`clo` high/xhigh) — di situ aturan yang tidak boleh salah. Batch B, D, F boleh `glm`/`cc-deep` effort lo.
-- **UI (perbaikan & percantikan tampilan):** rencana lengkap di `docs/PLAN-UI.md` — memakai MCP browser-use (`control-browser`, `web-gui-tester`) + token Tailwind; **eksekusi menunggu persetujuan Ahmed**.
+- **UI (perbaikan & percantikan tampilan):** **Batch U**, rencana lengkap di `docs/PLAN-UI.md` — memakai Browser pane bawaan agen (`preview_start`/`navigate`/`read_page`/`computer`) + token Tailwind; disetujui & dieksekusi 2026-08-22 (K-16).
 
 ---
 
@@ -171,7 +171,35 @@ Branch: di **repo v3**, bukan di repo tartib.
 
 ---
 
+## Batch U — Perbaikan & percantikan UI · `clo` high
+
+Branch: `batch-u-ui`. Rencana rinci: `docs/PLAN-UI.md`.
+
+> Dua temuan baseline masuk kategori **RUSAK (bug)**, bukan percantikan — dikerjakan lebih dulu:
+> **BUG-U1** aplikasi tidak terbaca di perangkat mode gelap (`body` tanpa warna latar & tanpa `color-scheme`, teks `slate-700/800` di atas kanvas hitam bawaan browser);
+> **BUG-U2** di lebar ponsel, tab `Evaluasi` & `Tentang` melewati batas kontainer (nav `flex` tanpa wrap/scroll → tautan berakhir di x=545 pada kontainer selebar 359) sehingga dua view praktis tidak terjangkau, dan baris judul view menumpuk tombol aksinya (`justify-between` tanpa `flex-wrap`).
+
+1. **U-1 Bug tampilan dasar** — `globals.css` (latar & warna teks `body`, `color-scheme`, gaya `:focus-visible`) + `page.tsx` (nav bisa wrap/scroll, judul view tidak menumpuk tombol)
+2. **U-2 Token desain** — `tailwind.config.ts`: alias semantik (`aksen`, `permukaan`, `garis`), bayangan kartu, radius baku — supaya branding kelak = satu berkas
+3. **U-3 Komponen bersama** — `src/tartib/ui/kelas.ts`: satu sumber kelas tombol (utama/sekunder/halus/bahaya/ikon), input, label, kartu, kondisi kosong, badge + satu pola status (`StatusAcara`/`StatusTugas`/`StatusRsvp`)
+4. **U-4 Per view** — beranda (pintu masuk lengkap 5 view), acara (hierarki: aksi utama vs cetak/ekspor), template (redam dinding tombol `Hapus`), tamu, evaluasi
+5. **U-5 Regresi cetak** — lembar tugas, buku acara, laporan eksekusi tetap utuh (`@page A4 14mm`, `print:block`/`print:hidden`)
+6. **U-6 Regresi fungsional** — `tsc` bersih, `vitest` hijau, `pnpm build` statis sukses
+
+**Gate U**
+- [ ] BUG-U1 hilang: dibuka di perangkat mode gelap, seluruh teks terbaca (bukti: `prefers-color-scheme: dark` + screenshot)
+- [ ] BUG-U2 hilang: pada lebar 375px seluruh 6 tab terjangkau dan tidak ada elemen menumpuk/keluar kontainer
+- [ ] Satu pola tombol, badge, kartu, input dipakai di semua view — grep: tidak ada lagi kelas tombol yang ditulis inline per komponen
+- [ ] Status (`BELUM/JALAN/SELESAI/BATAL`, `DRAF/SIAP/BERJALAN/SELESAI/DIEVALUASI`, RSVP) memakai satu helper warna bersama
+- [ ] Hasil cetak tidak berubah — lembar tugas per PIC, buku acara A4, laporan eksekusi
+- [ ] Teknis: `tsc` bersih, `vitest` hijau, `pnpm build` statis sukses
+- [ ] **Verifikasi manual Ahmed** di perangkat (terang & gelap, ponsel & layar lebar) — Gate ditutup hanya oleh pernyataan eksplisitnya
+
+---
+
 ## Changelog PLAN
+
+- **2026-08-22 — v1.12** — **Batch U (UI) disetujui & dimulai** (branch `batch-u-ui`). Koreksi rencana sebelum eksekusi (K-16): PLAN-UI v1 menyebut skill MCP `browser-use:control-browser`/`web-gui-tester` yang **tidak tersedia** di sesi agen ini — diganti Browser pane bawaan (`preview_start`, `navigate`, `read_page`, `computer` untuk klik/ketik/screenshot, `resize_window` untuk lebar ponsel & mode gelap, `javascript_tool` untuk membaca computed style). Audit baseline berjalan di `localhost:3000` dengan data nyata (seed template contoh + acara "Khatam Tasmi Angkatan 12", 33 tugas) dan menemukan **dua bug**, bukan sekadar soal rasa: **BUG-U1** aplikasi tidak terbaca di mode gelap, **BUG-U2** dua tab hilang & judul menumpuk tombol di lebar 375px. Keduanya masuk U-1 dan dikerjakan sebelum percantikan. Batch U + Gate U ditambahkan ke PLAN ini.
 
 - **2026-08-22 — v1.11** — **Pelaksanaan K-15 (sesi 9, perintah Ahmed: repo baru, link, bersihkan, rencana UI)**. (1) **Repo publik `ugi577/tartib`** dibuat (publik) + GitHub Pages aktif: https://ugi577.github.io/tartib/ (HTTP 200) — workflow deploy (checkout → pnpm 11 → node 22 → `pnpm install --frozen-lockfile` → `pnpm build` dengan `NEXT_PUBLIC_BASE_PATH=/tartib` → deploy-pages; `fix(ci)` node 22 karena pnpm 11.22 butuh Node ≥ 22.13); konten publik = snapshot bersih 59 file (README, workflow, `src/`, test) **tanpa `docs/` internal**. (2) **Link pengganti integrasi dikerjakan**: entri "SOP Acara" di Studio Print v3 membuka URL publik (`f88dfe2`, wip) — menunggu uji manual device. (3) **Cabang `batch-g-integrasi-v3` DIHAPUS** (G-1/G-3 pulih via reflog ±90 hari). (4) **`docs/PLAN-UI.md` ditulis** — rencana perbaikan/percantikan UI pakai MCP & tool lain (browser-use `control-browser`/`web-gui-tester`, audit per-view, verifikasi bersama Ahmed) — **menunggu persetujuan eksekusi**. Alur sinkron repo publik berikutnya belum diputuskan.
 

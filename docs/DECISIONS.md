@@ -4,6 +4,17 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-16 — 2026-08-22 — Batch U (UI): alat diganti Browser pane bawaan; dua temuan baseline diperlakukan sebagai bug, bukan percantikan
+
+Ahmed menyetujui eksekusi `docs/PLAN-UI.md` ("cek apakah berjalan sesuai plan dan saran terbaiknya — sy konfirmasi — lalu kerjakan"). Sebelum eksekusi, rencana dikoreksi pada dua titik:
+
+1. **Alat.** PLAN-UI v1 mengandalkan skill MCP `browser-use:control-browser` dan `browser-use:web-gui-tester`. Skill itu **tidak ada** di daftar skill sesi agen ini, jadi rencana tidak dapat dieksekusi apa adanya. Pengganti yang setara dan sudah terpasang: **Browser pane bawaan** — `preview_start` (tab ke `localhost:3000`), `navigate`, `read_page` (pohon aksesibilitas + `ref` elemen), `computer` (klik/ketik/screenshot), `form_input`, `resize_window` (lebar ponsel + `colorScheme` terang/gelap), `javascript_tool` (baca computed style), `read_console_messages`. Kemampuan yang dipakai PLAN-UI (navigasi tiap `?view=`, screenshot sebelum/sesudah, klik/isi form untuk smoke test) seluruhnya tercakup. Pelajaran: **rencana tidak boleh menyebut alat tanpa memverifikasi alat itu ada di sesi yang akan mengeksekusinya.**
+2. **Klasifikasi temuan.** Audit baseline (localhost:3000, data nyata: seed template contoh + acara "Khatam Tasmi Angkatan 12" 33 tugas) menemukan dua hal yang **bukan soal selera** dan karena itu masuk kategori RUSAK — dikerjakan sebelum percantikan apa pun:
+   - **BUG-U1 — tidak terbaca di mode gelap.** `body` tidak punya warna latar dan dokumen tidak menyatakan `color-scheme`; di perangkat/browser bermode gelap, kanvas bawaan menjadi hitam sementara teks tetap `slate-700/800` → judul dan navigasi nyaris tak terbaca. Terbukti: `getComputedStyle(document.body).backgroundColor` = `rgba(0,0,0,0)`, `colorScheme` = `normal`, `<h1>` = `rgb(30,41,59)` di atas kanvas hitam. Ini juga berlaku untuk situs publik https://ugi577.github.io/tartib/ — wajah publik aplikasi.
+   - **BUG-U2 — dua tab hilang di ponsel.** `nav` memakai `flex gap-2` tanpa `flex-wrap` maupun scroll horizontal: pada kontainer selebar 359px tautan berakhir di x=545, sehingga **Evaluasi** dan **Tentang** keluar batas dan praktis tidak terjangkau; selain itu baris judul view (`flex items-center justify-between` tanpa `flex-wrap`) membuat teks keterangan tertimpa tombol aksi.
+
+Konsekuensi: Batch U + Gate U masuk `docs/PLAN.md` (branch `batch-u-ui`), dengan U-1 = perbaikan dua bug di atas, baru U-2 token desain dan seterusnya. Token dibuat **semantik** (`aksen`, `permukaan`, `garis`) supaya keputusan branding yang masih terbuka bisa dijalankan dari satu berkas konfigurasi.
+
 ## K-15 — 2026-08-22 — Keputusan final: Tartib dan mahadapp dipisahkan; pengganti integrasi = info/link di mahadapp menunjuk ke Tartib
 
 Keputusan final Ahmed — *"sy putuskan pisahkan, cukup nnt ditambahkan di mahadapp info ke app tartib ini, misal dalam studio print sop acara linknya ke app ini"*. Latar belakang: kedua aplikasi direncanakan **fork dengan nama lain untuk rilis publik** (bukan rilis internal). Keputusan:
