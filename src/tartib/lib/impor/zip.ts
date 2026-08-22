@@ -194,12 +194,16 @@ export async function buatZip(entries: EntryZip[]): Promise<Uint8Array<ArrayBuff
     buf.set(d.nama, pos); pos += d.nama.length;
   }
 
+  // Ukuran CD dihitung SEBELUM penulisan EOCD — memakai pos yang sudah maju
+  // ke dalam EOCD membuat cdSize 12 byte terlalu besar dan berkas ditolak
+  // pembaca ketat (unzip/Word).
+  const ukuranCd = pos - cdMulai;
   dv.setUint32(pos, TANDA_EOCD, true); pos += 4;
   dv.setUint16(pos, 0, true); pos += 2; // disk ini
   dv.setUint16(pos, 0, true); pos += 2; // disk CD
   dv.setUint16(pos, disiapkan.length, true); pos += 2;
   dv.setUint16(pos, disiapkan.length, true); pos += 2;
-  dv.setUint32(pos, pos - cdMulai, true); pos += 4; // ukuran CD
+  dv.setUint32(pos, ukuranCd, true); pos += 4;
   dv.setUint32(pos, cdMulai, true); pos += 4; // ofset CD
   dv.setUint16(pos, 0, true); pos += 2; // komentar
   return buf;

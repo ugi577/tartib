@@ -34,4 +34,19 @@ describe('bacaZip', () => {
     bytes[cd + 10] = 99;
     await expect(bacaZip(bytes.buffer as ArrayBuffer)).rejects.toThrow(/tidak didukung/);
   });
+
+  it('EOCD konsisten: ofset CD + ukuran CD = posisi EOCD (pembaca ketat)', async () => {
+    // unzip/Word menolak arsip yang cdSize-nya melebihi byte yang benar-benar
+    // ditulis (regresi: cdSize pernah 12 byte terlalu besar karena dihitung
+    // dari pos yang sudah maju ke dalam EOCD).
+    const zip = await buatZip([
+      { nama: 'word/document.xml', isi: new TextEncoder().encode('<doc/>') },
+      { nama: '_rels/.rels', isi: new TextEncoder().encode('<rels/>'), metode: 0 },
+    ]);
+    const u32 = (o: number) =>
+      (zip[o] | (zip[o + 1] << 8) | (zip[o + 2] << 16) | (zip[o + 3] << 24)) >>> 0;
+    const eocd = zip.length - 22;
+    expect(u32(eocd)).toBe(0x06054b50);
+    expect(u32(eocd + 16) + u32(eocd + 12)).toBe(eocd);
+  });
 });
