@@ -74,9 +74,10 @@ function Konten() {
     <div className="min-h-screen">
       {/* Bilah header penuh menempel tepi atas (referensi Ahmed, sesi 15):
           glass gradasi biru→hijau muda, logo + judul di kiri, tab pil di
-          kanan. Di layar sempit tab turun ke baris sendiri — SATU baris yang
-          bisa digeser horizontal (tidak membungkus/bertumpuk), tagline
-          disembunyikan agar baris judul ramping. */}
+          kanan. Di layar sempit tab turun ke baris sendiri sebagai GRID 3×2
+          — keenam tab SELALU terlihat penuh (tidak pernah tersembunyi di
+          balik geseran/overflow; pelajaran sesi 15: tampilan mobile wajib
+          diverifikasi tiap perubahan UI). */}
       <header className="sticky top-0 z-40 print:hidden">
         <div className="border-b border-white/70 bg-gradient-to-r from-sky-100/90 via-white/90 to-emerald-100/90 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
           <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
@@ -94,14 +95,14 @@ function Konten() {
             </div>
             <nav
               aria-label="Navigasi utama"
-              className="flex w-full flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:ml-auto sm:w-auto sm:flex-none sm:overflow-visible"
+              className="grid w-full grid-cols-3 gap-1.5 sm:ml-auto sm:flex sm:w-auto sm:flex-nowrap sm:gap-1.5"
             >
               {TAB.map((t) => (
                 <Link
                   key={t.view}
                   href={`/?view=${t.view}`}
                   aria-current={view === t.view ? 'page' : undefined}
-                  className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium sm:px-3 ${aktif(t.view)}`}
+                  className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-center text-sm font-medium sm:px-3 ${aktif(t.view)}`}
                 >
                   {t.label}
                 </Link>
