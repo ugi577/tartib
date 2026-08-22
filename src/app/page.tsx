@@ -123,10 +123,12 @@ function Konten() {
           <PitaIslami className="relative mt-2 pb-1.5 text-emerald-600/50" />
         </div>
 
-        {/* Baris tab — area terpisah di bawah header */}
+        {/* Baris tab — area terpisah di bawah header, memakai warna dasar
+            header (gradasi sky→emerald) agar efek kaca pil tab lebih keliatan
+            (arahan Ahmed sesi 16). */}
         <nav
           aria-label="Navigasi utama"
-          className="border-t border-white/50 bg-white/75 shadow-[0_8px_20px_-12px_rgb(15_23_42/0.15)] backdrop-blur-md"
+          className="border-t border-white/60 bg-gradient-to-r from-sky-100/80 via-white/65 to-emerald-100/80 shadow-[0_8px_20px_-12px_rgb(15_23_42/0.15)] backdrop-blur-xl"
         >
           <div className="mx-auto grid max-w-3xl grid-cols-3 gap-1.5 px-4 py-2.5 sm:flex sm:flex-nowrap sm:justify-center sm:gap-2">
             {TAB.map((t) => (
