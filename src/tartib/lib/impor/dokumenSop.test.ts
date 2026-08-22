@@ -29,7 +29,7 @@ const XML = `<?xml version="1.0" encoding="UTF-8"?>
     ${p('☐  Tetapkan anggaran kasar')}
     ${p('Hari-H', true)}
     ${p('Pagi sebelum tamu datang', true)}
-    ${p('☐  Petugas sandal di pintu')}
+    ${p('☐  Petugas sandal ⚠️ di pintu')}
     ${p('☐  Buku tamu terisi — jangan sampai terlewat')}
     ${p('H+1 — Evaluasi', true)}
     ${p('☐  Kembalikan seluruh sisa barang pinjaman — batas mutlak sebelum maghrib')}
@@ -52,7 +52,8 @@ describe('offsetDariLabel & labelFaseBersih', () => {
 
   it('membersihkan awalan offset dari label fase', () => {
     expect(labelFaseBersih('H-30 — Penetapan')).toBe('Penetapan');
-    expect(labelFaseBersih('H-21 — Kunci pengisi acara ⚠️')).toBe('Kunci pengisi acara ⚠️');
+    expect(labelFaseBersih('H-21 — Kunci pengisi acara ⚠️')).toBe('Kunci pengisi acara');
+    expect(labelFaseBersih('H-21 — Kunci pengisi acara ⚠')).toBe('Kunci pengisi acara');
     expect(labelFaseBersih('Hari-H')).toBe('Hari-H');
     expect(labelFaseBersih('Hari H — Acara')).toBe('Acara');
     expect(labelFaseBersih('H+1 — Evaluasi')).toBe('Evaluasi');
@@ -97,8 +98,7 @@ describe('dokumenXmlKeSop', () => {
     expect(hasil.fases[1].items.map((i) => [i.judul, i.divisiTebakan])).toEqual([
       ['Petugas sandal di pintu', 'Parkir & Sandal'],
       ['Buku tamu terisi — jangan sampai terlewat', 'Penerima Tamu'],
-    ]);
-    expect(hasil.fases[2].items).toHaveLength(1);
+    ]);    expect(hasil.fases[2].items).toHaveLength(1);
     // Item ceklis perlengkapan di Bagian 4 tidak menempel ke fase H+1 —
     // teksnya dipertahankan (dengan konteks bagian) untuk diaudit di pratinjau.
     expect(hasil.itemLuarLinimasa).toEqual([

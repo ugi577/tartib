@@ -77,11 +77,21 @@ export function offsetDariLabel(teks: string): number | null {
   return null;
 }
 
+/** Buang simbol peringatan (⚠/⚠️) dari teks — emoji itu kerap tertulis di
+ * heading dokumen sumber (mis. "Kunci pengisi acara ⚠️") dan hanya mengotori
+ * label hasil impor (sesi 15, laporan Ahmed). Spasi di sekitarnya dipadatkan
+ * jadi satu agar tidak menyisakan spasi ganda. */
+function buangSimbolPeringatan(teks: string): string {
+  return teks.replace(/\s*[\u26A0\u26A1]\uFE0F?\s*/g, ' ').trim();
+}
+
 /** Label fase tanpa awalan offset ("H-30 — Penetapan" → "Penetapan"). */
 export function labelFaseBersih(teks: string): string {
-  const bersih = teks
-    .replace(/^H\s*[-+]?\d+\s*[—-]\s*/i, '')
-    .replace(/^Hari[\s-]?H\s*[—-]\s*/i, '');
+  const bersih = buangSimbolPeringatan(
+    teks
+      .replace(/^H\s*[-+]?\d+\s*[—-]\s*/i, '')
+      .replace(/^Hari[\s-]?H\s*[—-]\s*/i, ''),
+  );
   return bersih.trim() || teks.trim();
 }
 
@@ -113,7 +123,7 @@ export function tebakDivisi(judul: string): string | null {
 }
 
 function ekstrakJudul(teks: string): string {
-  return teks.replace(/^☐\s*/, '').trim();
+  return buangSimbolPeringatan(teks).replace(/^☐\s*/, '').trim();
 }
 
 /** Ubah document.xml (hasil parseXmlLite) menjadi struktur SOP. */
