@@ -24,7 +24,17 @@ export interface DataKonfirmasi {
   noWhatsApp?: string;
   /** Bidang khusus sesuai kategori acara — tampil setelah bidang dasar. */
   bidang: BidangKonfirmasi[];
+  /** Kop Arab — kosongkan untuk memakai bawaan. */
+  kopArab?: string;
+  /** Kop Latin — kosongkan untuk memakai bawaan. */
+  kopLatin?: string;
+  /** Tag di atas judul — kosongkan untuk memakai bawaan. */
+  tag?: string;
 }
+
+export const KOP_ARAB_BAKU = 'مَعْهَدُ عَسْكَرِ الْقُرْآنِ';
+export const KOP_LATIN_BAKU = 'Mahad Askar Cijulang • Cansebu';
+export const TAG_BAKU = 'e-Konfirmasi Kehadiran';
 
 // Preset bidang khusus per kategori acara (JENIS_ACARA_BAKU). Kategori yang
 // tidak terdaftar (mis. Custom) tidak punya preset — pengguna mengisi sendiri.
@@ -190,13 +200,13 @@ export function susunHtmlKonfirmasi(data: DataKonfirmasi): string {
     <div class="kop">
       <div class="spacer"></div>
       <div class="tengah">
-        <div class="ar">مَعْهَدُ عَسْكَرِ الْقُرْآنِ</div>
-        <div class="latin">Mahad Askar Cijulang &bull; Cansebu</div>
+        <div class="ar">${esc(data.kopArab?.trim() || KOP_ARAB_BAKU)}</div>
+        <div class="latin">${esc(data.kopLatin?.trim() || KOP_LATIN_BAKU)}</div>
       </div>
       <div class="spacer"></div>
     </div>
     <div class="judul">
-      <div class="tag">e-Konfirmasi Kehadiran</div>
+      <div class="tag">${esc(data.tag?.trim() || TAG_BAKU)}</div>
       <h1>${esc(data.judulAcara)}</h1>
       <div class="sub">${esc(data.tanggal)}</div>
     </div>

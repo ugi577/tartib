@@ -12,7 +12,10 @@ import { useMemo, useState } from 'react';
 import { JENIS_ACARA_BAKU } from '../db/seed';
 import {
   JUDUL_TITLE,
+  KOP_ARAB_BAKU,
+  KOP_LATIN_BAKU,
   PRESET_KATEGORI,
+  TAG_BAKU,
   susunHtmlKonfirmasi,
   type BidangKonfirmasi,
 } from '../lib/konfirmasi/eKonfirmasi';
@@ -26,6 +29,10 @@ export function EKonfirmasiView() {
   const [tempat, setTempat] = useState('');
   const [mapsUrl, setMapsUrl] = useState('');
   const [noWhatsApp, setNoWhatsApp] = useState('');
+  // Kop/header bisa diganti (arahan Ahmed) — bawaan sama seperti semula.
+  const [kopArab, setKopArab] = useState(KOP_ARAB_BAKU);
+  const [kopLatin, setKopLatin] = useState(KOP_LATIN_BAKU);
+  const [tag, setTag] = useState(TAG_BAKU);
   const [bidang, setBidang] = useState<BidangKonfirmasi[]>([]);
   const [pesan, setPesan] = useState<string | null>(null);
 
@@ -53,8 +60,11 @@ export function EKonfirmasiView() {
         mapsUrl: mapsUrl || undefined,
         noWhatsApp: noWhatsApp || undefined,
         bidang,
+        kopArab,
+        kopLatin,
+        tag,
       }),
-    [judulAcara, tanggal, waktu, tempat, mapsUrl, noWhatsApp, bidang],
+    [judulAcara, tanggal, waktu, tempat, mapsUrl, noWhatsApp, bidang, kopArab, kopLatin, tag],
   );
 
   function unduhHtml() {
@@ -85,9 +95,10 @@ export function EKonfirmasiView() {
 
       {/* Identitas acara — SEMUA manual (arahan Ahmed) */}
       <div className={KELAS.kartuIsi}>
-        <h3 className="font-medium text-teks-utama">Acara</h3>
+        <h3 className="font-medium text-teks-utama">Acara &amp; kop</h3>
         <p className="mt-1 text-sm text-teks-halus">
-          Isi manual — tidak diambil dari data acara yang tersimpan.
+          Isi manual — tidak diambil dari data acara yang tersimpan. Kop/header bisa diganti
+          (kosongkan untuk memakai teks bawaan).
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
@@ -156,6 +167,23 @@ export function EKonfirmasiView() {
               placeholder="mis. 6285223452257"
               className={KELAS.input}
             />
+          </label>
+        </div>
+
+        {/* Kop/header — bisa diganti (arahan Ahmed) */}
+        <h3 className="mt-4 font-medium text-teks-utama">Kop / header</h3>
+        <div className="mt-2 grid gap-3 sm:grid-cols-3">
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium text-teks-kuat">Teks Arab</span>
+            <input value={kopArab} onChange={(e) => setKopArab(e.target.value)} className={KELAS.input} />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium text-teks-kuat">Teks Latin</span>
+            <input value={kopLatin} onChange={(e) => setKopLatin(e.target.value)} className={KELAS.input} />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium text-teks-kuat">Tag di atas judul</span>
+            <input value={tag} onChange={(e) => setTag(e.target.value)} className={KELAS.input} />
           </label>
         </div>
       </div>

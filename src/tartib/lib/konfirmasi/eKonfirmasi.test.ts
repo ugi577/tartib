@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { JUDUL_TITLE, PRESET_KATEGORI, susunHtmlKonfirmasi, type DataKonfirmasi } from './eKonfirmasi';
+import {
+  JUDUL_TITLE,
+  KOP_ARAB_BAKU,
+  KOP_LATIN_BAKU,
+  PRESET_KATEGORI,
+  TAG_BAKU,
+  susunHtmlKonfirmasi,
+  type DataKonfirmasi,
+} from './eKonfirmasi';
 
 const DATA: DataKonfirmasi = {
   judulAcara: "Khataman Tasmi' 30 Juz & Maulid Nabi",
@@ -58,6 +66,23 @@ describe('susunHtmlKonfirmasi', () => {
     const html = susunHtmlKonfirmasi({ ...DATA, mapsUrl: undefined, noWhatsApp: undefined });
     expect(html).not.toContain('maps.app.goo.gl');
     expect(html).not.toContain('"noWA":"628');
+  });
+
+  it('kop/header memakai bawaan saat tidak diisi, dan bisa diganti', () => {
+    const htmlBawaan = susunHtmlKonfirmasi({ ...DATA, kopArab: '', kopLatin: '', tag: '' });
+    expect(htmlBawaan).toContain(`>${KOP_ARAB_BAKU}</div>`);
+    expect(htmlBawaan).toContain(`>${KOP_LATIN_BAKU}</div>`);
+    expect(htmlBawaan).toContain(`>${TAG_BAKU}</div>`);
+
+    const htmlGanti = susunHtmlKonfirmasi({
+      ...DATA,
+      kopArab: 'معهد آخر',
+      kopLatin: 'Lembaga Lain & <Baru>',
+      tag: 'Undangan Hadir',
+    });
+    expect(htmlGanti).toContain('>معهد آخر</div>');
+    expect(htmlGanti).toContain('Lembaga Lain &amp; &lt;Baru&gt;');
+    expect(htmlGanti).toContain('>Undangan Hadir</div>');
   });
 });
 
