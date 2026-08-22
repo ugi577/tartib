@@ -65,9 +65,9 @@ export function TentangView() {
         </p>
         <div className="mt-4 space-y-3">
           {LANSKAP.map((l) => (
-            <div key={l.nama} className="rounded-lg bg-slate-50 p-4">
+            <div key={l.nama} className="rounded-lg bg-permukaan-halus p-4">
               <p className="text-sm font-medium text-teks-kuat">{l.nama}</p>
-              <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-emerald-700">{l.fokus}</p>
+              <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-aksen-700">{l.fokus}</p>
               <p className="mt-1 text-sm text-teks-sedang">{l.catatan}</p>
             </div>
           ))}
@@ -82,7 +82,7 @@ export function TentangView() {
         <h3 className="font-semibold text-teks-utama">Bagaimana Tartib mengisi celah itu</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {CARA_MENGISI_CELAH.map((c) => (
-            <div key={c.judul} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+            <div key={c.judul} className="rounded-lg border border-slate-100 bg-permukaan-halus p-4">
               <p className="text-sm font-medium text-teks-kuat">{c.judul}</p>
               <p className="mt-1 text-sm leading-relaxed text-teks-sedang">{c.isi}</p>
             </div>

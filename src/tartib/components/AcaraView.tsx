@@ -720,7 +720,7 @@ export function AcaraView() {
                 const sudah = isi.picNama.trim() !== '';
                 const prog = perDivisi.get(r.divisiId);
                 return (
-                  <div key={r.id} className="flex flex-wrap items-end gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                  <div key={r.id} className="flex flex-wrap items-end gap-2 rounded-lg bg-permukaan-halus px-3 py-2">
                     <div className="w-36">
                       <p className="text-sm font-medium text-teks-kuat">{divisi?.nama ?? 'Divisi tidak ditemukan'}</p>
                       <p className={`text-xs ${sudah ? 'text-aksen-600' : 'text-red-500'}`}>

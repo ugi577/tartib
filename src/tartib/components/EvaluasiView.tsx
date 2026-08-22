@@ -174,7 +174,7 @@ export function EvaluasiView() {
           setPesanPromosi(null);
           daftar.muatUlang();
         }}
-        className="mb-3 text-sm font-medium text-emerald-700 hover:underline"
+        className="mb-3 text-sm font-medium text-aksen-700 hover:underline"
       >
         ← Kembali ke daftar acara
       </button>
@@ -188,7 +188,7 @@ export function EvaluasiView() {
 
       {errorUmum && <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>}
       {pesanPromosi && (
-        <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{pesanPromosi}</p>
+        <p className="mb-4 rounded-lg bg-aksen-50 px-3 py-2 text-sm text-aksen-700">{pesanPromosi}</p>
       )}
 
       <div className="space-y-3">

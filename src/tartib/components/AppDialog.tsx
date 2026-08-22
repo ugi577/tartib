@@ -43,7 +43,7 @@ export function AppDialog({ terbuka, judul, onTutup, children, lebar = 'md' }: P
           <button
             onClick={onTutup}
             aria-label="Tutup dialog"
-            className="rounded-md p-1 text-teks-redup hover:bg-slate-100 hover:text-teks-sedang"
+            className="rounded-md p-1 text-teks-redup hover:bg-netral-100 hover:text-teks-sedang"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
               <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />

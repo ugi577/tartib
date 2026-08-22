@@ -286,7 +286,7 @@ export function TamuView() {
 
   return (
     <div>
-      <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-emerald-700 hover:underline">
+      <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-aksen-700 hover:underline">
         ← Kembali ke daftar acara
       </button>
       <div className="mb-5">
@@ -381,7 +381,7 @@ export function TamuView() {
               </label>
             </div>
 
-            <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-teks-kuat">
+            <div className="mt-4 rounded-lg bg-permukaan-halus p-3 text-sm text-teks-kuat">
               <p>RSVP hadir {rsvpHadirTotal} × {100 + konteks.bufferPersen}% = {porsiRsvp}</p>
               <p>+ santri {konteks.santri} + panitia {konteks.panitia} + cadangan {konteks.cadangan}</p>
               <p className="mt-1 text-base font-semibold text-teks-utama">= {porsi} porsi</p>
@@ -410,7 +410,7 @@ export function TamuView() {
             )}
             <div className="space-y-2">
               {perlengkapan.map((p) => (
-                <div key={p.id} className="flex flex-wrap items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
+                <div key={p.id} className="flex flex-wrap items-center gap-3 rounded-lg bg-permukaan-halus px-3 py-2">
                   <div className="min-w-32 flex-1">
                     <p className="text-sm font-medium text-teks-kuat">{p.nama}</p>
                     <p className="text-xs text-teks-halus">{divisiMap.get(p.divisiId)?.nama ?? 'Divisi tidak ditemukan'} · hitung otomatis: {p.qtyHitung}</p>

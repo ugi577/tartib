@@ -485,7 +485,7 @@ export function TemplateView() {
   return (
     <div>
       <div className="mb-5">
-        <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-emerald-700 hover:underline">
+        <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-aksen-700 hover:underline">
           ← Kembali ke daftar template
         </button>
         <div className="flex flex-wrap items-center gap-2">
