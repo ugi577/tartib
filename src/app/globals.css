@@ -2,11 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* BUG-U1 (Batch U): tanpa deklarasi ini, perangkat/browser bermode gelap
+     memakai kanvas hitam bawaannya sementara teks aplikasi tetap slate gelap
+     — judul dan navigasi praktis tidak terbaca. Tartib berkomitmen pada satu
+     tampilan terang, jadi color-scheme dinyatakan eksplisit dan body diberi
+     warna latar & teks sendiri (bukan mengandalkan bawaan browser). */
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-700 antialiased;
+  }
+
+  /* Satu gaya fokus untuk seluruh aplikasi — sebelumnya tiap kontrol memakai
+     cincin fokus bawaan browser (oranye di Chrome) yang tidak selaras. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 ring-offset-white;
+  }
+}
+
 /* Batch F: dokumen cetak dibakukan ke kertas A4 dengan tepi aman agar
    tidak ada teks menembus batas kertas (Gate F). */
 @media print {
   @page {
     size: A4;
     margin: 14mm;
+  }
+
+  /* Kertas selalu putih walau layar memakai latar abu (Batch U). */
+  body {
+    @apply bg-white;
   }
 }

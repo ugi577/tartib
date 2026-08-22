@@ -5,7 +5,7 @@ Cara eksekusi proyek, batch demi batch. Sumber: `docs/BRIEF.md` Bagian 7.
 - Tiap batch: **branch sendiri**, commit kecil per sub-langkah.
 - Gate ditutup hanya dengan pernyataan eksplisit Ahmed untuk butir verifikasi manual.
 - Routing model: Batch A & C (`clo` high), E & G (`clo` high/xhigh) — di situ aturan yang tidak boleh salah. Batch B, D, F boleh `glm`/`cc-deep` effort lo.
-- **UI (perbaikan & percantikan tampilan):** rencana lengkap di `docs/PLAN-UI.md` — memakai MCP browser-use (`control-browser`, `web-gui-tester`) + token Tailwind; **eksekusi menunggu persetujuan Ahmed**.
+- **UI (perbaikan & percantikan tampilan):** **Batch U**, rencana lengkap di `docs/PLAN-UI.md` — memakai Browser pane bawaan agen (`preview_start`/`navigate`/`read_page`/`computer`) + token Tailwind; disetujui & dieksekusi 2026-08-22 (K-16).
 
 ---
 
@@ -171,7 +171,41 @@ Branch: di **repo v3**, bukan di repo tartib.
 
 ---
 
+## Batch U — Perbaikan & percantikan UI · `clo` high
+
+Branch: `batch-u-ui`. Rencana rinci: `docs/PLAN-UI.md`.
+
+> Dua temuan baseline masuk kategori **RUSAK (bug)**, bukan percantikan — dikerjakan lebih dulu:
+> **BUG-U1** aplikasi tidak terbaca di perangkat mode gelap (`body` tanpa warna latar & tanpa `color-scheme`, teks `slate-700/800` di atas kanvas hitam bawaan browser);
+> **BUG-U2** di lebar ponsel, tab `Evaluasi` & `Tentang` melewati batas kontainer (nav `flex` tanpa wrap/scroll → tautan berakhir di x=545 pada kontainer selebar 359) sehingga dua view praktis tidak terjangkau, dan baris judul view menumpuk tombol aksinya (`justify-between` tanpa `flex-wrap`).
+
+1. **U-1 Bug tampilan dasar** — `globals.css` (latar & warna teks `body`, `color-scheme`, gaya `:focus-visible`) + `page.tsx` (nav bisa wrap/scroll, judul view tidak menumpuk tombol)
+2. **U-2 Token desain** — `tailwind.config.ts`: alias semantik (`aksen`, `permukaan`, `garis`), bayangan kartu, radius baku — supaya branding kelak = satu berkas
+3. **U-3 Komponen bersama** — `src/tartib/ui/kelas.ts`: satu sumber kelas tombol (utama/sekunder/halus/bahaya/ikon), input, label, kartu, kondisi kosong, badge + satu pola status (`StatusAcara`/`StatusTugas`/`StatusRsvp`)
+4. **U-4 Per view** — beranda (pintu masuk lengkap 5 view), acara (hierarki: aksi utama vs cetak/ekspor), template (redam dinding tombol `Hapus`), tamu, evaluasi
+5. **U-5 Regresi cetak** — lembar tugas, buku acara, laporan eksekusi tetap utuh (`@page A4 14mm`, `print:block`/`print:hidden`)
+6. **U-6 Regresi fungsional** — `tsc` bersih, `vitest` hijau, `pnpm build` statis sukses
+
+**Gate U**
+- [x] BUG-U1 hilang: di `prefers-color-scheme: dark` halaman tetap terang & terbaca — `bodyBg` `rgb(248,250,252)`, `colorScheme` `light` (screenshot 375px mode gelap)
+- [x] BUG-U2 hilang: pada 375px keenam tab terjangkau (0 tab keluar batas), tidak ada scroll horizontal di keenam view, judul view tidak lagi tertimpa tombol
+- [x] Satu pola tombol, badge, kartu, input dipakai di semua view — grep kelas tombol inline: **0** (di luar hamparan gelap dialog `bg-slate-900/50`)
+- [x] Status (`BELUM/JALAN/SELESAI/BATAL`, `DRAF/SIAP/BERJALAN/SELESAI/DIEVALUASI`, RSVP) memakai satu helper bersama — `warnaStatus*` lokal tersisa: **0**; dikunci 7 test
+- [x] Hasil cetak tidak berubah — penanda cetak identik sebelum/sesudah, `@page{size:A4;margin:14mm}` ada di CSS hasil build, satu-satunya perubahan di blok cetak bernilai warna identik
+- [x] Teknis: `tsc` bersih, `vitest` 128/128 (17 berkas), `pnpm build` statis sukses
+- [x] **Verifikasi manual Ahmed** — **Gate U DITUTUP 2026-08-22** atas perintah eksplisit Ahmed: *"merge semua ke master"* (sesi 11; lihat changelog v1.15). Audit browser sesi 11 menambah dua perbaikan sebelum merge: `ed64c9c` (dua string literal `${KELAS.kartuIsi}` — kartu di daftar acara Tamu & panel promosi Evaluasi tampil polos) dan `7bd9331` (badge Aktif/Diarsipkan → token KELAS)
+
+---
+
 ## Changelog PLAN
+
+- **2026-08-22 — v1.15** — **Gate U DITUTUP + Batch U di-merge ke `master` (sesi 11)**. (1) **Tagline dikoreksi**: "…kawal tugas panitia sampai hari-H" → "**sampai H+1**" (header `page.tsx` + halaman Tentang) — papan eksekusi nyatanya mencakup fase Evaluasi H+1 (offset +1 pada template contoh), jadi "sampai hari-H" mengecilkan cakupan (koreksi atas arahan Ahmed: *"…sampai hari-H = sampai h+1"*). (2) **Audit UI kedua** (skill `browser-use:control-browser` — tersedia di sesi ini, K-16 dikoreksi) menemukan & memperbaiki dua sisa masalah sebelum merge: **`ed64c9c`** — `${KELAS.kartuIsi}` tertulis sebagai string literal di `TamuView` (daftar acara) & `EvaluasiView` (panel promosi usulan) sehingga kartu tampil tanpa latar/garis/radius; **`7bd9331`** — badge Aktif/Diarsipkan template memakai kelas inline sendiri (display block, berat 400) → `KELAS.badgeAksen`/`badgeNetral`, kartu kelompok tamu `border-slate-200` → token `border-garis`. Verifikasi penuh: tsc bersih, vitest 128/128, `pnpm build` sukses, penanda cetak utuh (11/3/2/2), nol overflow 375px di keenam view + detail + dialog, `colorScheme light` terjaga. (3) **Gate U ditutup** atas perintah Ahmed *"merge semua ke master"* — **`batch-u-ui` di-merge `--no-ff` ke `master`** (12 commit: 6 Batch U + `8e51183` + `75751ad` + sesi 11 `ed64c9c`/`7bd9331`/`8f03f80` docs + tagline + pass-gate). **Belum dilakukan:** sinkronisasi repo publik `ugi577/tartib` (skrip `sync-publik.sh` siap, dry-run 59 berkas — menunggu keputusan Ahmed).
+
+- **2026-08-22 — v1.14** — **Tindak lanjut audit sesi 10 (sesi 10b)** — saran audit dirapikan: (1) **11 kelas inline bernilai identik diganti token** di enam komponen (`8e51183`, branch `batch-u-ui` — total 8 commit di branch); (2) **Gate U diverifikasi ulang di browser sesi ini** — BUG-U1 terbukti hilang (setelah reload tab: `colorScheme light`, `bodyBg rgb(248,250,252)`, `bodyColor rgb(51,65,85)` — cocok dengan klaim `f8403a0`; dev server ternyata tidak basi, tab browser yang basi); BUG-U2 terbukti hilang (375px: enam link nav lengkap, `scrollWidth == clientWidth` == 375, `flex-wrap: wrap`); smoke klik "→ JALAN" → "0 dari 34 tugas selesai · 1 sedang berjalan" → status dikembalikan ke BELUM (data Ahmed utuh); (3) `pnpm build` sukses — `@page{size:A4;margin:14mm}` dan `color-scheme:light` ada di CSS hasil build, dev server di-restart (HTTP 200); (4) **angka Batch U dikoreksi** — `c510eaa` mengganti **103 baris** kelas inline (bukan 88), `b7f5a9a` menyeragamkan **162 `text-slate-*` → 161 `teks-*`** (bukan 151), Batch U = **6 commit** (bukan 5, +`882302f` docs closeout); (5) **`scripts/sync-publik.sh` dibuat** (`75751ad`) — snapshot publik deterministik dari `git archive`, menolak `docs/`/`.claude/` di pohon final, dry-run default, `--push` = commit-tree di atas tip `origin/main` + push **tanpa force** (fast-forward saja); dry-run teruji: 59 berkas, tidak mengubah apa pun. **Belum dilakukan:** merge `batch-u-ui` → `master`, sinkronisasi repo publik (menunggu Gate U ditutup pernyataan Ahmed), keputusan pemakaian `sync-publik.sh`.
+
+- **2026-08-22 — v1.13** — **Batch U selesai diimplementasi** (branch `batch-u-ui`, 6 commit): `309e12e` docs (K-16), `f8403a0` fix dua bug tampilan, `72fa1be` token desain + `src/tartib/ui/kelas.ts` + 7 test, `c510eaa` **103 baris** kelas inline diganti token di enam komponen, `b7f5a9a` hierarki per view (kosakata teks: **162 `text-slate-*` → 161 `teks-*`**, nilai warna identik), `882302f` docs closeout. Yang berubah bagi pengguna: aplikasi terbaca di perangkat mode gelap; keenam tab terjangkau di ponsel; beranda punya lima pintu masuk (Evaluasi & Tentang sebelumnya hanya lewat tab); satu gaya tombol dengan aksi utama tunggal per kartu; status tugas kini badge seperti status acara; tombol cetak/ekspor dikelompokkan sebagai panel "Cetak & ekspor"; editor template tidak lagi didominasi 33 tombol "Hapus" merah. Gate U teknis **lulus** (tsc bersih, vitest 128/128, build statis, penanda cetak identik). **Tersisa verifikasi manual Ahmed** — Gate U belum ditutup, belum di-merge ke `master`, belum disinkronkan ke repo publik. Catatan operasional: `pnpm build` dan `next dev` berebut direktori `.next` (chunk dev jadi 404) — jalankan build saat dev berhenti, atau restart dev setelah build.
+
+- **2026-08-22 — v1.12** — **Batch U (UI) disetujui & dimulai** (branch `batch-u-ui`). Koreksi rencana sebelum eksekusi (K-16): PLAN-UI v1 menyebut skill MCP `browser-use:control-browser`/`web-gui-tester` yang **tidak tersedia** di sesi agen ini — diganti Browser pane bawaan (`preview_start`, `navigate`, `read_page`, `computer` untuk klik/ketik/screenshot, `resize_window` untuk lebar ponsel & mode gelap, `javascript_tool` untuk membaca computed style). Audit baseline berjalan di `localhost:3000` dengan data nyata (seed template contoh + acara "Khatam Tasmi Angkatan 12", 33 tugas) dan menemukan **dua bug**, bukan sekadar soal rasa: **BUG-U1** aplikasi tidak terbaca di mode gelap, **BUG-U2** dua tab hilang & judul menumpuk tombol di lebar 375px. Keduanya masuk U-1 dan dikerjakan sebelum percantikan. Batch U + Gate U ditambahkan ke PLAN ini.
 
 - **2026-08-22 — v1.11** — **Pelaksanaan K-15 (sesi 9, perintah Ahmed: repo baru, link, bersihkan, rencana UI)**. (1) **Repo publik `ugi577/tartib`** dibuat (publik) + GitHub Pages aktif: https://ugi577.github.io/tartib/ (HTTP 200) — workflow deploy (checkout → pnpm 11 → node 22 → `pnpm install --frozen-lockfile` → `pnpm build` dengan `NEXT_PUBLIC_BASE_PATH=/tartib` → deploy-pages; `fix(ci)` node 22 karena pnpm 11.22 butuh Node ≥ 22.13); konten publik = snapshot bersih 59 file (README, workflow, `src/`, test) **tanpa `docs/` internal**. (2) **Link pengganti integrasi dikerjakan**: entri "SOP Acara" di Studio Print v3 membuka URL publik (`f88dfe2`, wip) — menunggu uji manual device. (3) **Cabang `batch-g-integrasi-v3` DIHAPUS** (G-1/G-3 pulih via reflog ±90 hari). (4) **`docs/PLAN-UI.md` ditulis** — rencana perbaikan/percantikan UI pakai MCP & tool lain (browser-use `control-browser`/`web-gui-tester`, audit per-view, verifikasi bersama Ahmed) — **menunggu persetujuan eksekusi**. Alur sinkron repo publik berikutnya belum diputuskan.
 

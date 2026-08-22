@@ -16,25 +16,15 @@ import * as tamuSvc from '../services/tamuService';
 import * as perlengkapanSvc from '../services/perlengkapanService';
 import { FormDialog, KonfirmasiDialog } from './AppDialog';
 import type { Acara, Divisi, KelompokTamu, Perlengkapan, Rsvp, StatusRsvp } from '../types';
+import { KELAS, badgeStatusRsvp } from '../ui/kelas';
 
 function pesanError(e: unknown): string {
   return e instanceof Error ? e.message : 'Terjadi kesalahan';
 }
 
-function warnaStatusRsvp(s: StatusRsvp): string {
-  switch (s) {
-    case 'BELUM':
-      return 'bg-slate-100 text-slate-600';
-    case 'HADIR':
-      return 'bg-emerald-100 text-emerald-700';
-    case 'TIDAK_HADIR':
-      return 'bg-red-100 text-red-600';
-  }
-}
-
-const klasInput = 'w-full rounded-lg border border-slate-300 px-3 py-2';
-const klasAksi = 'rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50';
-const klasDanger = 'rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50';
+const klasInput = KELAS.input;
+const klasAksi = KELAS.tombolSekunderKecil;
+const klasDanger = KELAS.tombolBahaya;
 
 export function TamuView() {
   const daftar = usePagedList<Acara>(tartibDb.acara, { orderBy: 'dibuatPada', arah: 'desc' });
@@ -252,25 +242,25 @@ export function TamuView() {
     return (
       <div>
         <div className="mb-5">
-          <h2 className="text-xl font-semibold text-slate-800">Tamu & Porsi</h2>
-          <p className="text-sm text-slate-500">Pilih acara untuk kelola kelompok tamu, RSVP, dan ceklis perlengkapan.</p>
+          <h2 className={KELAS.judulHalaman}>Tamu & Porsi</h2>
+          <p className="text-sm text-teks-halus">Pilih acara untuk kelola kelompok tamu, RSVP, dan ceklis perlengkapan.</p>
         </div>
 
-        {daftar.memuat && <p className="text-sm text-slate-500">Memuat…</p>}
+        {daftar.memuat && <p className="text-sm text-teks-halus">Memuat…</p>}
         {!daftar.memuat && daftar.items.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
-            <p className="text-sm text-slate-500">Belum ada acara. Buat acara di tab Acara terlebih dahulu.</p>
+          <div className={KELAS.kosong}>
+            <p className="text-sm text-teks-halus">Belum ada acara. Buat acara di tab Acara terlebih dahulu.</p>
           </div>
         )}
 
         <div className="space-y-3">
           {daftar.items.map((a) => (
-            <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-4">
+            <div key={a.id} className={`flex flex-wrap items-center justify-between gap-2 ${KELAS.kartuIsi}`}>
               <div>
-                <span className="font-medium text-slate-800">{a.nama}</span>
-                <p className="mt-1 text-sm text-slate-500">{formatTanggalIndonesia(a.tanggal)}</p>
+                <span className="font-medium text-teks-utama">{a.nama}</span>
+                <p className="mt-1 text-sm text-teks-halus">{formatTanggalIndonesia(a.tanggal)}</p>
               </div>
-              <button onClick={() => bukaAcara(a)} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
+              <button onClick={() => bukaAcara(a)} className={KELAS.tombolSekunderKecil}>
                 Buka
               </button>
             </div>
@@ -278,7 +268,7 @@ export function TamuView() {
         </div>
 
         {daftar.totalHalaman > 1 && (
-          <div className="mt-5 flex items-center justify-center gap-3 text-sm text-slate-600">
+          <div className="mt-5 flex items-center justify-center gap-3 text-sm text-teks-sedang">
             <button onClick={() => daftar.setHalaman(daftar.halaman - 1)} disabled={daftar.halaman <= 1} className={`${klasAksi} disabled:cursor-not-allowed disabled:opacity-40`}>
               ← Sebelumnya
             </button>
@@ -296,30 +286,30 @@ export function TamuView() {
 
   return (
     <div>
-      <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-emerald-700 hover:underline">
+      <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-aksen-700 hover:underline">
         ← Kembali ke daftar acara
       </button>
       <div className="mb-5">
-        <h2 className="text-xl font-semibold text-slate-800">{terpilih.nama}</h2>
-        <p className="mt-1 text-sm text-slate-500">{formatTanggalIndonesia(terpilih.tanggal)}</p>
+        <h2 className={KELAS.judulHalaman}>{terpilih.nama}</h2>
+        <p className="mt-1 text-sm text-teks-halus">{formatTanggalIndonesia(terpilih.tanggal)}</p>
       </div>
 
-      {errorUmum && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorUmum}</p>}
+      {errorUmum && <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>}
 
       {memuat ? (
-        <p className="text-sm text-slate-500">Memuat…</p>
+        <p className="text-sm text-teks-halus">Memuat…</p>
       ) : (
         <div className="space-y-6">
           {/* Kelompok tamu */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-medium text-slate-800">Kelompok Tamu</h3>
-              <button onClick={bukaDialogKelompokBaru} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700">
+          <div className={KELAS.kartuIsi}>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-medium text-teks-utama">Kelompok Tamu</h3>
+              <button onClick={bukaDialogKelompokBaru} className={KELAS.tombolUtamaKecil}>
                 Tambah Kelompok
               </button>
             </div>
 
-            {kelompok.length === 0 && <p className="text-sm text-slate-400">Belum ada kelompok tamu.</p>}
+            {kelompok.length === 0 && <p className="text-sm text-teks-redup">Belum ada kelompok tamu.</p>}
 
             <div className="space-y-2">
               {kelompok.map((k) => {
@@ -327,11 +317,11 @@ export function TamuView() {
                 const terbuka = kelompokTerbuka === k.id;
                 const rsvpKelompok = rsvp.filter((x) => x.kelompokId === k.id);
                 return (
-                  <div key={k.id} className="rounded-lg border border-slate-200">
-                    <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-3 py-2">
+                  <div key={k.id} className="rounded-kontrol border border-garis">
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-permukaan-halus px-3 py-2">
                       <button onClick={() => setKelompokTerbuka(terbuka ? null : k.id)} className="text-left">
-                        <span className="text-sm font-medium text-slate-700">{terbuka ? '▾' : '▸'} {k.nama}</span>
-                        <p className="text-xs text-slate-500">
+                        <span className="text-sm font-medium text-teks-kuat">{terbuka ? '▾' : '▸'} {k.nama}</span>
+                        <p className="text-xs text-teks-halus">
                           diundang {r?.diundang ?? 0} · RSVP {r?.jumlahRsvp ?? 0} · konfirmasi {r?.terkonfirmasi ?? 0} · total orang {r?.totalRombongan ?? 0}
                         </p>
                       </button>
@@ -344,16 +334,16 @@ export function TamuView() {
                     {terbuka && (
                       <div className="space-y-2 p-3">
                         <button onClick={() => bukaDialogRsvpBaru(k.id)} className={klasAksi}>+ Catat RSVP</button>
-                        {rsvpKelompok.length === 0 && <p className="text-sm text-slate-400">Belum ada RSVP.</p>}
+                        {rsvpKelompok.length === 0 && <p className="text-sm text-teks-redup">Belum ada RSVP.</p>}
                         {rsvpKelompok.map((r) => (
-                          <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                          <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-kontrol bg-permukaan-halus px-3 py-2">
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-slate-700">{r.namaTamu}</span>
-                                <span className={`rounded-full px-2 py-0.5 text-xs ${warnaStatusRsvp(r.status)}`}>{r.status}</span>
-                                <span className="text-xs text-slate-500">{r.jumlahRombongan} rombongan</span>
+                                <span className="text-sm font-medium text-teks-kuat">{r.namaTamu}</span>
+                                <span className={badgeStatusRsvp(r.status)}>{r.status}</span>
+                                <span className="text-xs text-teks-halus">{r.jumlahRombongan} rombongan</span>
                               </div>
-                              {r.kontak && <p className="text-xs text-slate-400">{r.kontak}</p>}
+                              {r.kontak && <p className="text-xs text-teks-redup">{r.kontak}</p>}
                             </div>
                             <div className="flex gap-2">
                               <button onClick={() => bukaDialogRsvpUbah(r)} className={klasAksi}>Ubah</button>
@@ -370,64 +360,64 @@ export function TamuView() {
           </div>
 
           {/* Panel porsi */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <h3 className="mb-3 font-medium text-slate-800">Kalkulator Porsi</h3>
+          <div className={KELAS.kartuIsi}>
+            <h3 className="mb-3 font-medium text-teks-utama">Kalkulator Porsi</h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <label className="text-sm">
-                <span className="mb-1 block text-slate-600">Santri</span>
+                <span className="mb-1 block text-teks-sedang">Santri</span>
                 <input type="number" min={0} value={konteks.santri} onChange={(e) => setKonteks({ ...konteks, santri: Number(e.target.value) })} className={klasInput} />
               </label>
               <label className="text-sm">
-                <span className="mb-1 block text-slate-600">Panitia</span>
+                <span className="mb-1 block text-teks-sedang">Panitia</span>
                 <input type="number" min={0} value={konteks.panitia} onChange={(e) => setKonteks({ ...konteks, panitia: Number(e.target.value) })} className={klasInput} />
               </label>
               <label className="text-sm">
-                <span className="mb-1 block text-slate-600">Cadangan</span>
+                <span className="mb-1 block text-teks-sedang">Cadangan</span>
                 <input type="number" min={0} value={konteks.cadangan} onChange={(e) => setKonteks({ ...konteks, cadangan: Number(e.target.value) })} className={klasInput} />
               </label>
               <label className="text-sm">
-                <span className="mb-1 block text-slate-600">Buffer %</span>
+                <span className="mb-1 block text-teks-sedang">Buffer %</span>
                 <input type="number" min={0} value={konteks.bufferPersen} onChange={(e) => setKonteks({ ...konteks, bufferPersen: Number(e.target.value) })} className={klasInput} />
               </label>
             </div>
 
-            <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+            <div className="mt-4 rounded-lg bg-permukaan-halus p-3 text-sm text-teks-kuat">
               <p>RSVP hadir {rsvpHadirTotal} × {100 + konteks.bufferPersen}% = {porsiRsvp}</p>
               <p>+ santri {konteks.santri} + panitia {konteks.panitia} + cadangan {konteks.cadangan}</p>
-              <p className="mt-1 text-base font-semibold text-slate-800">= {porsi} porsi</p>
+              <p className="mt-1 text-base font-semibold text-teks-utama">= {porsi} porsi</p>
             </div>
 
-            <label className="mt-4 flex items-center gap-2 text-sm text-slate-700">
+            <label className="mt-4 flex items-center gap-2 text-sm text-teks-kuat">
               <input type="checkbox" checked={konteks.adaTimPencuci} onChange={(e) => setKonteks({ ...konteks, adaTimPencuci: e.target.checked })} />
               Ada tim pencuci piring
             </label>
-            <p className="mt-1 text-sm text-slate-600">
-              Peralatan makan: <span className="font-semibold text-slate-800">{peralatan}</span> ({konteks.adaTimPencuci ? '0,6× porsi' : '1,1× porsi'})
+            <p className="mt-1 text-sm text-teks-sedang">
+              Peralatan makan: <span className="font-semibold text-teks-utama">{peralatan}</span> ({konteks.adaTimPencuci ? '0,6× porsi' : '1,1× porsi'})
             </p>
 
-            <button onClick={generateUlangPerlengkapan} disabled={memuatPerlengkapan} className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
+            <button onClick={generateUlangPerlengkapan} disabled={memuatPerlengkapan} className={`mt-4 ${KELAS.tombolUtama}`}>
               {memuatPerlengkapan ? 'Menghitung…' : 'Hitung Ulang Perlengkapan'}
             </button>
           </div>
 
           {/* Ceklis perlengkapan */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <h3 className="mb-3 font-medium text-slate-800">Ceklis Perlengkapan</h3>
+          <div className={KELAS.kartuIsi}>
+            <h3 className="mb-3 font-medium text-teks-utama">Ceklis Perlengkapan</h3>
             {perlengkapan.length === 0 && (
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-teks-redup">
                 Belum ada perlengkapan. Isi rumus qty pada item template (tab Template), lalu tekan &ldquo;Hitung Ulang Perlengkapan&rdquo; di atas.
               </p>
             )}
             <div className="space-y-2">
               {perlengkapan.map((p) => (
-                <div key={p.id} className="flex flex-wrap items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
+                <div key={p.id} className="flex flex-wrap items-center gap-3 rounded-lg bg-permukaan-halus px-3 py-2">
                   <div className="min-w-32 flex-1">
-                    <p className="text-sm font-medium text-slate-700">{p.nama}</p>
-                    <p className="text-xs text-slate-500">{divisiMap.get(p.divisiId)?.nama ?? 'Divisi tidak ditemukan'} · hitung otomatis: {p.qtyHitung}</p>
+                    <p className="text-sm font-medium text-teks-kuat">{p.nama}</p>
+                    <p className="text-xs text-teks-halus">{divisiMap.get(p.divisiId)?.nama ?? 'Divisi tidak ditemukan'} · hitung otomatis: {p.qtyHitung}</p>
                   </div>
                   <label className="text-sm">
                     <span className="sr-only">Satuan {p.nama}</span>
-                    <input value={p.satuan} onChange={(e) => ubahSatuan(p, e.target.value)} placeholder="satuan" className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+                    <input value={p.satuan} onChange={(e) => ubahSatuan(p, e.target.value)} placeholder="satuan" className={`w-24 ${KELAS.inputKecil}`} />
                   </label>
                   <label className="text-sm">
                     <span className="sr-only">Qty final {p.nama}</span>
@@ -436,12 +426,12 @@ export function TamuView() {
                       min={0}
                       value={p.qtyFinal}
                       onChange={(e) => ubahQtyFinal(p, Number(e.target.value))}
-                      className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                      className={`w-24 ${KELAS.inputKecil}`}
                     />
                   </label>
                   <button
                     onClick={() => togglePerlengkapanSelesai(p)}
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${p.status === 'SELESAI' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${p.status === 'SELESAI' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-teks-sedang'}`}
                   >
                     {p.status}
                   </button>
@@ -463,15 +453,15 @@ export function TamuView() {
           error={errorDialog}
         >
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Nama kelompok</span>
+            <span className="mb-1 block font-medium text-teks-kuat">Nama kelompok</span>
             <input value={formKelompok.nama} onChange={(e) => setFormKelompok({ ...formKelompok, nama: e.target.value })} placeholder="mis. Wali Santri" className={klasInput} autoFocus />
           </label>
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Target undangan</span>
+            <span className="mb-1 block font-medium text-teks-kuat">Target undangan</span>
             <input type="number" min={0} value={formKelompok.targetUndangan} onChange={(e) => setFormKelompok({ ...formKelompok, targetUndangan: Number(e.target.value) })} className={klasInput} />
           </label>
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Catatan (opsional)</span>
+            <span className="mb-1 block font-medium text-teks-kuat">Catatan (opsional)</span>
             <input value={formKelompok.catatan} onChange={(e) => setFormKelompok({ ...formKelompok, catatan: e.target.value })} className={klasInput} />
           </label>
         </FormDialog>
@@ -488,16 +478,16 @@ export function TamuView() {
           error={errorDialog}
         >
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Nama tamu</span>
+            <span className="mb-1 block font-medium text-teks-kuat">Nama tamu</span>
             <input value={formRsvp.namaTamu} onChange={(e) => setFormRsvp({ ...formRsvp, namaTamu: e.target.value })} className={klasInput} autoFocus />
           </label>
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Kontak (opsional)</span>
+            <span className="mb-1 block font-medium text-teks-kuat">Kontak (opsional)</span>
             <input value={formRsvp.kontak} onChange={(e) => setFormRsvp({ ...formRsvp, kontak: e.target.value })} className={klasInput} />
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-slate-700">Status</span>
+              <span className="mb-1 block font-medium text-teks-kuat">Status</span>
               <select value={formRsvp.status} onChange={(e) => setFormRsvp({ ...formRsvp, status: e.target.value as StatusRsvp })} className={klasInput}>
                 <option value="BELUM">BELUM</option>
                 <option value="HADIR">HADIR</option>
@@ -505,12 +495,12 @@ export function TamuView() {
               </select>
             </label>
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-slate-700">Jumlah rombongan</span>
+              <span className="mb-1 block font-medium text-teks-kuat">Jumlah rombongan</span>
               <input type="number" min={1} value={formRsvp.jumlahRombongan} onChange={(e) => setFormRsvp({ ...formRsvp, jumlahRombongan: Number(e.target.value) })} className={klasInput} />
             </label>
           </div>
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Catatan (opsional)</span>
+            <span className="mb-1 block font-medium text-teks-kuat">Catatan (opsional)</span>
             <input value={formRsvp.catatan} onChange={(e) => setFormRsvp({ ...formRsvp, catatan: e.target.value })} className={klasInput} />
           </label>
         </FormDialog>
