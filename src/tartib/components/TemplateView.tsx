@@ -615,7 +615,7 @@ export function TemplateView() {
                       {jenis?.nama ?? 'Jenis tidak ditemukan'} · dibuat {formatTanggal(t.dibuatPada)}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button onClick={() => setTerpilih(t)} className={KELAS.tombolSekunderKecil}>
                       Buka
                     </button>
@@ -651,16 +651,22 @@ export function TemplateView() {
             <p className="mt-3 rounded-lg bg-aksen-50 px-3 py-2 text-sm text-aksen-700">{pesanImpor}</p>
           )}
           {errorImpor && <p className={`mt-3 ${KELAS.error}`}>{errorImpor}</p>}
+          {/* Tombol pilih berkas memakai tombol aplikasi (bukan ::file-selector-
+              button bawaan browser — di WebView teksnya tak tampil dan ukurannya
+              membengkak; sesi 15, laporan Ahmed). Input asli disembunyikan dan
+              dipicu lewat label. */}
           <label className="mt-3 block">
-            <span className="sr-only">Pilih berkas .docx</span>
+            <span className={KELAS.tombolUtama}>Pilih Berkas .docx</span>
             <input
               type="file"
               accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) void pilihBerkasImpor(f);
+                // Reset agar berkas yang sama bisa dipilih ulang
+                e.target.value = '';
               }}
-              className="block w-full text-sm text-teks-sedang file:mr-3 file:cursor-pointer file:rounded-kontrol file:border-0 file:bg-aksen-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-aksen-700"
+              className="sr-only"
             />
           </label>
         </div>
