@@ -4,6 +4,8 @@
 // riset lanskap aplikasi SOP & manajemen acara (Ahmed, 2026-08-22).
 // Konten statis — tidak ada akses data.
 
+import { KELAS } from '../ui/kelas';
+
 const LANSKAP = [
   {
     nama: 'AI SOP Genie, SOPmate, Quick SOP',
@@ -40,8 +42,8 @@ const CARA_MENGISI_CELAH = [
 export function TentangView() {
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
-        <h2 className="text-xl font-semibold text-slate-800">Tentang Tartib</h2>
+      <section className={`${KELAS.kartu} p-6`}>
+        <h2 className={KELAS.judulHalaman}>Tentang Tartib</h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
           Tartib adalah pembuat SOP acara yang menyatukan <strong>dokumen</strong> dan{' '}
           <strong>eksekusi</strong> dalam satu alur: susun template SOP (fase, item, divisi, rumus
@@ -54,7 +56,7 @@ export function TentangView() {
         </p>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
+      <section className={`${KELAS.kartu} p-6`}>
         <h3 className="font-semibold text-slate-800">Posisi produk — riset lanskap 2026-08-22</h3>
         <p className="mt-1 text-sm text-slate-500">
           Riset terhadap aplikasi SOP dan manajemen acara yang sudah ada menemukan satu celah besar:
@@ -76,7 +78,7 @@ export function TentangView() {
         </p>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
+      <section className={`${KELAS.kartu} p-6`}>
         <h3 className="font-semibold text-slate-800">Bagaimana Tartib mengisi celah itu</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {CARA_MENGISI_CELAH.map((c) => (
@@ -88,7 +90,7 @@ export function TentangView() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
+      <section className={`${KELAS.kartu} p-6`}>
         <h3 className="font-semibold text-slate-800">Yang disengaja belum ada</h3>
         <p className="mt-1 text-sm leading-relaxed text-slate-600">
           Notifikasi push, sinkronisasi Slack/WhatsApp, dan integrasi ERP/QMS membutuhkan jaringan —

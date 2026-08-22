@@ -4,6 +4,7 @@
 // window.confirm/alert; konfirmasi destruktif lewat KonfirmasiDialog).
 
 import { useEffect, type ReactNode } from 'react';
+import { KELAS } from '../ui/kelas';
 
 interface PropsAppDialog {
   terbuka: boolean;
@@ -80,7 +81,7 @@ export function KonfirmasiDialog({
       <div className="mt-5 flex justify-end gap-2">
         <button
           onClick={onBatal}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className={KELAS.tombolSekunder}
         >
           Batal
         </button>
@@ -127,19 +128,19 @@ export function FormDialog({
       >
         <div className="space-y-4">{children}</div>
         {error && (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <p className={`mt-3 ${KELAS.error}`}>{error}</p>
         )}
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={onTutup}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className={KELAS.tombolSekunder}
           >
             Batal
           </button>
           <button
             type="submit"
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            className={KELAS.tombolUtama}
           >
             {labelSimpan}
           </button>

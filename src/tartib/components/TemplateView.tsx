@@ -11,6 +11,7 @@ import { daftarDivisi } from '../services/divisiService';
 import * as ts from '../services/templateService';
 import { FormDialog, KonfirmasiDialog } from './AppDialog';
 import type { Divisi, Fase, JenisAcara, Template, TemplateItem } from '../types';
+import { KELAS } from '../ui/kelas';
 type DialogT =
   | { jenis: 'baru' }
   | { jenis: 'duplikat'; template: Template }
@@ -289,32 +290,31 @@ export function TemplateView() {
 
   // ===== Render =====
 
-  const klasAksi =
-    'rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50';
-  const klasDanger = 'rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50';
+  const klasAksi = KELAS.tombolSekunderKecil;
+  const klasDanger = KELAS.tombolBahaya;
 
   if (!terpilih) {
     return (
       <div>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold text-slate-800">Template SOP Acara</h2>
+            <h2 className={KELAS.judulHalaman}>Template SOP Acara</h2>
             <p className="text-sm text-slate-500">
               {daftar.total} template — duplikat, versi baru, dan arsip tanpa menimpa data.
             </p>
           </div>
-          <button onClick={bukaBaru} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+          <button onClick={bukaBaru} className={KELAS.tombolUtama}>
             Buat Template
           </button>
         </div>
 
         {errorUmum && (
-          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorUmum}</p>
+          <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>
         )}
 
         {daftar.memuat && <p className="text-sm text-slate-500">Memuat…</p>}
         {!daftar.memuat && daftar.items.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
+          <div className={KELAS.kosong}>
             <p className="text-sm text-slate-500">Belum ada template. Buat template pertama dari tombol di atas.</p>
           </div>
         )}
@@ -323,7 +323,7 @@ export function TemplateView() {
           {daftar.items.map((t) => {
             const jenis = jenisMap.get(t.jenisAcaraId);
             return (
-              <div key={t.id} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div key={t.id} className={KELAS.kartuIsi}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
@@ -335,14 +335,14 @@ export function TemplateView() {
                       >
                         {t.aktif ? 'Aktif' : 'Diarsipkan'}
                       </span>
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">v{t.versi}</span>
+                      <span className={KELAS.badgeNetral}>v{t.versi}</span>
                     </div>
                     <p className="mt-1 text-sm text-slate-500">
                       {jenis?.nama ?? 'Jenis tidak ditemukan'} · dibuat {formatTanggal(t.dibuatPada)}
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => setTerpilih(t)} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
+                    <button onClick={() => setTerpilih(t)} className={KELAS.tombolSekunderKecil}>
                       Buka
                     </button>
                     <button onClick={() => bukaDuplikat(t)} className={klasAksi}>
@@ -393,7 +393,7 @@ export function TemplateView() {
               <select
                 value={formBaru.jenisAcaraId}
                 onChange={(e) => setFormBaru({ ...formBaru, jenisAcaraId: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                className={KELAS.input}
               >
                 {jenisAcara.map((j) => (
                   <option key={j.id} value={j.id}>
@@ -408,7 +408,7 @@ export function TemplateView() {
                 value={formBaru.nama}
                 onChange={(e) => setFormBaru({ ...formBaru, nama: e.target.value })}
                 placeholder="mis. Tasyakuran Khatam"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                className={KELAS.input}
                 autoFocus
               />
             </label>
@@ -418,7 +418,7 @@ export function TemplateView() {
                 value={formBaru.catatan}
                 onChange={(e) => setFormBaru({ ...formBaru, catatan: e.target.value })}
                 rows={3}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                className={KELAS.input}
               />
             </label>
           </FormDialog>
@@ -443,7 +443,7 @@ export function TemplateView() {
                 value={formDuplikat.nama}
                 onChange={(e) => setFormDuplikat({ ...formDuplikat, nama: e.target.value })}
                 placeholder={`${dialog.template.nama} (Salinan)`}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                className={KELAS.input}
                 autoFocus
               />
             </label>
@@ -489,7 +489,7 @@ export function TemplateView() {
           ← Kembali ke daftar template
         </button>
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-xl font-semibold text-slate-800">{terpilih.nama}</h2>
+          <h2 className={KELAS.judulHalaman}>{terpilih.nama}</h2>
           <span
             className={`rounded-full px-2 py-0.5 text-xs ${
               terpilih.aktif ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'
@@ -497,7 +497,7 @@ export function TemplateView() {
           >
             {terpilih.aktif ? 'Aktif' : 'Diarsipkan'}
           </span>
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">v{terpilih.versi}</span>
+          <span className={KELAS.badgeNetral}>v{terpilih.versi}</span>
         </div>
         <p className="mt-1 text-sm text-slate-500">
           {jenis?.nama ?? 'Jenis tidak ditemukan'} · {fases.length} fase · {items.length} item · dibuat{' '}
@@ -520,7 +520,7 @@ export function TemplateView() {
       </div>
 
       {errorUmum && (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorUmum}</p>
+        <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>
       )}
 
       {memuatEditor ? (
@@ -528,13 +528,13 @@ export function TemplateView() {
       ) : (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button onClick={() => bukaFase(terpilih.id)} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+            <button onClick={() => bukaFase(terpilih.id)} className={KELAS.tombolUtama}>
               + Tambah Fase
             </button>
           </div>
 
           {fases.length === 0 && (
-            <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
+            <div className={KELAS.kosong}>
               <p className="text-sm text-slate-500">
                 Belum ada fase. Tambahkan fase pertama, misalnya "Persiapan Awal" (H-30).
               </p>
@@ -544,13 +544,13 @@ export function TemplateView() {
           {fases.map((fase, idxFase) => {
             const itemsFase = items.filter((i) => i.faseId === fase.id);
             return (
-              <div key={fase.id} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div key={fase.id} className={KELAS.kartuIsi}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-slate-800">
                       {fase.urutan}. {fase.label}
                     </span>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                    <span className={KELAS.badgeNetral}>
                       {formatOffset(fase.offsetHari)}
                     </span>
                     <span className="text-xs text-slate-400">{itemsFase.length} item</span>
@@ -589,15 +589,15 @@ export function TemplateView() {
                   {itemsFase.map((item, idxItem) => {
                     const divisi = divisiMap.get(item.divisiId);
                     return (
-                      <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                      <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-kontrol bg-permukaan-halus px-3 py-2">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-sm font-medium text-slate-700">{item.judul}</span>
                             {item.wajib && (
-                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">wajib</span>
+                              <span className={KELAS.badgePeringatan}>wajib</span>
                             )}
                             {item.rumusQty && (
-                              <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-700">
+                              <span className={KELAS.badgeInfo}>
                                 qty: {item.rumusQty}
                               </span>
                             )}
@@ -661,7 +661,7 @@ export function TemplateView() {
               value={formFase.label}
               onChange={(e) => setFormFase({ ...formFase, label: e.target.value })}
               placeholder="mis. Persiapan Awal"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className={KELAS.input}
               autoFocus
             />
           </label>
@@ -673,7 +673,7 @@ export function TemplateView() {
               type="number"
               value={formFase.offsetHari}
               onChange={(e) => setFormFase({ ...formFase, offsetHari: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className={KELAS.input}
             />
           </label>
         </FormDialog>
@@ -694,7 +694,7 @@ export function TemplateView() {
               value={formItem.judul}
               onChange={(e) => setFormItem({ ...formItem, judul: e.target.value })}
               placeholder="mis. Konfirmasi jumlah tamu ke pengurus"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className={KELAS.input}
               autoFocus
             />
           </label>
@@ -703,7 +703,7 @@ export function TemplateView() {
             <select
               value={formItem.divisiId}
               onChange={(e) => setFormItem({ ...formItem, divisiId: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className={KELAS.input}
             >
               {divisiList.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -727,7 +727,7 @@ export function TemplateView() {
               value={formItem.rumusQty}
               onChange={(e) => setFormItem({ ...formItem, rumusQty: e.target.value })}
               placeholder='mis. porsi / 8 atau santri * 1.5'
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className={KELAS.input}
             />
             <span className="mt-1 block text-xs text-slate-400">
               Variabel: porsi, santri, panitia, rsvp. Fungsi: min, max, ceil, floor.
@@ -739,7 +739,7 @@ export function TemplateView() {
               value={formItem.catatan}
               onChange={(e) => setFormItem({ ...formItem, catatan: e.target.value })}
               rows={2}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className={KELAS.input}
             />
           </label>
         </FormDialog>
@@ -782,7 +782,7 @@ export function TemplateView() {
               value={formDuplikat.nama}
               onChange={(e) => setFormDuplikat({ ...formDuplikat, nama: e.target.value })}
               placeholder={`${dialog.template.nama} (Salinan)`}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className={KELAS.input}
               autoFocus
             />
           </label>

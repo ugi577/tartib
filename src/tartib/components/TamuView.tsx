@@ -16,25 +16,15 @@ import * as tamuSvc from '../services/tamuService';
 import * as perlengkapanSvc from '../services/perlengkapanService';
 import { FormDialog, KonfirmasiDialog } from './AppDialog';
 import type { Acara, Divisi, KelompokTamu, Perlengkapan, Rsvp, StatusRsvp } from '../types';
+import { KELAS, badgeStatusRsvp } from '../ui/kelas';
 
 function pesanError(e: unknown): string {
   return e instanceof Error ? e.message : 'Terjadi kesalahan';
 }
 
-function warnaStatusRsvp(s: StatusRsvp): string {
-  switch (s) {
-    case 'BELUM':
-      return 'bg-slate-100 text-slate-600';
-    case 'HADIR':
-      return 'bg-emerald-100 text-emerald-700';
-    case 'TIDAK_HADIR':
-      return 'bg-red-100 text-red-600';
-  }
-}
-
-const klasInput = 'w-full rounded-lg border border-slate-300 px-3 py-2';
-const klasAksi = 'rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50';
-const klasDanger = 'rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50';
+const klasInput = KELAS.input;
+const klasAksi = KELAS.tombolSekunderKecil;
+const klasDanger = KELAS.tombolBahaya;
 
 export function TamuView() {
   const daftar = usePagedList<Acara>(tartibDb.acara, { orderBy: 'dibuatPada', arah: 'desc' });
@@ -252,25 +242,25 @@ export function TamuView() {
     return (
       <div>
         <div className="mb-5">
-          <h2 className="text-xl font-semibold text-slate-800">Tamu & Porsi</h2>
+          <h2 className={KELAS.judulHalaman}>Tamu & Porsi</h2>
           <p className="text-sm text-slate-500">Pilih acara untuk kelola kelompok tamu, RSVP, dan ceklis perlengkapan.</p>
         </div>
 
         {daftar.memuat && <p className="text-sm text-slate-500">Memuat…</p>}
         {!daftar.memuat && daftar.items.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
+          <div className={KELAS.kosong}>
             <p className="text-sm text-slate-500">Belum ada acara. Buat acara di tab Acara terlebih dahulu.</p>
           </div>
         )}
 
         <div className="space-y-3">
           {daftar.items.map((a) => (
-            <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-4">
+            <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 ${KELAS.kartuIsi}">
               <div>
                 <span className="font-medium text-slate-800">{a.nama}</span>
                 <p className="mt-1 text-sm text-slate-500">{formatTanggalIndonesia(a.tanggal)}</p>
               </div>
-              <button onClick={() => bukaAcara(a)} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
+              <button onClick={() => bukaAcara(a)} className={KELAS.tombolSekunderKecil}>
                 Buka
               </button>
             </div>
@@ -300,21 +290,21 @@ export function TamuView() {
         ← Kembali ke daftar acara
       </button>
       <div className="mb-5">
-        <h2 className="text-xl font-semibold text-slate-800">{terpilih.nama}</h2>
+        <h2 className={KELAS.judulHalaman}>{terpilih.nama}</h2>
         <p className="mt-1 text-sm text-slate-500">{formatTanggalIndonesia(terpilih.tanggal)}</p>
       </div>
 
-      {errorUmum && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorUmum}</p>}
+      {errorUmum && <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>}
 
       {memuat ? (
         <p className="text-sm text-slate-500">Memuat…</p>
       ) : (
         <div className="space-y-6">
           {/* Kelompok tamu */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className={KELAS.kartuIsi}>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <h3 className="font-medium text-slate-800">Kelompok Tamu</h3>
-              <button onClick={bukaDialogKelompokBaru} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700">
+              <button onClick={bukaDialogKelompokBaru} className={KELAS.tombolUtamaKecil}>
                 Tambah Kelompok
               </button>
             </div>
@@ -328,7 +318,7 @@ export function TamuView() {
                 const rsvpKelompok = rsvp.filter((x) => x.kelompokId === k.id);
                 return (
                   <div key={k.id} className="rounded-lg border border-slate-200">
-                    <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-permukaan-halus px-3 py-2">
                       <button onClick={() => setKelompokTerbuka(terbuka ? null : k.id)} className="text-left">
                         <span className="text-sm font-medium text-slate-700">{terbuka ? '▾' : '▸'} {k.nama}</span>
                         <p className="text-xs text-slate-500">
@@ -346,11 +336,11 @@ export function TamuView() {
                         <button onClick={() => bukaDialogRsvpBaru(k.id)} className={klasAksi}>+ Catat RSVP</button>
                         {rsvpKelompok.length === 0 && <p className="text-sm text-slate-400">Belum ada RSVP.</p>}
                         {rsvpKelompok.map((r) => (
-                          <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                          <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-kontrol bg-permukaan-halus px-3 py-2">
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium text-slate-700">{r.namaTamu}</span>
-                                <span className={`rounded-full px-2 py-0.5 text-xs ${warnaStatusRsvp(r.status)}`}>{r.status}</span>
+                                <span className={badgeStatusRsvp(r.status)}>{r.status}</span>
                                 <span className="text-xs text-slate-500">{r.jumlahRombongan} rombongan</span>
                               </div>
                               {r.kontak && <p className="text-xs text-slate-400">{r.kontak}</p>}
@@ -370,7 +360,7 @@ export function TamuView() {
           </div>
 
           {/* Panel porsi */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className={KELAS.kartuIsi}>
             <h3 className="mb-3 font-medium text-slate-800">Kalkulator Porsi</h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <label className="text-sm">
@@ -405,13 +395,13 @@ export function TamuView() {
               Peralatan makan: <span className="font-semibold text-slate-800">{peralatan}</span> ({konteks.adaTimPencuci ? '0,6× porsi' : '1,1× porsi'})
             </p>
 
-            <button onClick={generateUlangPerlengkapan} disabled={memuatPerlengkapan} className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
+            <button onClick={generateUlangPerlengkapan} disabled={memuatPerlengkapan} className={`mt-4 ${KELAS.tombolUtama}`}>
               {memuatPerlengkapan ? 'Menghitung…' : 'Hitung Ulang Perlengkapan'}
             </button>
           </div>
 
           {/* Ceklis perlengkapan */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className={KELAS.kartuIsi}>
             <h3 className="mb-3 font-medium text-slate-800">Ceklis Perlengkapan</h3>
             {perlengkapan.length === 0 && (
               <p className="text-sm text-slate-400">
@@ -427,7 +417,7 @@ export function TamuView() {
                   </div>
                   <label className="text-sm">
                     <span className="sr-only">Satuan {p.nama}</span>
-                    <input value={p.satuan} onChange={(e) => ubahSatuan(p, e.target.value)} placeholder="satuan" className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+                    <input value={p.satuan} onChange={(e) => ubahSatuan(p, e.target.value)} placeholder="satuan" className={`w-24 ${KELAS.inputKecil}`} />
                   </label>
                   <label className="text-sm">
                     <span className="sr-only">Qty final {p.nama}</span>
@@ -436,7 +426,7 @@ export function TamuView() {
                       min={0}
                       value={p.qtyFinal}
                       onChange={(e) => ubahQtyFinal(p, Number(e.target.value))}
-                      className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                      className={`w-24 ${KELAS.inputKecil}`}
                     />
                   </label>
                   <button
