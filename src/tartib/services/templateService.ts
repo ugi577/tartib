@@ -167,6 +167,19 @@ export async function arsipTemplate(templateId: string): Promise<void> {
   if (n === 0) throw new TemplateError('Template tidak ditemukan');
 }
 
+export async function hapusTemplate(templateId: string): Promise<void> {
+  const template = await tartibDb.template.get(templateId);
+  if (!template) throw new TemplateError('Template tidak ditemukan');
+  // Seluruh struktur milik template (fase + item) ikut terhapus dalam satu
+  // transaksi. Acara yang sudah dibuat tidak terpengaruh: fase & tugas acara
+  // adalah salinan snapshot (lihat acaraService, K-03).
+  await tartibDb.transaction('rw', tartibDb.template, tartibDb.fase, tartibDb.templateItem, async () => {
+    await tartibDb.templateItem.where('templateId').equals(templateId).delete();
+    await tartibDb.fase.where('templateId').equals(templateId).delete();
+    await tartibDb.template.delete(templateId);
+  });
+}
+
 // ===== Mutasi fase =====
 
 export async function tambahFase(templateId: string, input: { label: string; offsetHari: number }): Promise<Fase> {
