@@ -4,6 +4,17 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-17 — 2026-08-22 — Batch V: impor SOP dari dokumen .docx di tab Evaluasi; ZIP/XML diparse manual tanpa library
+
+Arahan Ahmed: *"pada evaluasi, siapkan fungsi import, yg bisa dibaca/duplikasi dan modifikasi. contoh sop acara mahad ini"* (berkas `SOP ACARA - Mahad Askar Quran.docx`). Keputusan:
+
+1. **Titik masuk: tab Evaluasi** (daftar acara) — sesuai arahan; hasil impor adalah **template biasa**, jadi "bisa dibaca / diduplikasi / dimodifikasi" otomatis terpenuhi lewat fitur template yang sudah ada (editor, Duplikat, Versi Baru).
+2. **Tanpa library baru (BRIEF Bagian 4).** DOCX = ZIP: dibaca manual lewat end-of-central-directory + central directory, inflate `deflate-raw` memakai `DecompressionStream` (browser & Node ≥ 18). XML diparse dengan parser non-validating sendiri (`parseXmlLite`) — cukup untuk `word/document.xml`.
+3. **Pemetaan dokumen → SOP (heuristik teruji pada dokumen asli).** Fase = paragraf tebal berawalan offset H (`H-30`, `Hari-H`, `H+1`); item = paragraf ☐; heading `BAGIAN n —` memutus fase aktif sehingga item di luar linimasa (cek lis perlengkapan dsb.) **tidak diimpor** dan dihitung untuk dilaporkan; sub-judul & prosa diabaikan. Divisi item = **tebakan kata kunci** (`tebakDivisi`, peta eksplisit; fallback Ketua Panitia) karena dokumen tidak mencantumkan divisi per item — pratinjau menampilkan ringkasannya dan editor template tetap bisa mengubahnya. Batas `BAGIAN n —` dan aturan tebal mengikuti format nyata dokumen contoh; dokumen berformat lain dilaporkan apa adanya (tidak dipaksakan).
+4. **Penyimpanan atomik.** `imporTemplate` membangun template+fase+item (validasi penuh: nama/label/judul wajib, divisi dikenal, rumusQty sah) lalu menyimpan dalam satu transaksi Dexie — gagal satu item berarti tidak ada yang tersimpan.
+
+Bukti: verifikasi end-to-end terhadap dokumen asli menghasilkan 9 fase (H-30, H-21, H-14, H-10, H-7, H-3, H-1, Hari-H, H+1), 57 item (43 tebakan, 14 fallback), 84 item luar linimasa dilaporkan. Gate V teknis lulus; verifikasi manual Ahmed tersisa (pilih berkas di browser — upload file tidak bisa diuji lewat browser otomatis).
+
 ## K-16 — 2026-08-22 — Batch U (UI): alat diganti Browser pane bawaan; dua temuan baseline diperlakukan sebagai bug, bukan percantikan
 
 Ahmed menyetujui eksekusi `docs/PLAN-UI.md` ("cek apakah berjalan sesuai plan dan saran terbaiknya — sy konfirmasi — lalu kerjakan"). Sebelum eksekusi, rencana dikoreksi pada dua titik:

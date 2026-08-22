@@ -197,7 +197,28 @@ Branch: `batch-u-ui`. Rencana rinci: `docs/PLAN-UI.md`.
 
 ---
 
+## Batch V — Impor SOP dari dokumen (.docx) · `clo` high
+
+Branch: `master` (langsung, pasca Gate U). Arahan Ahmed (2026-08-22): *"pada evaluasi, siapkan fungsi import, yg bisa dibaca/duplikasi dan modifikasi. contoh sop acara mahad ini"* — dengan berkas **`SOP ACARA - Mahad Askar Quran.docx`** sebagai contoh nyata. Hasil impor adalah **template biasa** — otomatis bisa dibaca (daftar/editor), diduplikasi (Duplikat), dan dimodifikasi (editor fase/item) seperti template lain.
+
+Kendala teknis: **tanpa library baru** (BRIEF Bagian 4) → ZIP dibaca manual (EOCD + central directory + inflate `deflate-raw` via `DecompressionStream`), XML diparse dengan parser non-validating sendiri, keduanya murni & teruji.
+
+1. **V-1 Parser** — `src/tartib/lib/impor/`: `zip.ts` (`bacaZip`), `xml.ts` (`parseXmlLite`), `dokumenSop.ts` (`dokumenXmlKeSop` + `tebakDivisi` + `offsetDariLabel` + `labelFaseBersih`) — 15 test. Pemetaan berdasarkan struktur nyata dokumen contoh: fase = paragraf tebal berawalan H-offset (H-30…Hari-H…H+1), item = paragraf ☐, `BAGIAN n —` memutus fase aktif (item di luar linimasa — mis. ceklis perlengkapan — diabaikan & dihitung), sub-judul/prosa diabaikan; divisi item = tebakan kata kunci (fallback Ketua Panitia).
+2. **V-2 Service** — `templateService.bangunStrukturImpor` (murni, 3 test: urutan/keterhubungan, tolak divisi tak dikenal, tolak judul kosong & rumusQty tak sah) + `imporTemplate` (satu transaksi Dexie: gagal satu item = tidak ada yang tersimpan).
+3. **V-3 UI** — panel "Impor SOP dari Dokumen (.docx)" di daftar `?view=evaluasi`: pilih berkas → parse → dialog pratinjau (fase + offset + jumlah item, nama template & jenis acara bisa diubah, catatan item di luar linimasa) → Simpan sebagai Template → pesan ringkas (fase/item, divisi tebakan vs fallback) + arahan buka tab Template.
+
+**Gate V**
+- [x] Pipeline terbukti pada **dokumen asli** (`SOP ACARA - Mahad Askar Quran.docx`, verifikasi end-to-end Node): judul `BUKU PANDUAN SOP ACARA`, sub-judul `Ma'had Askar Qur'an`, **9 fase** (H-30, H-21, H-14, H-10, H-7, H-3, H-1, Hari-H, H+1) — **57 item** (43 divisi ditebak, 14 fallback Ketua Panitia), 84 item luar linimasa diabaikan & dilaporkan
+- [x] Tanpa library baru — hanya API platform (`DecompressionStream`, `TextDecoder`, `Blob`)
+- [x] Simpan atomik — `imporTemplate` satu transaksi; template hasil impor langsung terbaca di tab Template (bisa dibaca/duplikat/modifikasi)
+- [x] Teknis: `tsc` bersih, `vitest` 146/146 (20 berkas), `pnpm build` statis sukses, nol overflow di 375px (panel impor)
+- [ ] **Verifikasi manual Ahmed** — pilih berkas .docx nyata di browser (upload file tidak bisa diuji lewat browser otomatis), periksa pratinjau & hasil di tab Template
+
+---
+
 ## Changelog PLAN
+
+- **2026-08-22 — v1.17** — **Batch V — Impor SOP dari dokumen .docx selesai diimplementasi** (branch `master`, arahan Ahmed: *"pada evaluasi, siapkan fungsi import, yg bisa dibaca/duplikasi dan modifikasi. contoh sop acara mahad ini"* — K-17). Tiga commit: `a57e33c` parser (ZIP manual + XML lite + pemetaan document.xml → fase/item + tebak divisi, 15 test), `82ecad9` `imporTemplate` atomik + `bangunStrukturImpor` murni (3 test), `9b38bed` panel & dialog pratinjau di `?view=evaluasi`. Tanpa library baru: ZIP lewat EOCD/central directory + `DecompressionStream('deflate-raw')`. Terbukti pada dokumen asli: 9 fase (H-30…H+1), 57 item (43 tebakan divisi, 14 fallback), 84 item luar linimasa dilaporkan. Gate V teknis lulus (tsc, vitest 146/146, build, 375px); **tersisa verifikasi manual Ahmed** (pilih berkas di browser + cek tab Template).
 
 - **2026-08-22 — v1.16** — **Snapshot publik disinkronkan pertama kali (sesi 11, perintah Ahmed: "push").** (1) **Tab Tentang dibersihkan dari nama merek** (`941e4bd`, arahan Ahmed: *"hilangkan semua merk aplikasi tertentu ganti dgn kata ganti aplikasi sejenis/aplikasi lain"*) — kartu lanskap "AI SOP Genie, SOPmate, Quick SOP" / "Coordon, ORGA" → "Aplikasi sejenis — penyusun dokumen SOP" / "Aplikasi sejenis — pengelola eksekusi acara", "sinkronisasi Slack/WhatsApp" → "sinkronisasi pesan instan", paragraf riset menyebut "(nama produk tidak disebutkan)"; nama asli tetap di DECISIONS K-13 (internal). (2) **`scripts/sync-publik.sh master --push` dijalankan** — snapshot deterministik 61 berkas (59 + `kelas.ts` + `kelas.test.ts`; `docs/`, `.claude/`, `scripts/` dikecualikan), commit `42429f3` fast-forward di atas `origin/main` (tanpa force), workflow "Deploy ke GitHub Pages" sukses (51s), konten baru **terverifikasi live** di https://ugi577.github.io/tartib/ (bundle berisi "…sampai H+1 dan cetak laporannya", "Aplikasi sejenis — penyusun dokumen SOP", "sinkronisasi pesan instan"). Skrip terbukti dipakai; sinkronisasi berikutnya = perintah yang sama.
 
