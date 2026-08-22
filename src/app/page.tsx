@@ -14,6 +14,7 @@ import { TamuView } from '../tartib/components/TamuView';
 import { TentangView } from '../tartib/components/TentangView';
 import { jalankanSeed } from '../tartib/db/seed';
 import { KELAS } from '../tartib/ui/kelas';
+import { LogoTartib } from '../tartib/components/LogoTartib';
 
 type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'tentang';
 
@@ -64,22 +65,30 @@ const PINTU_MASUK: ReadonlyArray<{ view: View; judul: string; keterangan: string
 function Konten() {
   const params = useSearchParams();
   const view = (params.get('view') as View | null) ?? 'beranda';
-  const aktif = (v: View) => (view === v ? 'bg-aksen-600 text-white shadow-kartu' : 'text-teks-sedang hover:bg-netral-100');
+  const aktif = (v: View) =>
+    view === v
+      ? 'bg-gradient-to-b from-aksen-500 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-white/30'
+      : 'bg-permukaan-kartu text-teks-sedang shadow-kartu backdrop-blur-md hover:bg-white/75 hover:text-teks-utama';
 
   return (
     <main className="mx-auto min-h-screen max-w-3xl px-4 py-8">
       <header className="mb-6 print:hidden">
-        <h1 className="text-2xl font-semibold text-teks-utama">Tartib — Pembuat SOP Acara</h1>
-        <p className="mt-1 text-sm text-teks-halus">
-          Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
-        </p>
+        <div className="flex items-center gap-3">
+          <LogoTartib judul="Logo Tartib" className="h-11 w-11 shrink-0 drop-shadow-[0_8px_16px_rgb(5_150_105/0.35)]" />
+          <div>
+            <h1 className="text-2xl font-semibold text-teks-utama">Tartib — Pembuat SOP Acara</h1>
+            <p className="mt-1 text-sm text-teks-halus">
+              Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
+            </p>
+          </div>
+        </div>
         <nav className="mt-4 flex flex-wrap gap-2">
           {TAB.map((t) => (
             <Link
               key={t.view}
               href={`/?view=${t.view}`}
               aria-current={view === t.view ? 'page' : undefined}
-              className={`whitespace-nowrap rounded-kontrol px-3 py-2 text-sm font-medium sm:px-4 ${aktif(t.view)}`}
+              className={`whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium ring-1 ring-inset ring-white/60 sm:px-4 ${aktif(t.view)}`}
             >
               {t.label}
             </Link>
@@ -98,7 +107,7 @@ function Konten() {
             <Link
               key={p.view}
               href={`/?view=${p.view}`}
-              className={`${KELAS.kartu} block p-6 transition-colors hover:border-aksen-300`}
+              className={`${KELAS.kartu} block p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-white hover:shadow-angkat`}
             >
               <h3 className={KELAS.judulKartu}>{p.judul}</h3>
               <p className="mt-1 text-sm text-teks-halus">{p.keterangan}</p>

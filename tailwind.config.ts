@@ -1,15 +1,17 @@
 import type { Config } from 'tailwindcss';
 import colors from 'tailwindcss/colors';
 
-// Token desain Tartib (Batch U-2).
+// Token desain Tartib (Batch U-2), dimodifikasi ke rupa "liquid glass".
 //
 // Nama token sengaja SEMANTIK (aksen / permukaan / garis / teks), bukan nama
-// warna. Konsekuensinya: keputusan branding yang masih terbuka (nama & rupa
-// aplikasi untuk rilis publik) bisa dijalankan dari berkas ini saja — tidak
-// ada komponen yang perlu disentuh.
+// warna. Konsekuensinya: keputusan branding yang masih terbuka bisa dijalankan
+// dari berkas ini saja — tidak ada komponen yang perlu disentuh.
 //
-// Palet dasar tidak berubah dari yang sudah dipakai sejak Batch A: netral
-// `slate`, aksen `emerald`. Batch U hanya memberi keduanya peran yang jelas.
+// Rupa liquid glass: permukaan tembus pandang (alpha putih) di atas latar
+// gradasi pastel, tepi luminous putih, kabur di belakang (backdrop-blur), dan
+// bayangan lembut dengan sorot kaca di sisi dalam. Karena `permukaan.kartu`
+// kini transparan, SEMUA kartu/input yang memakai token ini otomatis ikut
+// bening — komponen tidak perlu tahu apa-apa.
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
@@ -17,22 +19,23 @@ const config: Config = {
       colors: {
         /** Warna identitas: aksi utama, penanda aktif, progres. */
         aksen: colors.emerald,
-        /** Warna netral: teks, garis, latar. */
+        /** Warna netral: teks, garis pemisah. */
         netral: colors.slate,
         permukaan: {
-          /** Latar halaman. */
-          dasar: colors.slate[50],
-          /** Latar kartu/panel yang berdiri di atas halaman. */
-          kartu: '#ffffff',
+          /** Latar halaman (dilapis gradasi pastel oleh globals.css). */
+          dasar: '#edeff7',
+          /** Kaca kartu/panel — putih bening di atas latar gradasi. */
+          kartu: 'rgb(255 255 255 / 0.62)',
           /** Blok tenang di dalam kartu (baris item, kotak hitung). */
-          halus: colors.slate[50],
+          halus: 'rgb(255 255 255 / 0.42)',
           /** Permukaan gelap untuk aksi kontras. */
           kontras: colors.slate[800],
         },
         garis: {
-          DEFAULT: colors.slate[200],
-          /** Garis kontrol input & tombol sekunder — perlu lebih tegas. */
-          kuat: colors.slate[300],
+          /** Pemisah baris — abu bening agar terlihat di atas kaca. */
+          DEFAULT: 'rgb(148 163 184 / 0.45)',
+          /** Tepi kaca kontrol input & tombol sekunder — putih luminous. */
+          kuat: 'rgb(255 255 255 / 0.85)',
         },
         teks: {
           utama: colors.slate[800],
@@ -43,14 +46,23 @@ const config: Config = {
         },
       },
       borderRadius: {
-        /** Tombol, input, baris item. */
-        kontrol: '0.5rem',
-        /** Kartu & panel. */
-        kartu: '0.75rem',
+        /** Kontrol isian (input, select, textarea). */
+        kontrol: '0.75rem',
+        /** Kartu, panel, dialog. */
+        kartu: '1.25rem',
       },
       boxShadow: {
-        kartu: '0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06)',
-        angkat: '0 4px 12px -2px rgb(15 23 42 / 0.10)',
+        /** Bayangan kaca baku: sorot putih di sisi dalam + jatuh lembut. */
+        kartu:
+          'inset 0 1px 0 rgb(255 255 255 / 0.8), 0 1px 2px rgb(15 23 42 / 0.05), 0 12px 32px -12px rgb(15 23 42 / 0.16)',
+        /** Kartu terangkat (hover, dialog). */
+        angkat:
+          'inset 0 1px 0 rgb(255 255 255 / 0.85), 0 24px 48px -16px rgb(15 23 42 / 0.25)',
+        /** Sorot kilau di tepi atas kontrol isian (pola candy glass). */
+        glosAtas: 'inset 0 1px 0 rgb(255 255 255 / 0.9)',
+        /** Cahaya aksen di bawah tombol/badge utama. */
+        glowAksen:
+          'inset 0 1px 0 rgb(255 255 255 / 0.35), 0 10px 24px -8px rgb(5 150 105 / 0.5)',
       },
     },
   },

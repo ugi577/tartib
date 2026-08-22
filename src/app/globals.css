@@ -12,14 +12,23 @@
     color-scheme: light;
   }
 
+  /* Kanvas liquid glass: gradasi mesh pastel (lavender / teal / biru) tetap
+     saat digulir, menjadi "cairan" yang tampak melalui kartu kaca bening. */
   body {
-    @apply bg-slate-50 text-slate-700 antialiased;
+    @apply text-slate-700 antialiased;
+    background-color: #edeff7;
+    background-image:
+      radial-gradient(52rem 36rem at 88% -12%, rgb(167 139 250 / 0.2), transparent 62%),
+      radial-gradient(44rem 30rem at -8% 18%, rgb(45 212 191 / 0.16), transparent 60%),
+      radial-gradient(40rem 28rem at 55% 115%, rgb(147 197 253 / 0.22), transparent 62%),
+      linear-gradient(165deg, #f7f4ef 0%, #eef1f9 48%, #f2eef6 100%);
+    background-attachment: fixed;
   }
 
   /* Satu gaya fokus untuk seluruh aplikasi — sebelumnya tiap kontrol memakai
      cincin fokus bawaan browser (oranye di Chrome) yang tidak selaras. */
   :focus-visible {
-    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 ring-offset-white;
+    @apply outline-none ring-2 ring-emerald-500/70 ring-offset-2 ring-offset-white/80;
   }
 }
 

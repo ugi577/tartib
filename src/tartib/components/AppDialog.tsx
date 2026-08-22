@@ -34,16 +34,16 @@ export function AppDialog({ terbuka, judul, onTutup, children, lebar = 'md' }: P
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-slate-900/50" onClick={onTutup} />
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onTutup} />
       <div
-        className={`relative w-full ${LEBAR[lebar]} max-h-[85vh] overflow-y-auto rounded-xl bg-white p-5 shadow-2xl`}
+        className={`relative w-full ${LEBAR[lebar]} max-h-[85vh] overflow-y-auto rounded-kartu border border-white/70 bg-permukaan-kartu p-5 shadow-angkat backdrop-blur-xl`}
       >
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-teks-utama">{judul}</h2>
           <button
             onClick={onTutup}
             aria-label="Tutup dialog"
-            className="rounded-md p-1 text-teks-redup hover:bg-netral-100 hover:text-teks-sedang"
+            className="rounded-full p-1 text-teks-redup hover:bg-white/60 hover:text-teks-sedang"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
               <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
@@ -87,9 +87,7 @@ export function KonfirmasiDialog({
         </button>
         <button
           onClick={onYa}
-          className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
-            bahaya ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
-          }`}
+          className={bahaya ? KELAS.tombolBahayaSolid : KELAS.tombolUtama}
         >
           {labelYa}
         </button>

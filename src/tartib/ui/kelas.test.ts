@@ -40,7 +40,7 @@ describe('badge status', () => {
 });
 
 describe('kelas tombol', () => {
-  it('semua varian tombol memakai radius kontrol yang sama', () => {
+  it('semua varian tombol memakai bentuk pil yang sama', () => {
     const tombol = [
       KELAS.tombolUtama,
       KELAS.tombolUtamaKecil,
@@ -51,12 +51,13 @@ describe('kelas tombol', () => {
       KELAS.tombolBahayaSolid,
       KELAS.tombolIkon,
     ];
-    expect(tombol.every((k) => k.includes('rounded-kontrol'))).toBe(true);
+    expect(tombol.every((k) => k.includes('rounded-full'))).toBe(true);
   });
 
-  it('hanya satu varian tombol memakai warna aksen pekat sebagai aksi utama', () => {
-    expect(KELAS.tombolUtama).toContain('bg-aksen-600');
-    expect(KELAS.tombolSekunder).not.toContain('bg-aksen');
-    expect(KELAS.tombolHalus).not.toContain('bg-aksen');
+  it('hanya varian tombol utama memakai aksen sebagai isian', () => {
+    // Aksi utama kini gradasi candy glass — tetap satu-satunya yang beraksen.
+    expect(KELAS.tombolUtama).toContain('to-aksen-600');
+    expect(KELAS.tombolSekunder).not.toContain('aksen');
+    expect(KELAS.tombolHalus).not.toContain('aksen');
   });
 });
