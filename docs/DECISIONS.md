@@ -4,6 +4,18 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-18 — 2026-08-22 — Batch W: impor SOP dipindah ke tab Template; ekspor template .docx lokal & Google Drive (membatalkan K-17 poin 1)
+
+Arahan Ahmed: *"salah posisi, mestinya fungsi import ini di tab template, berikan juga fungsi export, local dn gdrive"*. Keputusan:
+
+1. **Titik masuk impor dipindah** dari daftar acara `?view=evaluasi` ke daftar template `?view=template` — **membatalkan K-17 poin 1**. Tab Evaluasi kembali hanya lembar evaluasi per divisi + promosi usulan. Hasil impor tetap template biasa (bisa dibaca / diduplikasi / dimodifikasi di editor template).
+2. **Ekspor template dengan dua target**:
+   - **Lokal** — unduh `.docx` (`lib/ekspor/tulisDocx.ts`): template → DOCX minimal (nama, jenis — catatan, fase tebal `H-offset — label`, item `☐ judul`), ZIP ditulis manual (`buatZip`/`crc32` di `lib/impor/zip.ts`). Round-trip terbukti: hasilnya terbaca ulang oleh `bacaZip` (importer sendiri) dan terbuka di Word/LibreOffice.
+   - **Google Drive** — OAuth 2.0 implicit flow (popup, `response_type=token`, scope `drive.file`, state nonce), token di localStorage `tartib.gdrive.token` (±1 jam, tanpa refresh), unggah dua langkah (POST `uploadType=media` → PATCH `files/{id}`). Client ID diambil dari Google Cloud Console, dimasukkan pengguna sekali di panel ekspor, disimpan di browser ini (`tartib.gdrive.clientId`). Authorized JS origins & redirect URIs yang perlu didaftarkan: `http://localhost:3000/` dan `https://ugi577.github.io/tartib/`.
+3. **Tanpa library baru tetap berlaku** (BRIEF Bagian 4): ZIP ditulis manual (CRC32 tabel 0xedb88320, `CompressionStream('deflate-raw')`), OAuth & unggah Drive memakai `fetch` polos.
+
+Status: Gate W teknis lulus (tsc, vitest 164/164 — 22 berkas, build statis, nol overflow 375px; alur popup & validasi client ID terverifikasi di browser). Tersisa verifikasi manual Ahmed: impor .docx asli di tab Template, buka hasil unduhan .docx di Word, alur Drive dengan client ID miliknya.
+
 ## K-17 — 2026-08-22 — Batch V: impor SOP dari dokumen .docx di tab Evaluasi; ZIP/XML diparse manual tanpa library
 
 Arahan Ahmed: *"pada evaluasi, siapkan fungsi import, yg bisa dibaca/duplikasi dan modifikasi. contoh sop acara mahad ini"* (berkas `SOP ACARA - Mahad Askar Quran.docx`). Keputusan:
