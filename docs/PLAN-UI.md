@@ -1,6 +1,6 @@
 # PLAN-UI — Rencana perbaikan & percantikan tampilan Tartib
 
-> **Status: DISETUJUI & SEDANG DIEKSEKUSI** — ditulis 2026-08-22 (sesi 9, item 5 Ahmed: *"plan mcp / tool lain untuk perbaiki / percantik uinya"*), disetujui 2026-08-22 (sesi 10: *"sy konfirmasi — lalu kerjakan"*). Terdaftar sebagai **Batch U** di `docs/PLAN.md`, branch `batch-u-ui`, ditutup oleh **Gate U**. Koreksi alat & klasifikasi temuan: **K-16**.
+> **Status: DIEKSEKUSI** — ditulis 2026-08-22 (sesi 9, item 5 Ahmed: *"plan mcp / tool lain untuk perbaiki / percantik uinya"*), disetujui 2026-08-22 (sesi 10: *"sy konfirmasi — lalu kerjakan"*), dieksekusi 2026-08-22 (sesi 10, Batch U, 6 commit) + dirapikan 2026-08-22 (sesi 10b, tindak lanjut audit: 11 kelas inline bernilai identik diganti token, `8e51183`). Terdaftar sebagai **Batch U** di `docs/PLAN.md`, branch `batch-u-ui`, ditutup oleh **Gate U** (teknis lulus; verifikasi manual Ahmed tersisa). Koreksi alat & klasifikasi temuan: **K-16**.
 
 ## Latar belakang
 
@@ -17,7 +17,7 @@ Ahmed meminta rencana penggunaan MCP / tool lain untuk memperbaiki dan mempercan
 | `computer` (`screenshot`, `left_click`, `type`) + `form_input` | Uji interaktif: klik nyata, isi form; tangkap bukti sebelum/sesudah |
 | `resize_window` (`preset: mobile`, `colorScheme`) | Regresi lebar ponsel 375px & mode gelap |
 | `javascript_tool`, `read_console_messages` | Baca computed style / batas elemen; pastikan konsol bersih |
-| Tailwind 3.4 + `globals.css` | Token desain (warna, tipografi, radius, spacing) di `tailwind.config.ts` — saat ini **kosong** (`theme.extend {}`), warna dipakai inline di komponen |
+| Tailwind 3.4 + `globals.css` | Token desain di `tailwind.config.ts` (U-2, `72fa1be`): alias semantik `aksen`/`netral`/`permukaan`/`garis`/`teks`, radius `kontrol`/`kartu` — branding kelak cukup mengubah satu berkas |
 | Vitest / tsc / `pnpm build` | Regresi fungsional: beautifikasi tidak boleh mematahkan logika (Nihil dianggap bukti) |
 
 ## Kendala & aturan
@@ -70,8 +70,8 @@ Dark mode, font baru, set ikon baru, UI kit/komponen pihak ketiga, animasi besar
 - [x] Baseline & audit (tahap 0) — 2 bug + 7 inkonsistensi tercatat
 - [x] U-1 Bug tampilan dasar — `f8403a0` (mode gelap, nav ponsel, judul menumpuk)
 - [x] U-2 Token desain — `72fa1be`
-- [x] U-3 Komponen bersama — `72fa1be` (fondasi) + `c510eaa` (88 kelas inline diganti)
+- [x] U-3 Komponen bersama — `72fa1be` (fondasi) + `c510eaa` (103 baris kelas inline diganti token di enam komponen; 11 lagi tindak lanjut audit `8e51183`)
 - [x] U-4 Per view — `b7f5a9a`
 - [x] U-5 Regresi cetak — penanda cetak identik sebelum/sesudah (`print:hidden` 11, `print:block` 3, `break-before-page` 2, `break-inside-avoid` 2); `@page{size:A4;margin:14mm}` ada di CSS hasil build; satu-satunya perubahan di blok cetak adalah `text-slate-800` → `text-teks-utama` yang nilainya identik (`rgb(30,41,59)`, diperiksa lewat computed style)
-- [x] U-6 Regresi fungsional — `tsc` bersih, `vitest` 128/128 (17 berkas), `pnpm build` statis sukses; smoke di browser: klik "→ JALAN" mengubah satu tugas BELUM→JALAN (badge jadi `badgeInfo`, progres tetap 0/33 selesai + "1 sedang berjalan"); enam view di 375px tanpa scroll horizontal
+- [x] U-6 Regresi fungsional — `tsc` bersih, `vitest` 128/128 (17 berkas), `pnpm build` statis sukses; smoke di browser: klik "→ JALAN" mengubah satu tugas BELUM→JALAN (badge jadi `badgeInfo`, progres tetap 0/34 selesai + "1 sedang berjalan"); enam view di 375px tanpa scroll horizontal (diverifikasi ulang sesi 10b: `scrollWidth == clientWidth` == 375, enam link nav lengkap)
 - [ ] **Gate U — verifikasi manual Ahmed** (terang & gelap, ponsel & layar lebar, plus satu cetakan uji)
