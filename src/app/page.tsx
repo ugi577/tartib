@@ -71,7 +71,7 @@ function Konten() {
       <header className="mb-6 print:hidden">
         <h1 className="text-2xl font-semibold text-teks-utama">Tartib — Pembuat SOP Acara</h1>
         <p className="mt-1 text-sm text-teks-halus">
-          Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai hari-H.
+          Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
         </p>
         <nav className="mt-4 flex flex-wrap gap-2">
           {TAB.map((t) => (

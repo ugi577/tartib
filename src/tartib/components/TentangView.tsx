@@ -48,7 +48,7 @@ export function TentangView() {
           Tartib adalah pembuat SOP acara yang menyatukan <strong>dokumen</strong> dan{' '}
           <strong>eksekusi</strong> dalam satu alur: susun template SOP (fase, item, divisi, rumus
           kuantitas), buat acara dari template, lalu kawal tugas panitia di papan eksekusi sampai
-          hari-H dan cetak laporannya.
+          H+1 dan cetak laporannya.
         </p>
         <p className="mt-2 text-sm leading-relaxed text-teks-sedang">
           Berjalan sepenuhnya offline di perangkat Anda, dan dirancang sebagai modul yang dapat
