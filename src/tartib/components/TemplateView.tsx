@@ -36,6 +36,7 @@ type DialogT =
   | { jenis: 'duplikat'; template: Template }
   | { jenis: 'versiBaru'; template: Template }
   | { jenis: 'arsip'; template: Template }
+  | { jenis: 'hapusTemplate'; template: Template }
   | { jenis: 'fase'; templateId: string; fase?: Fase }
   | { jenis: 'item'; faseId: string; item?: TemplateItem }
   | { jenis: 'hapusFase'; fase: Fase }
@@ -154,6 +155,11 @@ export function TemplateView() {
     setDialogT({ jenis: 'arsip', template: t });
   }
 
+  function bukaHapus(t: Template) {
+    setErrorDialog(null);
+    setDialogT({ jenis: 'hapusTemplate', template: t });
+  }
+
   function bukaFase(templateId: string, fase?: Fase) {
     setFormFase(fase ? { label: fase.label, offsetHari: String(fase.offsetHari) } : { label: '', offsetHari: '0' });
     setErrorDialog(null);
@@ -224,6 +230,18 @@ export function TemplateView() {
     if (!dialog || dialog.jenis !== 'arsip') return;
     try {
       await ts.arsipTemplate(dialog.template.id);
+      if (terpilih?.id === dialog.template.id) setTerpilih(null);
+      tutupDialog();
+      daftar.muatUlang();
+    } catch (e) {
+      setErrorDialog(pesanError(e));
+    }
+  }
+
+  async function simpanHapus() {
+    if (!dialog || dialog.jenis !== 'hapusTemplate') return;
+    try {
+      await ts.hapusTemplate(dialog.template.id);
       if (terpilih?.id === dialog.template.id) setTerpilih(null);
       tutupDialog();
       daftar.muatUlang();
@@ -599,6 +617,9 @@ export function TemplateView() {
                         Arsip
                       </button>
                     )}
+                    <button onClick={() => bukaHapus(t)} className={KELAS.tombolBahayaHalus}>
+                      Hapus
+                    </button>
                   </div>
                 </div>
               </div>
@@ -666,8 +687,8 @@ export function TemplateView() {
               <strong>{impor.hasil.fases.reduce((s, f) => s + f.items.length, 0)} item</strong> dari{' '}
               &ldquo;{impor.hasil.judulDokumen}&rdquo;
               {impor.hasil.subJudul ? ` (${impor.hasil.subJudul})` : ''}.
-              {impor.hasil.itemTanpaFase > 0 &&
-                ` ${impor.hasil.itemTanpaFase} item di luar linimasa (mis. ceklis perlengkapan) tidak diimpor.`}
+              {impor.hasil.itemLuarLinimasa.length > 0 &&
+                ` ${impor.hasil.itemLuarLinimasa.length} item ☐ di luar linimasa tidak diimpor — periksa daftarnya di bawah.`}
             </p>
             <div className="mt-3 space-y-2">
               {impor.hasil.fases.map((f) => (
@@ -682,10 +703,52 @@ export function TemplateView() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-sm text-teks-halus">
-              Divisi tiap item adalah perkiraan dari kata kunci; item tanpa kecocokan memakai Ketua
-              Panitia. Periksa dan ubah di editor template setelah impor.
-            </p>
+            {impor.hasil.itemLuarLinimasa.length > 0 && (
+              <details className="mt-2 rounded-kontrol border border-garis bg-permukaan-halus px-3 py-2 text-sm">
+                <summary className="cursor-pointer font-medium text-teks-kuat">
+                  {impor.hasil.itemLuarLinimasa.length} item di luar linimasa yang TIDAK diimpor —
+                  periksa sebelum menyimpan
+                </summary>
+                <p className="mt-2 text-xs text-teks-halus">
+                  Item ☐ yang berada di luar fase (setelah heading BAGIAN) tidak menjadi tugas.
+                  Pastikan tidak ada item berjadwal yang terbuang.
+                </p>
+                <ul className="mt-2 max-h-56 space-y-2 overflow-y-auto text-xs text-teks-sedang">
+                  {Object.entries(
+                    impor.hasil.itemLuarLinimasa.reduce<Record<string, string[]>>((acc, it) => {
+                      const k = it.bagian ?? 'Tanpa heading bagian';
+                      (acc[k] ??= []).push(it.teks);
+                      return acc;
+                    }, {}),
+                  ).map(([bagian, items]) => (
+                    <li key={bagian}>
+                      <span className="font-medium text-teks-kuat">
+                        {bagian} · {items.length} item
+                      </span>
+                      <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                        {items.map((teks, idx) => (
+                          <li key={idx}>{teks}</li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {(() => {
+              const total = impor.hasil.fases.reduce((s, f) => s + f.items.length, 0);
+              const fallback = impor.hasil.fases.reduce(
+                (s, f) => s + f.items.filter((i) => i.divisiTebakan === null).length,
+                0,
+              );
+              return (
+                <p className="mt-3 text-sm text-teks-halus">
+                  Divisi tiap item adalah perkiraan dari kata kunci judulnya:{' '}
+                  {total - fallback} item tertebak, {fallback} tanpa kecocokan dan memakai Ketua
+                  Panitia. Periksa dan ubah di editor template setelah impor.
+                </p>
+              );
+            })()}
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label className="block text-sm">
                 <span className="mb-1 block font-medium text-teks-kuat">Nama template</span>
@@ -815,6 +878,18 @@ export function TemplateView() {
             onYa={simpanArsip}
           />
         )}
+
+        {/* Dialog hapus template */}
+        {dialog?.jenis === 'hapusTemplate' && (
+          <KonfirmasiDialog
+            terbuka
+            judul="Hapus Template"
+            pesan={`"${dialog.template.nama}" beserta seluruh fase dan itemnya akan dihapus permanen. Acara yang sudah dibuat dari template ini tidak terpengaruh karena memakai salinan snapshot.`}
+            labelYa="Hapus Permanen"
+            onBatal={tutupDialog}
+            onYa={simpanHapus}
+          />
+        )}
       </div>
     );
   }
@@ -853,6 +928,9 @@ export function TemplateView() {
               Arsip
             </button>
           )}
+          <button onClick={() => bukaHapus(terpilih)} className={KELAS.tombolBahaya}>
+            Hapus
+          </button>
         </div>
       </div>
 
@@ -1209,6 +1287,16 @@ export function TemplateView() {
           labelYa="Arsipkan"
           onBatal={tutupDialog}
           onYa={simpanArsip}
+        />
+      )}
+      {dialog?.jenis === 'hapusTemplate' && (
+        <KonfirmasiDialog
+          terbuka
+          judul="Hapus Template"
+          pesan={`"${dialog.template.nama}" beserta seluruh fase dan itemnya akan dihapus permanen. Acara yang sudah dibuat dari template ini tidak terpengaruh karena memakai salinan snapshot.`}
+          labelYa="Hapus Permanen"
+          onBatal={tutupDialog}
+          onYa={simpanHapus}
         />
       )}
     </div>

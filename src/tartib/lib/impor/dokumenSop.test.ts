@@ -99,8 +99,14 @@ describe('dokumenXmlKeSop', () => {
       ['Buku tamu terisi — jangan sampai terlewat', 'Penerima Tamu'],
     ]);
     expect(hasil.fases[2].items).toHaveLength(1);
-    // Item ceklis perlengkapan di Bagian 4 tidak menempel ke fase H+1.
-    expect(hasil.itemTanpaFase).toBe(1);
+    // Item ceklis perlengkapan di Bagian 4 tidak menempel ke fase H+1 —
+    // teksnya dipertahankan (dengan konteks bagian) untuk diaudit di pratinjau.
+    expect(hasil.itemLuarLinimasa).toEqual([
+      {
+        teks: 'Piring, gelas, sendok, garpu (hitung dengan rumus di atas)',
+        bagian: 'BAGIAN 4 — CEKLIS PERLENGKAPAN',
+      },
+    ]);
     // Prosa Bagian 0/1 + sub-judul "Pagi sebelum tamu datang" + catatan H+1.
     expect(hasil.paragrafDiabaikan).toBe(4);
   });

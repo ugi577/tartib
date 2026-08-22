@@ -25,12 +25,19 @@ export interface FaseImpor {
   items: ItemImpor[];
 }
 
+/** Item ☐ yang muncul di luar fase — teksnya DIPERTAHANKAN supaya pratinjau bisa memperlihatkan apa saja yang dibuang (auditabilitas; tindak lanjut audit impor). */
+export interface ItemLuarLinimasa {
+  teks: string;
+  /** Heading "BAGIAN n — …" tempat item ini berada; null bila sebelum bagian mana pun. */
+  bagian: string | null;
+}
+
 export interface HasilImporDokumen {
   judulDokumen: string;
   subJudul: string | null;
   fases: FaseImpor[];
-  /** Item ☐ yang muncul di luar fase (mis. ceklis perlengkapan) — diabaikan. */
-  itemTanpaFase: number;
+  /** Item ☐ di luar fase (mis. ceklis perlengkapan) — tidak diimpor, tapi daftarnya disimpan untuk pratinjau. */
+  itemLuarLinimasa: ItemLuarLinimasa[];
   /** Paragraf prosa/heading lain yang tidak diimpor. */
   paragrafDiabaikan: number;
 }
@@ -118,11 +125,12 @@ export function dokumenXmlKeSop(akar: ElXml): HasilImporDokumen {
     judulDokumen: '',
     subJudul: null,
     fases: [],
-    itemTanpaFase: 0,
+    itemLuarLinimasa: [],
     paragrafDiabaikan: 0,
   };
 
   let faseAktif: FaseImpor | null = null;
+  let bagianAktif: string | null = null;
 
   for (const blok of body.anak) {
     if (blok.nama.endsWith(':tbl')) continue; // tabel (struktur panitia dsb.) tidak diimpor
@@ -132,9 +140,10 @@ export function dokumenXmlKeSop(akar: ElXml): HasilImporDokumen {
     if (teks === '') continue;
 
     // Batas bagian: fase aktif dikosongkan supaya item di luar linimasa tidak
-    // menempel ke fase terakhir.
+    // menempel ke fase terakhir; heading bagiannya dicatat sebagai konteks.
     if (/^BAGIAN\s+\d+/i.test(teks)) {
       faseAktif = null;
+      bagianAktif = teks;
       continue;
     }
 
@@ -159,7 +168,7 @@ export function dokumenXmlKeSop(akar: ElXml): HasilImporDokumen {
       const judul = ekstrakJudul(teks);
       if (judul === '') continue;
       if (!faseAktif) {
-        hasil.itemTanpaFase += 1;
+        hasil.itemLuarLinimasa.push({ teks: judul, bagian: bagianAktif });
         continue;
       }
       faseAktif.items.push({ judul, divisiTebakan: tebakDivisi(judul) });
