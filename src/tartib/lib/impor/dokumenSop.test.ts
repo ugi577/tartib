@@ -54,6 +54,7 @@ describe('offsetDariLabel & labelFaseBersih', () => {
     expect(labelFaseBersih('H-30 — Penetapan')).toBe('Penetapan');
     expect(labelFaseBersih('H-21 — Kunci pengisi acara ⚠️')).toBe('Kunci pengisi acara ⚠️');
     expect(labelFaseBersih('Hari-H')).toBe('Hari-H');
+    expect(labelFaseBersih('Hari H — Acara')).toBe('Acara');
     expect(labelFaseBersih('H+1 — Evaluasi')).toBe('Evaluasi');
   });
 });

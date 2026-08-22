@@ -72,7 +72,9 @@ export function offsetDariLabel(teks: string): number | null {
 
 /** Label fase tanpa awalan offset ("H-30 — Penetapan" → "Penetapan"). */
 export function labelFaseBersih(teks: string): string {
-  const bersih = teks.replace(/^H\s*[-+]?\d+\s*[—-]\s*/i, '');
+  const bersih = teks
+    .replace(/^H\s*[-+]?\d+\s*[—-]\s*/i, '')
+    .replace(/^Hari[\s-]?H\s*[—-]\s*/i, '');
   return bersih.trim() || teks.trim();
 }
 
