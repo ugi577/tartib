@@ -8,12 +8,12 @@ import { KELAS } from '../ui/kelas';
 
 const LANSKAP = [
   {
-    nama: 'AI SOP Genie, SOPmate, Quick SOP',
+    nama: 'Aplikasi sejenis — penyusun dokumen SOP',
     fokus: 'Pembuatan dokumen SOP',
     catatan: 'Kuat menyusun dokumen (AI, suara, visual), tetapi tidak terhubung dengan eksekusi acara di lapangan.',
   },
   {
-    nama: 'Coordon, ORGA',
+    nama: 'Aplikasi sejenis — pengelola eksekusi acara',
     fokus: 'Eksekusi acara',
     catatan:
       'Kuat mengelola timeline dan delegasi, tetapi SOP-nya disusun manual dan desainnya berat untuk acara kecil–menengah.',
@@ -59,7 +59,7 @@ export function TentangView() {
       <section className={`${KELAS.kartu} p-6`}>
         <h3 className="font-semibold text-teks-utama">Posisi produk — riset lanskap 2026-08-22</h3>
         <p className="mt-1 text-sm text-teks-halus">
-          Riset terhadap aplikasi SOP dan manajemen acara yang sudah ada menemukan satu celah besar:
+          Riset terhadap aplikasi sejenis (nama produk tidak disebutkan) menemukan satu celah besar:
           aplikasi pembuat SOP berhenti di dokumen, aplikasi eksekusi acara memulai dari nol — tidak
           ada yang menghubungkan keduanya untuk acara kecil–menengah.
         </p>
@@ -93,7 +93,7 @@ export function TentangView() {
       <section className={`${KELAS.kartu} p-6`}>
         <h3 className="font-semibold text-teks-utama">Yang disengaja belum ada</h3>
         <p className="mt-1 text-sm leading-relaxed text-teks-sedang">
-          Notifikasi push, sinkronisasi Slack/WhatsApp, dan integrasi ERP/QMS membutuhkan jaringan —
+          Notifikasi push, sinkronisasi pesan instan, dan integrasi ERP/QMS membutuhkan jaringan —
           bertentangan dengan prinsip offline penuh Tartib. Semua tercatat sebagai visi jangka
           panjang (backlog), bukan janji fitur. Langkah integrasi terdekat yang direncanakan adalah
           penyematan Tartib sebagai modul di aplikasi induk melalui TartibHost.
