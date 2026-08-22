@@ -15,6 +15,7 @@ import { TentangView } from '../tartib/components/TentangView';
 import { jalankanSeed } from '../tartib/db/seed';
 import { KELAS } from '../tartib/ui/kelas';
 import { LogoTartib } from '../tartib/components/LogoTartib';
+import { BintangDelapan, PitaIslami } from '../tartib/components/OrnamenIslami';
 
 type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'tentang';
 
@@ -72,15 +73,17 @@ function Konten() {
 
   return (
     <div className="min-h-screen">
-      {/* Bilah header penuh menempel tepi atas (referensi Ahmed, sesi 15):
-          glass gradasi biru→hijau muda, logo + judul di kiri, tab pil di
-          kanan. Di layar sempit tab turun ke baris sendiri sebagai GRID 3×2
-          — keenam tab SELALU terlihat penuh (tidak pernah tersembunyi di
-          balik geseran/overflow; pelajaran sesi 15: tampilan mobile wajib
-          diverifikasi tiap perubahan UI). */}
+      {/* Bilah header (sesi 15, arahan Ahmed): ornamen islami bintang 8 di
+          area identitas + pita pemisah, lalu baris tab TERPISAH di bawahnya
+          dengan latar sendiri. Aturan mobile: keenam tab selalu terlihat
+          penuh (grid 3×2 di layar sempit), tanpa overflow. */}
       <header className="sticky top-0 z-40 print:hidden">
-        <div className="border-b border-white/70 bg-gradient-to-r from-sky-100/90 via-white/90 to-emerald-100/90 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
-          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+        {/* Area identitas: logo + judul, latar glass gradasi + ornamen samar */}
+        <div className="relative overflow-hidden border-b border-white/70 bg-gradient-to-r from-sky-100/90 via-white/90 to-emerald-100/90 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
+          <BintangDelapan className="pointer-events-none absolute -right-3 -top-4 h-24 w-24 text-emerald-700/10" />
+          <BintangDelapan className="pointer-events-none absolute -bottom-5 -left-4 h-20 w-20 text-emerald-700/10" />
+          <BintangDelapan className="pointer-events-none absolute left-1/3 -top-3 h-12 w-12 text-emerald-700/[0.08]" />
+          <div className="relative mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-3">
             <LogoTartib
               judul="Logo Tartib"
               className="h-10 w-10 shrink-0 drop-shadow-[0_8px_16px_rgb(5_150_105/0.35)] sm:h-11 sm:w-11"
@@ -93,23 +96,29 @@ function Konten() {
                 Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
               </p>
             </div>
-            <nav
-              aria-label="Navigasi utama"
-              className="grid w-full grid-cols-3 gap-1.5 sm:ml-auto sm:flex sm:w-auto sm:flex-nowrap sm:gap-1.5"
-            >
-              {TAB.map((t) => (
-                <Link
-                  key={t.view}
-                  href={`/?view=${t.view}`}
-                  aria-current={view === t.view ? 'page' : undefined}
-                  className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-center text-sm font-medium sm:px-3 ${aktif(t.view)}`}
-                >
-                  {t.label}
-                </Link>
-              ))}
-            </nav>
           </div>
+          {/* Pita pemisah islami antara identitas dan baris tab */}
+          <PitaIslami className="relative mt-2 pb-1.5 text-emerald-600/50" />
         </div>
+
+        {/* Baris tab — area terpisah di bawah header */}
+        <nav
+          aria-label="Navigasi utama"
+          className="border-t border-white/50 bg-white/75 shadow-[0_8px_20px_-12px_rgb(15_23_42/0.15)] backdrop-blur-md"
+        >
+          <div className="mx-auto grid max-w-3xl grid-cols-3 gap-1.5 px-4 py-2.5 sm:flex sm:flex-nowrap sm:justify-center sm:gap-2">
+            {TAB.map((t) => (
+              <Link
+                key={t.view}
+                href={`/?view=${t.view}`}
+                aria-current={view === t.view ? 'page' : undefined}
+                className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-center text-sm font-medium sm:px-3 ${aktif(t.view)}`}
+              >
+                {t.label}
+              </Link>
+            ))}
+          </div>
+        </nav>
       </header>
 
       <main className="mx-auto max-w-3xl px-4 pb-10 pt-6">
