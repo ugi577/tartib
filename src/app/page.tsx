@@ -74,30 +74,34 @@ function Konten() {
     <div className="min-h-screen">
       {/* Bilah header penuh menempel tepi atas (referensi Ahmed, sesi 15):
           glass gradasi biru→hijau muda, logo + judul di kiri, tab pil di
-          kanan (turun baris sendiri di layar sempit — keenam tab tetap
-          terjangkau), garis pemisah putih + bayangan lembut di bawahnya. */}
+          kanan. Di layar sempit tab turun ke baris sendiri — SATU baris yang
+          bisa digeser horizontal (tidak membungkus/bertumpuk), tagline
+          disembunyikan agar baris judul ramping. */}
       <header className="sticky top-0 z-40 print:hidden">
-        <div className="border-b border-white/70 bg-gradient-to-r from-sky-50/80 via-white/70 to-emerald-50/80 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
+        <div className="border-b border-white/70 bg-gradient-to-r from-sky-100/90 via-white/90 to-emerald-100/90 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
           <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
             <LogoTartib
               judul="Logo Tartib"
-              className="h-11 w-11 shrink-0 drop-shadow-[0_8px_16px_rgb(5_150_105/0.35)]"
+              className="h-10 w-10 shrink-0 drop-shadow-[0_8px_16px_rgb(5_150_105/0.35)] sm:h-11 sm:w-11"
             />
-            <div className="min-w-0 flex-1 sm:flex-none">
+            <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-semibold text-teks-utama sm:text-xl">
                 Tartib — Pembuat SOP Acara
               </h1>
-              <p className="truncate text-xs text-teks-halus sm:text-sm">
+              <p className="hidden truncate text-xs text-teks-halus sm:block sm:text-sm">
                 Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
               </p>
             </div>
-            <nav aria-label="Navigasi utama" className="flex flex-1 flex-wrap gap-1.5 sm:flex-none sm:justify-end">
+            <nav
+              aria-label="Navigasi utama"
+              className="flex w-full flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:ml-auto sm:w-auto sm:flex-none sm:overflow-visible"
+            >
               {TAB.map((t) => (
                 <Link
                   key={t.view}
                   href={`/?view=${t.view}`}
                   aria-current={view === t.view ? 'page' : undefined}
-                  className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${aktif(t.view)}`}
+                  className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium sm:px-3 ${aktif(t.view)}`}
                 >
                   {t.label}
                 </Link>
