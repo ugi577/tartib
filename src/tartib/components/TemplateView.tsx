@@ -642,9 +642,9 @@ export function TemplateView() {
 
         {/* Impor SOP dari dokumen (Batch W) */}
         <div className={`mt-6 ${KELAS.kartuIsi}`}>
-          <h3 className="font-medium text-teks-utama">Impor SOP dari Dokumen (.docx)</h3>
+          <h3 className="font-medium text-teks-utama">Import SOP Dokumen</h3>
           <p className="mt-1 text-sm text-teks-halus">
-            Pilih berkas dokumen Word (mis. buku panduan SOP). Fase berpola H-30 / Hari-H / H+1 dan item
+            Pilih berkas dokumen (mis. buku panduan SOP). Fase berpola H-30 / Hari-H / H+1 dan item
             ceklisnya menjadi template baru yang bisa dibaca, diduplikasi, dan diubah.
           </p>
           {pesanImpor && (
@@ -654,12 +654,11 @@ export function TemplateView() {
           {/* Tombol pilih berkas memakai tombol aplikasi (bukan ::file-selector-
               button bawaan browser — di WebView teksnya tak tampil dan ukurannya
               membengkak; sesi 15, laporan Ahmed). Input asli disembunyikan dan
-              dipicu lewat label. */}
+              dipicu lewat label; tanpa batasan jenis berkas. */}
           <label className="mt-3 block">
-            <span className={KELAS.tombolUtama}>Pilih Berkas .docx</span>
+            <span className={KELAS.tombolUtama}>Pilih File</span>
             <input
               type="file"
-              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) void pilihBerkasImpor(f);
