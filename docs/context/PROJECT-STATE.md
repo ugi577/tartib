@@ -5,10 +5,10 @@
 ## Posisi
 
 - **Tanggal:** 2026-08-22
-- **Sesi:** 5 — **Gate D & Gate T LULUS** (verifikasi browser in-app oleh agent, instruksi Ahmed: "verif gate, buka browser di sini"); batch D+T siap merge ke `master`; **Batch E (evaluasi & promosi) dimulai**
+- **Sesi:** 6 — **Gate E LULUS** (verifikasi browser in-app oleh agent, instruksi Ahmed: "verif gate, buka browser di sini dulu baru lanjut evaluasi"); **Batch E (evaluasi & promosi) selesai**, siap merge ke `master`; berikutnya **Batch F (cetak & ekspor)**
 - **Repo:** `/Users/ahmad/Projects/tartib-app`
 - **Branch aktif:** `batch-e-evaluasi` (dari `master` setelah merge D+T); sebelumnya `batch-t-ikhtisar-tentang` ⊃ `batch-d-tamu-porsi`
-- **Bukti verifikasi (browser in-app, acara "Khatam Tasmi 21 Agustus" tanggal 2026-08-21):** seed jalan; buat acara 4 fase/33 tugas; tanggal fase nyata (22 Juli/14 Agustus/21 Agustus/22 Agustus); cycling BELUM→JALAN→SELESAI dengan progres 0→1/33 (0%→3%); selesaiPada terisi; badge "Hari ini" di fase H+1; PIC 13 belum berisi → tombol SIAP terkunci; kop cetak ada di DOM; porsi 130×125%=163+47+20+10=**240**; pencuci toggle **144↔264**; rekap kelompok (RSVP 2 · konfirmasi 1 · total orang 80); qtyFinal ditimpa 250 dengan qtyHitung 240 tetap; halaman Tentang utuh. Cetak kertas fisik ditangguhkan (kop terverifikasi di DOM).
+- **Bukti verifikasi Gate E (browser in-app, siklus penuh dijalankan nyata):** evaluasi diisi untuk Konsumsi ("Sediakan rak tiris tambahan untuk tim pencuci") & Kebersihan (badge "tersimpan"); promosi usulan Konsumsi → template "Tasyakuran Khatam" naik ke **versi 2** (versi 1 nonaktif, utuh); usulan yang sudah dipromosikan terkunci (badge "sudah dipromosikan", tak bisa dipromosikan lagi); acara baru "Khatam Tasmi Berikutnya" (2026-09-21) dibuat dari template v2 memuat item hasil promosi — **34 tugas = 33 + 1**
 
 ## Progress
 
@@ -22,6 +22,7 @@
 - [x] Batch C — acara, tugas & aturan PIC (6 commit `feat(tartib)` + 1 docs)
 - [x] Batch D — tamu, porsi, perlengkapan (4 commit `feat(tartib)` + 1 fix verifikasi UI)
 - [x] Batch T — ikhtisar eksekusi & Tentang, amandemen riset pasar K-13 (4 commit `feat(tartib)`)
+- [x] Batch E — evaluasi per divisi & promosi usulan → versi template baru (2 commit `feat(tartib)`)
 
 ## Batch A — hasil
 
@@ -87,9 +88,21 @@
 - [x] Progres & waktu fase = fungsi murni teruji (14 test ikhtisar)
 - [x] Papan progres, badge fase hari-ini/berikutnya, kop cetak di DOM, halaman Tentang (bukti di Posisi)
 
+## Batch E — hasil
+
+1. `src/tartib/services/evaluasiService.ts` + 7 test — `InputEvaluasi` (divisiId + berjalanBaik/kurang/usulan), `inputEvaluasiSah` (trim; divisi wajib; minimal satu kolom terisi), `simpanEvaluasi` (upsert per acara+divisi; usulan berubah → penanda `sudahDipromosikan` direset), `daftarEvaluasi`, `promosikanUsulan(evaluasiId, templateId)` (tolak usulan kosong / sudah dipromosikan / fase hilang; transaksi atomik: template lama dinonaktifkan + `templateVersiBaru` + salin struktur + item dari usulan di fase terakhir + penanda evaluasi), `EvaluasiError`
+2. `src/tartib/components/EvaluasiView.tsx` + tab `?view=evaluasi` — daftar acara; lembar evaluasi per divisi (3 kolom + Simpan, aria-label unik per divisi); badge "tersimpan" dan "usulan sudah dipromosikan"; panel promosi: pilih template target (default = versi aktif tertinggi sejenis), daftar usulan tersedia (hanya yang berisi), tombol Promosikan → pesan sukses naik versi
+
+## Gate E — status — LULUS 2026-08-22 (browser in-app)
+
+- [x] Siklus penuh terbukti: acara → evaluasi → promosi → acara baru memuat item hasil promosi (34 tugas = 33 + 1)
+- [x] Promosi membuat versi baru (v2 aktif), versi lama utuh — `templateVersiBaru` teruji; transaksi atomik
+- [x] Usulan sudah dipromosikan tidak bisa dipromosikan lagi — tombol → badge; `EvaluasiError`; usulan yang berubah boleh promosi ulang
+- [x] Teknis: tsc bersih, vitest 101/101 (13 file), `pnpm build` statis sukses
+
 ## Next step (presisi)
 
-Gate D & T ditutup → merge `batch-d-tamu-porsi` + `batch-t-ikhtisar-tentang` ke `master` (ff) → **Batch E** di `batch-e-evaluasi`: `evaluasiService` (`simpanEvaluasi`, `daftarEvaluasi`, `promosikanUsulan` A-03 + penanda `sudahDipromosikan`), halaman `?view=evaluasi` per divisi (berjalan baik / kurang / usulan). Gate E: siklus penuh acara → evaluasi → promosi → acara baru memuat item hasil promosi. Rincian di `docs/PLAN.md` Batch E.
+Gate E ditutup → merge `batch-e-evaluasi` ke `master` (ff) → **Batch F (cetak & ekspor)** di `batch-f-cetak`: `lib/cetak/bukuAcara.ts` merender hasil akhir SOP ke A4 (kop, fase, tugas per PIC, tabel evaluasi — sesuai pemetaan dokumen contoh "SOP ACARA - Mahad Askar Quran" yang sudah dianalisis), lembar tugas per PIC, ekspor CSV. Rincian di `docs/PLAN.md` Batch F.
 
 ## Gate A — status
 
@@ -173,9 +186,19 @@ Gate D & T ditutup → merge `batch-d-tamu-porsi` + `batch-t-ikhtisar-tentang` k
 - Batch T: `src/tartib/lib/ikhtisar.ts` + test, `src/tartib/components/AcaraView.tsx` (progres + cetak), `src/tartib/host/TartibHost.ts` (payload ikhtisarEksekusi), `src/tartib/components/TentangView.tsx`, `src/app/page.tsx` (tab tentang + print:hidden)
 - Docs (K-13): `docs/DECISIONS.md`, `docs/PRD.md` (§8 amandemen), `docs/PLAN.md` (Batch T + changelog v1.4), `docs/context/PROJECT-STATE.md`
 
+## Files touched (Batch E)
+
+- `src/tartib/services/evaluasiService.ts` + `evaluasiService.test.ts`, `src/tartib/components/EvaluasiView.tsx`, `src/app/page.tsx` (tab evaluasi)
+- `docs/PLAN.md` (Gate E LULUS + changelog v1.6), `docs/context/PROJECT-STATE.md`
+
+## Riwayat commit (Batch E)
+
+- `61d591c` feat(tartib): evaluasiService — simpan/daftar evaluasi per divisi + promosikanUsulan versi template baru (A-03, Batch E-1)
+- `9a6d3c0` feat(tartib): halaman ?view=evaluasi — lembar per divisi + promosi usulan versi template baru (Batch E-2)
+
 ## Blocker
 
-Tidak ada. Semua gate (A–D, T) lulus. Dev server berjalan di localhost:3000 (sesi verifikasi); browser in-app menampilkan aplikasi untuk Ahmed melihat langsung.
+Tidak ada. Semua gate (A–E, T) lulus. Dev server berjalan di localhost:3000 (sesi verifikasi); browser in-app menampilkan aplikasi untuk Ahmed melihat langsung.
 
 - Shell sesi: Fish — jangan pakai heredoc; file ditulis lewat file tool.
 - Jangan install library di luar BRIEF Bagian 4.

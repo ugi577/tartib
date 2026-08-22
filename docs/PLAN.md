@@ -127,11 +127,11 @@ Branch: `batch-e-evaluasi`
 3. **`promosikanUsulan(evaluasiId, templateId)`** — membuat versi template baru berisi item tambahan dari usulan (A-03)
 4. Penanda `sudahDipromosikan` agar usulan tidak dipromosikan dua kali
 
-**Gate E**
-- [ ] Siklus penuh terbukti: acara → evaluasi → promosi → acara baru memuat item hasil promosi
-- [ ] Promosi membuat **versi baru**, versi lama utuh — ada test
-- [ ] Usulan yang sudah dipromosikan tidak bisa dipromosikan lagi
-- [ ] Verifikasi manual Ahmed
+**Gate E** — LULUS 2026-08-22 (verifikasi browser in-app oleh agent, instruksi Ahmed; siklus dijalankan nyata di aplikasi)
+- [x] Siklus penuh terbukti: acara → evaluasi (Konsumsi: baik/kurang/usulan) → promosi → template v2 → acara baru "Khatam Tasmi Berikutnya" memuat item usulan "Sediakan rak tiris tambahan untuk tim pencuci" (34 tugas = 33 + 1)
+- [x] Promosi membuat **versi baru** (v2 aktif), versi lama dinonaktifkan tapi utuh — perilaku `templateVersiBaru` teruji di templateService.test; transaksi promosi atomik (template+fase+item+penanda evaluasi)
+- [x] Usulan yang sudah dipromosikan tidak bisa dipromosikan lagi — tombol berganti badge "sudah dipromosikan"; service melempar `EvaluasiError`; usulan yang berubah setelah edit boleh dipromosi ulang
+- [x] Verifikasi browser: lembar per divisi tersimpan (badge "tersimpan"), divisi tanpa usulan tidak muncul di daftar promosi
 
 ## Batch F — Cetak & ekspor · `glm` lo
 
@@ -169,6 +169,8 @@ Branch: di **repo v3**, bukan di repo tartib.
 ---
 
 ## Changelog PLAN
+
+- **2026-08-22 — v1.6** — Batch E selesai (branch `batch-e-evaluasi`, 2 commit `feat(tartib)`): `evaluasiService` (input evaluasi per divisi: berjalan baik / kurang / usulan, `promosikanUsulan` membuat versi template baru berisi item dari usulan dengan transaksi atomik, penanda `sudahDipromosikan`, `EvaluasiError`) + 7 test; halaman `?view=evaluasi` (lembar per divisi, daftar usulan siap promosi, badge "tersimpan"/"sudah dipromosikan"). Gate E **LULUS 2026-08-22** lewat verifikasi browser in-app: siklus penuh acara → evaluasi → promosi → template v2 → acara baru memuat item hasil promosi (34 tugas), usulan terkunci setelah dipromosikan. tsc bersih, vitest 101/101 (13 file), build statis OK.
 
 - **2026-08-22 — v1.5** — Amandemen riset pasar (K-13): Batch T `batch-t-ikhtisar-tentang` ditambahkan & langsung selesai (4 commit `feat(tartib)`): `lib/ikhtisar.ts` murni + 14 test, progres eksekusi di papan acara (persen keseluruhan, fase hari-ini/berikutnya, per fase & per divisi), cetak Laporan Eksekusi (payload `ikhtisarEksekusi`, kop khusus print, kontrol `print:hidden`), halaman `?view=tentang` (posisi produk). PRD diamandemen (§8). Gate T teknis lulus (tsc, 94/94, build statis); tersisa verifikasi manual Ahmed. Batch D juga di-fix saat verifikasi UI (seed di titik masuk, skema v3 + pemetaan tabel, transaksi idempoten).
 
