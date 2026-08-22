@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { parseXmlLite } from './xml';
-import { dokumenXmlKeSop, labelFaseBersih, offsetDariLabel, tebakDivisi } from './dokumenSop';
+import {
+  dokumenXmlKeSop,
+  labelFaseBersih,
+  offsetDariLabel,
+  sopDariJson,
+  tebakDivisi,
+} from './dokumenSop';
 
 // Pembangun document.xml sintetik yang meniru struktur asli
 // "BUKU PANDUAN SOP ACARA — Ma'had Askar Qur'an": fase = paragraf tebal
@@ -98,7 +104,8 @@ describe('dokumenXmlKeSop', () => {
     expect(hasil.fases[1].items.map((i) => [i.judul, i.divisiTebakan])).toEqual([
       ['Petugas sandal di pintu', 'Parkir & Sandal'],
       ['Buku tamu terisi — jangan sampai terlewat', 'Penerima Tamu'],
-    ]);    expect(hasil.fases[2].items).toHaveLength(1);
+    ]);
+    expect(hasil.fases[2].items).toHaveLength(1);
     // Item ceklis perlengkapan di Bagian 4 tidak menempel ke fase H+1 —
     // teksnya dipertahankan (dengan konteks bagian) untuk diaudit di pratinjau.
     expect(hasil.itemLuarLinimasa).toEqual([
@@ -113,5 +120,62 @@ describe('dokumenXmlKeSop', () => {
 
   it('menolak dokumen tanpa w:body', () => {
     expect(() => dokumenXmlKeSop(parseXmlLite('<w:document/>'))).toThrow(/bukan .docx/);
+  });
+});
+
+describe('sopDariJson (berkas ekspor Tartib)', () => {
+  it('membaca data lengkap: nama, jenis, catatan, fase, item + divisi/wajib/rumusQty', () => {
+    const hasil = sopDariJson(
+      JSON.stringify({
+        format: 'tartib-template',
+        versiFormat: 1,
+        nama: 'SOP Haflah',
+        jenisAcara: 'Haflah',
+        catatan: 'Catatan asli',
+        versi: 2,
+        fases: [
+          {
+            urutan: 1,
+            label: 'Penetapan',
+            offsetHari: -30,
+            items: [
+              { urutan: 1, judul: 'Bentuk panitia', divisi: 'Ketua Panitia', catatan: 'Pilih ketua', wajib: true, rumusQty: 'porsi' },
+              { urutan: 2, judul: 'Susun anggaran', divisi: 'Bendahara', wajib: false },
+            ],
+          },
+        ],
+      }),
+    );
+    expect(hasil.judulDokumen).toBe('SOP Haflah');
+    expect(hasil.jenisAcaraNama).toBe('Haflah');
+    expect(hasil.catatan).toBe('Catatan asli');
+    expect(hasil.fases[0]).toMatchObject({ label: 'Penetapan', offsetHari: -30, urutan: 1 });
+    expect(hasil.fases[0].items[0]).toMatchObject({
+      judul: 'Bentuk panitia',
+      divisiTebakan: 'Ketua Panitia',
+      catatan: 'Pilih ketua',
+      wajib: true,
+      rumusQty: 'porsi',
+    });
+    expect(hasil.fases[0].items[1].divisiTebakan).toBe('Bendahara');
+    expect(hasil.itemLuarLinimasa).toEqual([]);
+    expect(hasil.paragrafDiabaikan).toBe(0);
+  });
+
+  it('menolak JSON tak sah', () => {
+    expect(() => sopDariJson('bukan json')).toThrow(/bukan JSON sah/);
+  });
+
+  it('menolak struktur yang bukan ekspor Tartib', () => {
+    expect(() => sopDariJson(JSON.stringify({ format: 'lain', fases: [] }))).toThrow(/struktur tidak dikenal/);
+    expect(() => sopDariJson(JSON.stringify({ format: 'tartib-template', fases: 'x' }))).toThrow(/struktur tidak dikenal/);
+  });
+
+  it('menolak offsetHari yang tidak sah', () => {
+    expect(() =>
+      sopDariJson(
+        JSON.stringify({ format: 'tartib-template', nama: 'S', fases: [{ label: 'X', offsetHari: 'abc', items: [] }] }),
+      ),
+    ).toThrow(/offsetHari tidak sah/);
   });
 });

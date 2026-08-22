@@ -15,7 +15,7 @@ import { usePagedList } from '../lib/usePagedList';
 import { formatOffsetHari, formatTanggalIndonesia, tanggalHariIni } from '../lib/tanggal';
 import { bacaZip } from '../lib/impor/zip';
 import { parseXmlLite } from '../lib/impor/xml';
-import { dokumenXmlKeSop, type HasilImporDokumen } from '../lib/impor/dokumenSop';
+import { dokumenXmlKeSop, sopDariJson, type HasilImporDokumen } from '../lib/impor/dokumenSop';
 import { tulisDocx, type DataTulisDocx } from '../lib/ekspor/tulisDocx';
 import {
   bacaClientId,
@@ -32,6 +32,7 @@ import { daftarDivisi } from '../services/divisiService';
 import * as ts from '../services/templateService';
 import { AppDialog, FormDialog, KonfirmasiDialog } from './AppDialog';
 import type { Divisi, Fase, JenisAcara, Template, TemplateItem } from '../types';
+import { KopCetak } from './KopCetak';
 import { KELAS } from '../ui/kelas';
 type DialogT =
   | { jenis: 'baru' }
@@ -349,16 +350,31 @@ export function TemplateView() {
     setErrorImpor(null);
     try {
       const zip = await bacaZip(await f.arrayBuffer());
-      const xmlBytes = zip.get('word/document.xml');
-      if (!xmlBytes) throw new Error('Bukan dokumen Word — tidak ada word/document.xml di dalamnya');
-      const hasil = dokumenXmlKeSop(parseXmlLite(new TextDecoder().decode(xmlBytes)));
+      // Berkas ekspor Tartib membawa data LENGKAP (tartib/template.json) —
+      // dipakai dulu agar round-trip ekspor→impor tanpa kehilangan; berkas
+      // biasa jatuh ke heuristik document.xml.
+      const jsonEntry = zip.get('tartib/template.json');
+      let hasil: HasilImporDokumen;
+      if (jsonEntry) {
+        hasil = sopDariJson(new TextDecoder().decode(jsonEntry));
+      } else {
+        const xmlBytes = zip.get('word/document.xml');
+        if (!xmlBytes) throw new Error('Bukan dokumen Word — tidak ada word/document.xml di dalamnya');
+        hasil = dokumenXmlKeSop(parseXmlLite(new TextDecoder().decode(xmlBytes)));
+      }
       if (hasil.fases.length === 0) {
         throw new Error('Tidak ditemukan fase SOP (heading berpola H-30 / Hari-H / H+1) di dokumen ini');
       }
-      setFormImpor((s) => ({
-        nama: hasil.judulDokumen || 'SOP hasil impor',
-        jenisAcaraId: s.jenisAcaraId || jenisAcara[0]?.id || '',
-      }));
+      setFormImpor((s) => {
+        const namaJenis = hasil.jenisAcaraNama;
+        const jenisDariBerkas = namaJenis
+          ? jenisAcara.find((j) => j.nama.toLowerCase() === namaJenis.toLowerCase())
+          : undefined;
+        return {
+          nama: hasil.judulDokumen || 'SOP hasil impor',
+          jenisAcaraId: jenisDariBerkas?.id ?? s.jenisAcaraId ?? jenisAcara[0]?.id ?? '',
+        };
+      });
       setImpor({ namaFile: f.name, hasil });
     } catch (e) {
       setErrorImpor(pesanError(e));
@@ -388,19 +404,26 @@ export function TemplateView() {
       );
       if (tanpaDivisi) throw new Error('Divisi bawaan tidak ditemukan — periksa data divisi aplikasi');
 
+      // Catatan asli dipertahankan untuk berkas ekspor Tartib (JSON); berkas
+      // biasa diberi keterangan asal impor.
+      const catatanImpor =
+        impor.hasil.catatan ??
+        `Diimpor dari "${impor.namaFile}" — ${impor.hasil.judulDokumen}${
+          impor.hasil.subJudul ? ` (${impor.hasil.subJudul})` : ''
+        }`;
       const baru = await ts.imporTemplate({
         jenisAcaraId: formImpor.jenisAcaraId,
         nama: formImpor.nama,
-        catatan: `Diimpor dari "${impor.namaFile}" — ${impor.hasil.judulDokumen}${
-          impor.hasil.subJudul ? ` (${impor.hasil.subJudul})` : ''
-        }`,
+        catatan: catatanImpor,
         fases: impor.hasil.fases.map((f) => ({
           label: f.label,
           offsetHari: f.offsetHari,
           items: f.items.map((i) => ({
             judul: i.judul,
             divisiId: idDivisiUntukItem(i.divisiTebakan) as string,
-            wajib: true,
+            wajib: i.wajib ?? true,
+            catatan: i.catatan ?? '',
+            rumusQty: i.rumusQty ?? undefined,
           })),
         })),
       });
@@ -438,10 +461,20 @@ export function TemplateView() {
       nama: terpilih.nama,
       jenisNama: jenisMap.get(terpilih.jenisAcaraId)?.nama ?? 'SOP Acara',
       catatan: terpilih.catatan || undefined,
+      versi: terpilih.versi,
       fases: faseList.map((f) => ({
         label: f.label,
         offsetHari: f.offsetHari,
-        items: itemList.filter((i) => i.faseId === f.id).map((i) => ({ judul: i.judul })),
+        urutan: f.urutan,
+        items: itemList
+          .filter((i) => i.faseId === f.id)
+          .map((i) => ({
+            judul: i.judul,
+            divisi: divisiMap.get(i.divisiId)?.nama,
+            catatan: i.catatan || undefined,
+            wajib: i.wajib,
+            rumusQty: i.rumusQty,
+          })),
       })),
     };
   }
@@ -1335,6 +1368,7 @@ export function TemplateView() {
           Kolom tanggal & PIC sengaja kosong untuk diisi tulisan tangan. */}
       {cetakPanduan && (
         <div className="hidden print:block">
+          <KopCetak />
           <div className="mb-4 border-b border-slate-400 pb-2">
             <h1 className="text-lg font-bold">Panduan Manual Pengisian SOP</h1>
             <p className="text-sm">

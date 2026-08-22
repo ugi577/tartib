@@ -17,12 +17,17 @@ export interface ItemImpor {
   judul: string;
   /** Nama divisi tebakan dari kata kunci; null = tidak dikenal. */
   divisiTebakan: string | null;
+  /** Hanya terisi pada impor berkas ekspor Tartib (tartib/template.json). */
+  catatan?: string;
+  wajib?: boolean;
+  rumusQty?: string;
 }
 
 export interface FaseImpor {
   label: string;
   offsetHari: number;
   items: ItemImpor[];
+  urutan?: number;
 }
 
 /** Item ☐ yang muncul di luar fase — teksnya DIPERTAHANKAN supaya pratinjau bisa memperlihatkan apa saja yang dibuang (auditabilitas; tindak lanjut audit impor). */
@@ -40,6 +45,78 @@ export interface HasilImporDokumen {
   itemLuarLinimasa: ItemLuarLinimasa[];
   /** Paragraf prosa/heading lain yang tidak diimpor. */
   paragrafDiabaikan: number;
+  /** Hanya untuk impor berkas ekspor Tartib (JSON) — catatan template asli. */
+  catatan?: string;
+  /** Hanya untuk impor berkas ekspor Tartib (JSON) — nama jenis acara asli. */
+  jenisAcaraNama?: string;
+}
+
+/** Data lengkap template dalam berkas ekspor Tartib (entry tartib/template.json). */
+export interface JsonTemplateTartib {
+  format: 'tartib-template';
+  versiFormat: number;
+  nama: string;
+  jenisAcara?: string;
+  catatan?: string;
+  versi?: number;
+  fases: Array<{
+    urutan?: number;
+    label: string;
+    offsetHari: number;
+    items: Array<{
+      urutan?: number;
+      judul: string;
+      divisi?: string;
+      catatan?: string;
+      wajib?: boolean;
+      rumusQty?: string;
+    }>;
+  }>;
+}
+
+/**
+ * Baca data lengkap template dari entry tartib/template.json berkas ekspor
+ * Tartib (round-trip penuh — sesi 15). Dipakai sebelum heuristik document.xml
+ * sehingga ekspor → impor tidak kehilangan divisi/catatan/wajib/rumusQty.
+ */
+export function sopDariJson(teks: string): HasilImporDokumen {
+  let data: unknown;
+  try {
+    data = JSON.parse(teks);
+  } catch {
+    throw new Error('Berkas ekspor Tartib rusak — bukan JSON sah');
+  }
+  const d = data as JsonTemplateTartib;
+  if (!d || d.format !== 'tartib-template' || typeof d.nama !== 'string' || !Array.isArray(d.fases)) {
+    throw new Error('Berkas ekspor Tartib rusak — struktur tidak dikenal');
+  }
+
+  const fases: FaseImpor[] = d.fases.map((f) => {
+    const offset = Number(f.offsetHari);
+    if (!Number.isFinite(offset)) throw new Error('Berkas ekspor Tartib rusak — offsetHari tidak sah');
+    return {
+      label: String(f.label ?? ''),
+      offsetHari: offset,
+      urutan: f.urutan,
+      items: (f.items ?? []).map((it) => ({
+        judul: String(it.judul ?? ''),
+        divisiTebakan: it.divisi || null,
+        catatan: it.catatan,
+        wajib: it.wajib,
+        rumusQty: it.rumusQty,
+      })),
+    };
+  });
+
+  return {
+    judulDokumen: d.nama,
+    subJudul: d.jenisAcara ?? null,
+    fases,
+    itemLuarLinimasa: [],
+    paragrafDiabaikan: 0,
+    catatan: d.catatan,
+    jenisAcaraNama: d.jenisAcara,
+  };
 }
 
 /** Gabungkan seluruh teks (langsung maupun turunan) sebuah elemen. */
