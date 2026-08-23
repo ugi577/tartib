@@ -21,6 +21,8 @@ const config: Config = {
         aksen: colors.emerald,
         /** Warna netral: teks, garis pemisah. */
         netral: colors.slate,
+        /** Warna peringatan: pengingat cadangan & penanda "wajib". */
+        peringatan: colors.amber,
         permukaan: {
           /** Latar halaman (dilapis gradasi pastel oleh globals.css). */
           dasar: '#edeff7',

@@ -33,6 +33,12 @@ import {
   type Pengaturan,
 } from '../lib/pengaturan';
 import { hitungPeralatan, hitungPorsi } from '../lib/porsi';
+import { formatTanggalIndonesia } from '../lib/tanggal';
+import {
+  bacaWaktuCadangan,
+  catatWaktuCadangan,
+  statusPengingatCadangan,
+} from '../lib/cadanganPengingat';
 import { siarkanPengaturan } from '../lib/usePengaturan';
 import * as cadanganSvc from '../services/cadanganService';
 import { unduhBerkas } from '../lib/unduh';
@@ -89,6 +95,7 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
   const [sibuk, setSibuk] = useState(false);
   const [pulihkanTarget, setPulihkanTarget] = useState<cadanganSvc.Cadangan | null>(null);
   const [hapusTerbuka, setHapusTerbuka] = useState(false);
+  const [cadanganTerakhir, setCadanganTerakhir] = useState<string | null>(null);
 
   // ── Google Drive ────────────────────────────────────────────────────────
   const [clientId, setClientId] = useState('');
@@ -110,6 +117,7 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
     setForm(bacaPengaturan(penyimpanan));
     setClientId(bacaClientId(penyimpanan));
     setDriveTerhubung(bacaToken(penyimpanan) !== null);
+    setCadanganTerakhir(bacaWaktuCadangan(penyimpanan));
     void muatStatistik();
   }, [muatStatistik]);
 
@@ -142,6 +150,8 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
       const nama = cadanganSvc.namaBerkasCadangan(cadangan.dibuatPada);
       const hasil = await unduhBerkas(nama, new Blob([JSON.stringify(cadangan)], { type: 'application/json' }));
       if (hasil.dibatalkan) return;
+      catatWaktuCadangan(new Date(), localStorage);
+      setCadanganTerakhir(bacaWaktuCadangan(localStorage));
       setPesanData(
         hasil.cara === 'share'
           ? `Berkas ${nama} dibagikan — ${cadanganSvc.hitungBaris(isi)} baris data. Simpan di luar perangkat ini (Drive, email, atau flashdisk).`
@@ -241,6 +251,8 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
   });
   const contohPeralatan = hitungPeralatan(contohPorsi, form.adaTimPencuci);
   const kop = barisKop(form);
+
+  const statusCadangan = statusPengingatCadangan(cadanganTerakhir, new Date());
 
   return (
     <div className="space-y-6">
@@ -413,6 +425,20 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
               data acara hilang. Unduh cadangan secara berkala — satu berkas .json berisi seluruh
               template, acara, tugas, tamu, dan evaluasi.
             </p>
+            {statusCadangan.perluIngatkan ? (
+              <p className="mt-3 rounded-kontrol bg-peringatan-50 px-3 py-2 text-sm text-teks-kuat ring-1 ring-inset ring-peringatan-200">
+                {statusCadangan.umurHari === null
+                  ? 'Belum ada cadangan di perangkat ini — unduh satu berkas sekarang sebagai kebiasaan baik.'
+                  : `Cadangan terakhir ${statusCadangan.umurHari} hari lalu (${formatTanggalIndonesia(
+                      statusCadangan.terakhir?.slice(0, 10) ?? '',
+                    )}) — sebaiknya unduh yang baru.`}
+              </p>
+            ) : (
+              <p className={`mt-3 ${KELAS.keteranganKecil}`}>
+                Cadangan terakhir: {statusCadangan.umurHari === 0 ? 'hari ini' : `${statusCadangan.umurHari} hari lalu`}{' '}
+                ({formatTanggalIndonesia(statusCadangan.terakhir?.slice(0, 10) ?? '')}).
+              </p>
+            )}
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <button onClick={() => void unduhCadangan()} disabled={sibuk} className={KELAS.tombolUtama}>
                 Unduh cadangan (.json)
