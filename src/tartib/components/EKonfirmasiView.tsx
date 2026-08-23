@@ -202,7 +202,7 @@ export function EKonfirmasiView() {
         <div className="mt-3 space-y-2">
           {bidang.length === 0 && (
             <p className="text-sm text-teks-redup">
-              Belum ada bidang khusus — klik "Isi sesuai kategori" atau tambah manual.
+              Belum ada bidang khusus — klik &quot;Isi sesuai kategori&quot; atau tambah manual.
             </p>
           )}
           {bidang.map((b, i) => (

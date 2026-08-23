@@ -1075,7 +1075,7 @@ export function TemplateView() {
           {fases.length === 0 && (
             <div className={KELAS.kosong}>
               <p className="text-sm text-teks-halus">
-                Belum ada fase. Tambahkan fase pertama, misalnya "Persiapan Awal" (H-30).
+                Belum ada fase. Tambahkan fase pertama, misalnya &quot;Persiapan Awal&quot; (H-30).
               </p>
             </div>
           )}
