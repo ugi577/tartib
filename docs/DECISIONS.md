@@ -4,6 +4,16 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-22 — 2026-08-23 — Sesi 17: CI, ESLint, pemecahan TemplateView, pengingat cadangan — kualitas rekayasa tanpa menyentuh stack runtime
+
+Empat saran audit dikerjakan sekaligus atas arahan Ahmed *"oke kerjakan semuanya secara profesional"*. Keputusan:
+
+1. **ESLint & CI adalah tooling DEV, bukan stack runtime** — BRIEF Bagian 4 (terkunci) mengatur apa yang di-*bundle* aplikasi; linter & workflow tidak ikut ter-bundle sama sekali. Tetap dicatat di sini agar sah sesuai klausa "dilarang tanpa entry DECISIONS". Versi dikunci ke pasangan Next: `eslint@8.57` + `eslint-config-next@14.2.5`.
+2. **Aturan bermasalah diperbaiki di sumbernya, bukan dimatikan** — `react/no-unescaped-entities` menemukan 2 kutip telanjang di JSX (EKonfirmasiView, TemplateView); diperbaiki dengan `&quot;`. Nol pengecualian aturan — `.eslintrc.json` hanya berisi `"extends": "next/core-web-vitals"`.
+3. **Refactor TemplateView = perpindahan verbatim, nol perubahan perilaku** (1416 → 930 baris; `components/template/{PanelImporTemplate,PanelEksporTemplate,bersama}`). Panel ekspor kini mengambil ulang divisi sendiri via `daftarDivisi()` (sebelumnya bergantung peta induk) agar panel benar-benar mandiri. **Jebakan CSS print yang selamat:** formulir panduan A4 TETAP di TemplateView induk, DI LUAR pembungkus `print:hidden` — memindahkannya ke dalam panel akan membuatnya ikut tersembunyi saat mencetak.
+4. **Pengingat cadangan: ambang 14 hari, penanda di localStorage** (`tartib.cadangan.terakhir`, K-21 poin 2 — milik perangkat, TIDAK ikut berkas cadangan; cadangan yang membawa waktu dirinya sendiri aneh). Fungsi murni teruji (6 test): `statusPengingatCadangan` mengembalikan umur hari utuh non-negatif dan `perluIngatkan` untuk "belum pernah" maupun ≥ ambang. UI: status tenang/warning di Pengaturan › Data & Cadangan; waktu tercatat hanya saat unduhan benar-benar terjadi (bukan dibatalkan).
+5. **Token semantik baru `peringatan` (= amber)** mengikuti disiplin Batch U — komponen memakai nama semantik, nilai warna cukup diubah dari `tailwind.config.ts`.
+
 ## K-21 — 2026-08-22 — Sesi 16: identitas header (ikon kalender-ceklis), tab Pengaturan, dan cadangan data sebagai fitur wajib
 
 Tiga arahan Ahmed: *(1) "ganti headernya dengan gradasi warna, tulisan, icon seperti ini" + gambar referensi*, *(2) "buat tab baru pengaturan, dan tambahkan seting dari saran terbaik kamu, termasuk juga masukkan tab 'tentang' yg ada ke dalam tab pengaturan ini, dan rapikan kembali isinya sesuai data yang ada"*, *(3) "icon LogoTartib.tsx ini tdk pas yg lebih pas, isyarat acara dan kotak centang cek list"*. Keputusan:
