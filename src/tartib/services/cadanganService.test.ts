@@ -48,6 +48,17 @@ describe('hitungBaris', () => {
     expect(hitungBaris(isiKosong())).toBe(0);
     expect(hitungBaris(isiContoh())).toBe(2);
   });
+
+  it('ikut menghitung tabel SOP (Batch X)', () => {
+    const isi = isiKosong();
+    isi.sop = [
+      { id: 's1', judul: 'Amanah & Khidmah Santri', catatan: '', baku: true, urutan: 1, dibuatPada: '2026-08-29T00:00:00.000Z' },
+    ];
+    isi.sopItem = [
+      { id: 'i1', sopId: 's1', judul: 'Imam shalat fardhu', picNama: 'Ahmad', catatan: '', selesai: true, urutan: 1 },
+    ];
+    expect(hitungBaris(isi)).toBe(2);
+  });
 });
 
 describe('bacaCadangan', () => {
@@ -55,6 +66,42 @@ describe('bacaCadangan', () => {
     const asli = susunCadangan(isiContoh(), '2026-08-22T10:00:00.000Z');
     const kembali = bacaCadangan(JSON.stringify(asli));
     expect(kembali).toEqual(asli);
+  });
+
+  it('bolak-balik dengan isi tabel SOP terisi', () => {
+    const isi = isiContoh();
+    isi.sop = [
+      { id: 's1', judul: 'SOP Piket', catatan: '', baku: false, urutan: 1, dibuatPada: '2026-08-29T00:00:00.000Z' },
+    ];
+    isi.sopItem = [
+      { id: 'i1', sopId: 's1', judul: 'Sapu keliling', picNama: '', catatan: '', selesai: false, urutan: 1 },
+    ];
+    const asli = susunCadangan(isi, '2026-08-29T10:00:00.000Z');
+    expect(bacaCadangan(JSON.stringify(asli))).toEqual(asli);
+  });
+
+  /** Berkas cadangan v1: belum mengenal tabel SOP sama sekali. */
+  function cadanganV1(isiTanpaSop: Record<string, unknown>): string {
+    return JSON.stringify({ aplikasi: 'tartib', versi: 1, dibuatPada: '2026-08-22T10:00:00.000Z', isi: isiTanpaSop });
+  }
+
+  it('menerima cadangan lama v1 tanpa bagian SOP — bagian SOP dibaca kosong', () => {
+    const isi = isiKosong();
+    isi.divisi = [{ id: 'd1', nama: 'Konsumsi', tanggungJawab: '', urutan: 1, baku: true }];
+    const isiMentah = { ...isi } as unknown as Record<string, unknown>;
+    delete isiMentah.sop;
+    delete isiMentah.sopItem;
+    const kembali = bacaCadangan(cadanganV1(isiMentah));
+    expect(kembali.versi).toBe(1);
+    expect(kembali.isi.sop).toEqual([]);
+    expect(kembali.isi.sopItem).toEqual([]);
+    expect(kembali.isi.divisi).toHaveLength(1);
+  });
+
+  it('cadangan v1 yang kehilangan tabel lama tetap ditolak', () => {
+    const isi = isiKosong() as unknown as Record<string, unknown>;
+    delete isi.evaluasi;
+    expect(() => bacaCadangan(cadanganV1(isi))).toThrow(/"evaluasi"/);
   });
 
   it('menolak berkas yang bukan JSON', () => {

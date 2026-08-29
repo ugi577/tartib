@@ -17,6 +17,8 @@ import type {
   KelompokTamu,
   Perlengkapan,
   Rsvp,
+  Sop,
+  SopItem,
   Template,
   TemplateItem,
   Tugas,
@@ -42,6 +44,8 @@ export interface IsiCadangan {
   rsvp: Rsvp[];
   perlengkapan: Perlengkapan[];
   evaluasi: Evaluasi[];
+  sop: Sop[];
+  sopItem: SopItem[];
 }
 
 export interface Cadangan {
@@ -51,7 +55,7 @@ export interface Cadangan {
   isi: IsiCadangan;
 }
 
-export const VERSI_CADANGAN = 1;
+export const VERSI_CADANGAN = 2;
 
 /** Urutan tabel dipakai untuk validasi, hitung baris, dan pemulihan. */
 export const TABEL_CADANGAN: ReadonlyArray<keyof IsiCadangan> = [
@@ -67,7 +71,14 @@ export const TABEL_CADANGAN: ReadonlyArray<keyof IsiCadangan> = [
   'rsvp',
   'perlengkapan',
   'evaluasi',
+  'sop',
+  'sopItem',
 ];
+
+// Tabel yang baru ada sejak versi cadangan 2 (Batch X: SOP berdiri sendiri).
+// Berkas cadangan v1 dibuat sebelum tabel ini ada, jadi bagian ini BOLEH
+// hilang di berkas lama — dibaca sebagai kosong, bukan ditolak.
+const TABEL_BARU_DI_V2: ReadonlyArray<keyof IsiCadangan> = ['sop', 'sopItem'];
 
 export function susunCadangan(isi: IsiCadangan, dibuatPada: string): Cadangan {
   return { aplikasi: 'tartib', versi: VERSI_CADANGAN, dibuatPada, isi };
@@ -96,7 +107,9 @@ export function bacaCadangan(teks: string): Cadangan {
   if (c.aplikasi !== 'tartib') {
     throw new CadanganError('Berkas ini bukan cadangan Tartib.');
   }
-  if (c.versi !== VERSI_CADANGAN) {
+  // v1 = sebelum tabel SOP ada (sah, dibaca dengan bagian SOP kosong);
+  // v2 = sejak Batch X. Selain itu ditolak sebelum menyentuh data.
+  if (c.versi !== 1 && c.versi !== VERSI_CADANGAN) {
     throw new CadanganError(
       `Versi cadangan ${String(c.versi)} tidak didukung aplikasi ini (versi ${VERSI_CADANGAN}).`,
     );
@@ -107,10 +120,11 @@ export function bacaCadangan(teks: string): Cadangan {
   const isiMentah = c.isi as Record<string, unknown>;
   const isi = {} as IsiCadangan;
   for (const nama of TABEL_CADANGAN) {
-    const baris = isiMentah[nama];
-    if (!Array.isArray(baris)) {
+    const mentah = isiMentah[nama];
+    if (!Array.isArray(mentah) && !(c.versi === 1 && TABEL_BARU_DI_V2.includes(nama))) {
       throw new CadanganError(`Berkas cadangan tidak lengkap — bagian "${nama}" hilang atau rusak.`);
     }
+    const baris: unknown[] = Array.isArray(mentah) ? mentah : [];
     // Baris tanpa id tidak bisa dipulihkan (semua tabel berkunci utama id).
     if (baris.some((b) => typeof b !== 'object' || b === null || typeof (b as { id?: unknown }).id !== 'string')) {
       throw new CadanganError(`Berkas cadangan rusak — ada baris tanpa id di bagian "${nama}".`);
@@ -119,7 +133,7 @@ export function bacaCadangan(teks: string): Cadangan {
   }
   return {
     aplikasi: 'tartib',
-    versi: VERSI_CADANGAN,
+    versi: c.versi,
     dibuatPada: typeof c.dibuatPada === 'string' ? c.dibuatPada : '',
     isi,
   };
@@ -147,6 +161,8 @@ export async function ambilIsiCadangan(db: TartibDb = tartibDb): Promise<IsiCada
     rsvp,
     perlengkapan,
     evaluasi,
+    sop,
+    sopItem,
   ] = await Promise.all([
     db.jenisAcara.toArray(),
     db.template.toArray(),
@@ -160,6 +176,8 @@ export async function ambilIsiCadangan(db: TartibDb = tartibDb): Promise<IsiCada
     db.rsvp.toArray(),
     db.perlengkapan.toArray(),
     db.evaluasi.toArray(),
+    db.sop.toArray(),
+    db.sopItem.toArray(),
   ]);
   return {
     jenisAcara,
@@ -174,6 +192,8 @@ export async function ambilIsiCadangan(db: TartibDb = tartibDb): Promise<IsiCada
     rsvp,
     perlengkapan,
     evaluasi,
+    sop,
+    sopItem,
   };
 }
 
@@ -197,6 +217,8 @@ export async function pulihkanCadangan(c: Cadangan, db: TartibDb = tartibDb): Pr
       db.rsvp.bulkAdd(c.isi.rsvp),
       db.perlengkapan.bulkAdd(c.isi.perlengkapan),
       db.evaluasi.bulkAdd(c.isi.evaluasi),
+      db.sop.bulkAdd(c.isi.sop),
+      db.sopItem.bulkAdd(c.isi.sopItem),
     ]);
   });
   return hitungBaris(c.isi);
@@ -225,6 +247,8 @@ export async function hitungStatistik(db: TartibDb = tartibDb): Promise<Statisti
     rsvp,
     perlengkapan,
     evaluasi,
+    sop,
+    sopItem,
   ] = await Promise.all([
     db.jenisAcara.count(),
     db.template.count(),
@@ -238,6 +262,8 @@ export async function hitungStatistik(db: TartibDb = tartibDb): Promise<Statisti
     db.rsvp.count(),
     db.perlengkapan.count(),
     db.evaluasi.count(),
+    db.sop.count(),
+    db.sopItem.count(),
   ]);
   return {
     jenisAcara,
@@ -252,5 +278,7 @@ export async function hitungStatistik(db: TartibDb = tartibDb): Promise<Statisti
     rsvp,
     perlengkapan,
     evaluasi,
+    sop,
+    sopItem,
   };
 }

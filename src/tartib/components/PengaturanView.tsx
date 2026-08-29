@@ -71,6 +71,8 @@ const LABEL_TABEL: Record<keyof cadanganSvc.IsiCadangan, string> = {
   rsvp: 'RSVP tamu',
   perlengkapan: 'Perlengkapan',
   evaluasi: 'Evaluasi',
+  sop: 'SOP / papan amanah',
+  sopItem: 'Item SOP',
 };
 
 /** Contoh hidup untuk nilai baku porsi: 100 tamu hadir, 50 santri, 20 panitia. */
