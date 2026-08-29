@@ -104,6 +104,38 @@ describe('bacaCadangan', () => {
     expect(() => bacaCadangan(cadanganV1(isi))).toThrow(/"evaluasi"/);
   });
 
+  it('menerima cadangan v2 tanpa bagian sub-tugas — dibaca kosong (Batch Y)', () => {
+    const isi = isiKosong();
+    isi.sop = [
+      { id: 's1', judul: 'Amanah & Khidmah Santri', catatan: '', baku: true, urutan: 1, dibuatPada: '2026-08-29T00:00:00.000Z' },
+    ];
+    const isiMentah = { ...isi } as unknown as Record<string, unknown>;
+    delete isiMentah.sopSubItem;
+    const kembali = bacaCadangan(
+      JSON.stringify({ aplikasi: 'tartib', versi: 2, dibuatPada: '2026-08-29T10:00:00.000Z', isi: isiMentah }),
+    );
+    expect(kembali.versi).toBe(2);
+    expect(kembali.isi.sopSubItem).toEqual([]);
+    expect(kembali.isi.sop).toHaveLength(1);
+  });
+
+  it('v2 yang kehilangan bagian SOP (bukan sub-tugas) tetap ditolak', () => {
+    const isi = isiKosong() as unknown as Record<string, unknown>;
+    delete isi.sop;
+    expect(() =>
+      bacaCadangan(JSON.stringify({ aplikasi: 'tartib', versi: 2, dibuatPada: '', isi })),
+    ).toThrow(/"sop"/);
+  });
+
+  it('round-trip v3 dengan sub-tugas terisi', () => {
+    const isi = isiKosong();
+    isi.sopSubItem = [
+      { id: 'b1', sopId: 's1', itemId: 'i1', judul: 'Set azan', picNama: 'Fauzan', catatan: '', selesai: false, urutan: 1 },
+    ];
+    const asli = susunCadangan(isi, '2026-08-29T10:00:00.000Z');
+    expect(bacaCadangan(JSON.stringify(asli))).toEqual(asli);
+  });
+
   it('menolak berkas yang bukan JSON', () => {
     expect(() => bacaCadangan('bukan json')).toThrow(CadanganError);
   });
