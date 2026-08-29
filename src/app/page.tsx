@@ -92,23 +92,23 @@ function Konten() {
   const viewTab: View = view === 'tentang' ? 'pengaturan' : view;
   const aktif = (v: View) =>
     viewTab === v
-      ? 'bg-gradient-to-b from-aksen-500 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-white/30'
-      : 'bg-white/60 text-teks-sedang ring-1 ring-inset ring-white/70 backdrop-blur-sm hover:bg-white/80 hover:text-teks-utama';
+      ? 'bg-gradient-to-b from-aksen-700 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-emas-400/80'
+      : 'bg-white/70 text-teks-sedang ring-1 ring-inset ring-emas-200/60 backdrop-blur-sm hover:bg-white/90 hover:text-teks-utama';
 
   return (
     <div className="min-h-screen">
       {/* Bilah header (sesi 15–16, arahan Ahmed): ornamen islami bintang 8 di
           area identitas + pita pemisah, lalu baris tab TERPISAH di bawahnya
           dengan latar sendiri. Aturan mobile: keenam tab selalu terlihat
-          penuh (grid 3×2 di layar sempit), tanpa overflow. Sesi 16 (referensi
-          gambar Ahmed): gradasi biru→hijau lebih tegas, judul tebal, dan ikon
-          dokumen-grafik di atas cahaya putih. */}
+          penuh (grid 3×2 di layar sempit), tanpa overflow. Sesi 20 (referensi
+          UI Ahmed): teal gelap berbingkai emas, bintang 8 disetel ke tint emas
+          samar, judul putih di atas gradasi gelap. */}
       <header className="sticky top-0 z-40 print:hidden">
         {/* Area identitas: logo + judul, latar glass gradasi + ornamen samar */}
-        <div className="relative overflow-hidden border-b border-white/70 bg-gradient-to-r from-sky-200/95 via-sky-50/95 to-emerald-200/90 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_32px_-16px_rgb(15_23_42/0.18)] backdrop-blur-xl">
-          <BintangDelapan className="pointer-events-none absolute -right-3 -top-4 h-24 w-24 text-emerald-700/10" />
-          <BintangDelapan className="pointer-events-none absolute -bottom-5 -left-4 h-20 w-20 text-emerald-700/10" />
-          <BintangDelapan className="pointer-events-none absolute left-1/3 -top-3 h-12 w-12 text-emerald-700/[0.08]" />
+        <div className="relative overflow-hidden border-b border-emas-400/40 bg-gradient-to-r from-aksen-800 via-aksen-700 to-aksen-600 shadow-[0_1px_2px_rgb(16_71_56/0.35),0_12px_32px_-16px_rgb(16_71_56/0.55)] backdrop-blur-xl">
+          <BintangDelapan className="pointer-events-none absolute -right-3 -top-4 h-24 w-24 text-emas-200/25" />
+          <BintangDelapan className="pointer-events-none absolute -bottom-5 -left-4 h-20 w-20 text-emas-200/20" />
+          <BintangDelapan className="pointer-events-none absolute left-1/3 -top-3 h-12 w-12 text-emas-200/[0.18]" />
           <div className="relative mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-3">
             {/* Cahaya putih di belakang ikon — sesuai referensi gambar. */}
             <span className="relative flex h-11 w-11 shrink-0 items-center justify-center sm:h-12 sm:w-12">
@@ -118,28 +118,28 @@ function Konten() {
               />
               <LogoTartib
                 judul="Logo Tartib"
-                className="relative h-9 w-9 drop-shadow-[0_6px_14px_rgb(2_132_199/0.28)] sm:h-10 sm:w-10"
+                className="relative h-9 w-9 drop-shadow-[0_6px_14px_rgb(197_168_123/0.35)] sm:h-10 sm:w-10"
               />
             </span>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-bold tracking-tight text-teks-utama sm:text-2xl">
+              <h1 className="truncate text-lg font-bold tracking-tight text-white sm:text-2xl">
                 Tartib — Pembuat SOP
               </h1>
-              <p className="hidden truncate text-xs text-teks-sedang sm:block sm:text-sm">
+              <p className="hidden truncate text-xs text-emas-100/90 sm:block sm:text-sm">
                 Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
               </p>
             </div>
           </div>
           {/* Pita pemisah islami antara identitas dan baris tab */}
-          <PitaIslami className="relative mt-2 pb-1.5 text-emerald-600/50" />
+          <PitaIslami className="relative mt-2 pb-1.5 text-emas-300/80" />
         </div>
 
-        {/* Baris tab — area terpisah di bawah header, memakai warna dasar
-            header (gradasi sky→emerald) agar efek kaca pil tab lebih keliatan
-            (arahan Ahmed sesi 16). */}
+        {/* Baris tab — area terpisah di bawah header; Sesi 20 menyetelnya ke
+            kaca krem bernuansa teal-ke-emas agar pil tab menyatu dengan rupa
+            header baru (arahan Ahmed sesi 16: pil tab di atas latar sendiri). */}
         <nav
           aria-label="Navigasi utama"
-          className="border-t border-white/60 bg-gradient-to-r from-sky-100/80 via-white/65 to-emerald-100/80 shadow-[0_8px_20px_-12px_rgb(15_23_42/0.15)] backdrop-blur-xl"
+          className="border-t border-emas-200/40 bg-gradient-to-r from-aksen-100/60 via-white/75 to-emas-100/60 shadow-[0_8px_20px_-12px_rgb(15_23_42/0.15)] backdrop-blur-xl"
         >
           {/* Batch X: kini tujuh tab — sm:flex-wrap (bukan nowrap) agar tidak
               ada tab yang keluar batas di lebar sm sempit (pelajaran BUG-U2). */}
@@ -174,7 +174,7 @@ function Konten() {
             <Link
               key={p.view}
               href={`/?view=${p.view}`}
-              className={`${KELAS.kartu} block p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-white hover:shadow-angkat`}
+              className={`${KELAS.kartu} block p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-emas-400/80 hover:shadow-angkat`}
             >
               <h3 className={KELAS.judulKartu}>{p.judul}</h3>
               <p className="mt-1 text-sm text-teks-halus">{p.keterangan}</p>

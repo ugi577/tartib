@@ -446,7 +446,7 @@ export function TamuView() {
                   </label>
                   <button
                     onClick={() => togglePerlengkapanSelesai(p)}
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${p.status === 'SELESAI' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-teks-sedang'}`}
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${p.status === 'SELESAI' ? 'bg-aksen-100 text-aksen-700' : 'bg-slate-200 text-teks-sedang'}`}
                   >
                     {p.status}
                   </button>
