@@ -262,7 +262,30 @@ SOP berdiri sendiri = tabel baru.
 
 ---
 
+## Batch Y — tindak lanjut SOP: sub-tugas, rutin, cetak multi-ukuran, ekspor/impor · langsung di `master`
+
+Empat arahan Ahmed (2026-08-29): judul header "Pembuat SOP"; sub-tugas dalam satu ceklis ("mirip
+seperti anggota dan tugasnya"); pastikan cetak PDF A4/F4/ukuran lain + export/import; kategori rutin
+(harian/mingguan/bulanan/part/insidental). Keputusan: **K-24**.
+
+1. `types` + skema **v5** — `SopItem.rutin?` + `SopSubItem` (tabel `tartib_sopSubItem`: `id, sopId, itemId, urutan`); hapus item & papan mengikat sub; seed amanah membawa rutin.
+2. `sopService` — sub CRUD (`tambah/ubah/hapus/pindah/tandaiCeklisSub`), `perubahanCeklis` digeneralisasi, `salinanSop(sumber, items, subItems, urutan)` remap `itemId`, `resetCeklis` mencakup sub, `bangunStrukturImporPapan` murni + `imporSopPapan` atomik (+16 test service/seed baru total).
+3. `lib/ekspor/tulisDocxSop` + `lib/impor/dokumenSopPapan` — round-trip `tartib/sop.json` + heuristik ☐/↳/atribut (6 test round-trip).
+4. Cadangan **v3** (`BOLEH_HILANG_SEJAK`: v1/v2 kompatibel) + label statistik "Sub-tugas SOP".
+5. `SopView` — sub-tugas UI (menjorok, ceklis + PIC sendiri), badge rutin, pilihan kertas A4/F4/Letter/Legal/A5 (localStorage) dengan `@page` dinamis + hint "Save as PDF", "Unduh .docx" per papan, "Impor .docx" + pratinjau, progres menghitung item + sub.
+6. `page.tsx`/`layout.tsx` — judul header & metadata "Tartib — Pembuat SOP".
+
+**Gate Y**
+- [x] Teknis: `tsc` bersih, lint bersih, `vitest` **245/245** (28 berkas), `pnpm build` statis sukses
+- [x] Browser in-app: header baru, sub-tugas tambah/centang/hapus (progres 0/13 → 1/13 → 1/12), badge PIC & rutin, pilihan kertas + opsi F4, unduh .docx terpicu, statistik "Sub-tugas SOP", 375px nol overflow
+- [x] Round-trip ekspor→impor papan diuji di Node (jalur JSON penuh + heuristik document.xml)
+- [ ] **Verifikasi manual Ahmed** — sub-tugas & rutin di device, cetak fisik F4/A4 + "Save as PDF" (dialog cetak sistem tidak bisa diuji browser otomatis), impor .docx nyata
+
+---
+
 ## Changelog PLAN
+
+- **2026-08-29 — v1.28** — **Sesi 19 — Batch Y: sub-tugas + rutin + cetak multi-ukuran + ekspor/impor papan (K-24)** — empat arahan Ahmed: header "Pembuat SOP"; sub-tugas dalam satu ceklis; cetak PDF A4/F4/ukuran lain + export/import; kategori rutin harian/mingguan/bulanan/part/insidental. Skema **v5** (`tartib_sopSubItem`), `SopItem.rutin` bebas teks + datalist, cadangan **v3** (kompatibel v1/v2), `tulisDocxSop`/`dokumenSopPapan` round-trip `tartib/sop.json` (6 test), `SopView`: sub-tugas menjorok berceklis sendiri, pilihan kertas A4/F4/Letter/Legal/A5 dengan `@page` dinamis + hint "Save as PDF", unduh/impor .docx dengan pratinjau. tsc & lint bersih, vitest **245/245** (28 berkas), build statis sukses; verifikasi browser in-app (sub/rutin/kertas/unduh/375px) — cetak fisik & impor file menunggu verifikasi Ahmed.
 
 - **2026-08-29 — v1.27** — **Sesi 18 — Batch X: menu SOP berdiri sendiri (K-23)** — arahan Ahmed *"tambahkan menu SOP untuk hal bersifat semi paten, misal SOP daftar tugas/amanah/khidmah santri dan PICnya yg mudah ceklist jg., dan menu SOP customable"*. Skema Dexie **v4** (`tartib_sop`, `tartib_sopItem`), seed papan "Amanah & Khidmah Santri" (11 amanah, idempoten per tanda baku), `sopService` (+13 test: ceklis satu klik, reset, duplikat reset-ceklis, papan baku tak terhapus), cadangan **v2** (+4 test: tabel SOP ikut, cadangan lama v1 tetap terbaca), `SopView` dua bagian (Amanah & Khidmah semi-paten + SOP Kustom) dengan ceklis optimis, bar progres, Reset Ceklis, Cetak A4 (`papanSop`), tab ke-7 + pintu masuk beranda, nav selalu wrap. tsc & lint bersih, vitest **229/229** (27 berkas), build statis sukses, gate grep bersih; verifikasi browser in-app (ceklis/PIC/kustom/375px) — cetak fisik menunggu verifikasi Ahmed.
 

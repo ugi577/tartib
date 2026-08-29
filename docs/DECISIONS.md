@@ -4,6 +4,46 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-24 — 2026-08-29 — Sesi 19: Batch Y — sub-tugas, kategori rutin, cetak multi-ukuran, ekspor/impor papan
+
+Empat arahan Ahmed: *(1) "ubah teks headernya 'pembuat SOP Acara' menjadi = 'Pembuat SOP'*, *(2) fungsi
+sub dari tugas, artinya dalam satu checklist bisa dibuatkan sub sehingga lebih detail tugas yg
+diberikan, dan ya mirip seperti anggota dan tugasnya juga*, *(3) pastikan bisa di print pdf a4 / f4
+dan ukuran lainnya (pasti bisa export/import jg)*, *(4) berikan tambahan catatan bahwa pekerjaan rutin
+harian, mingguan, bulanan, part, insidential/saat dibutuhkan sj". Keputusan:
+
+1. **Sub-tugas = tabel sendiri `tartib_sopSubItem` (skema v5), bukan rekursi pada `tartib_sopItem`.**
+   Tiap sub: `itemId` induk + `sopId` penyangga (reset/duplikat/hapus papan cukup satu query per
+   papan), judul, PIC, catatan, ceklis + `selesaiPada`. Satu tingkat sub saja — "rincian di bawah
+   amanah" sesuai arahan; sub dari sub disengaja tidak ada. Hapus item menghapus sub-nya (tidak ada
+   yatim); hapus/duplikat/reset papan mengikat seluruh sub dalam satu transaksi; salinan me-reset
+   ceklis sub juga. **Progres papan menghitung SEMUA baris tercentang (item + sub)** = jumlah kotak
+   ceklis yang tampak, ditambah keterangan "· termasuk N sub-tugas".
+2. **Kategori rutin = `SopItem.rutin?: string` bebas teks dengan saran datalist** — Harian, Mingguan,
+   Bulanan, Part, Tahunan, "Insidental (saat dibutuhkan saja)". Kata "part" Ahmed dipertahankan apa
+   adanya di daftar saran; isian bebas menampung frekuensi lain ("setiap semester") tanpa skema baru.
+   Hanya di level item (sub mewarisi konteks induknya). Tampil sebagai badge amber; kolom "Rutin"
+   ikut tercetak. Seed papan amanah kini membawa rutin per amanah.
+3. **Cetak PDF multi-ukuran lewat dialog cetak, bukan pembuat PDF baru** (tanpa library — BRIEF 4).
+   Pilihan kertas per perangkat (localStorage `tartib.sop.kertas`): A4, F4/Folio (210×330),
+   Letter, Legal, A5. `@page { size: …; margin: 12mm }` di-inject sebagai `<style>` di dalam blok
+   cetak sehingga menimpa `@page A4` global saat tercetak; hint di layar: PDF = pilih "Save as PDF"
+   di dialog cetak sistem. Tabel cetak bertambah kolom Rutin dan baris sub "↳".
+4. **Ekspor/impor papan meniru pola round-trip template (K-19/K-20)**: `tulisDocxSop` menulis
+   document.xml yang terbaca manusia (☐ item, ↳ sub, "— PIC: … — Rutin: … — Catatan: …") PLUS entry
+   `tartib/sop.json` berisi seluruh data; importer `dokumenSopPapan` memakai JSON itu dulu (penuh,
+   tanpa tebakan), berkas Word biasa jatuh ke heuristik ☐/↳/atribut berlabel. Impor selalu menghasilkan
+   SOP kustom baru dengan ceklis kosong; pratinjau menampilkan jumlah item/sub/PIC sebelum simpan.
+   Impor file lewat file chooser tidak bisa diuji browser otomatis — diikat test round-trip
+   ekspor→impor di Node (6 test).
+5. **Cadangan naik ke v3** (tabel sub-tugas ikut) dengan aturan kompatibilitas deklaratif
+   `BOLEH_HILANG_SEJAK`: v1 tanpa sop/sopItem/sopSubItem, v2 tanpa sopSubItem — keduanya tetap sah
+   dibaca; selain itu ditolak.
+6. **Judul header & metadata menjadi "Tartib — Pembuat SOP"** (layout description ikut); tagline tidak
+   diubah karena masih menggambarkan alur utama acara.
+
+---
+
 ## K-23 — 2026-08-29 — Sesi 18: Batch X — menu SOP berdiri sendiri: papan amanah semi-paten + SOP kustom
 
 Dua arahan Ahmed: *"tambahkan menu SOP untuk hal bersifat semi paten, misal SOP daftar
