@@ -4,6 +4,37 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-25 — 2026-08-29 — Sesi 20 — rupa kaca krem–teal–emas dari referensi UI Ahmed
+
+Arahan Ahmed: *"terapkan ui ini ke proyek, cek dan pahami dl, tetap pertahankan ornamen yg sudah ada,
+jangan terapkan garis gold yg gelombang dan bintang 4 arah dr file ini"* (berkas `~/Documents/ui
+tartib.html`). Tema referensi: teal gelap (#1A5A4A/#246B5A/#518E7F) + emas (#C5A87B) di atas krem
+(#F5F5F0), glassmorphism, tab pil dengan aktif = teal gelap berbingkai emas, kartu berornamen sudut
+emas, tombol utama gradasi teal berbingkai emas. Keputusan:
+
+1. **Palet `aksen` emerald → teal** (50–950, inti 500 `#3f8372`/600 `#246b5a`/700 `#1a5a4a`/800
+   `#144738`) + **palet `emas` baru** (100 `#f3ecdd` s/d 900 `#5a462d`, inti 500 `#c5a87b`) di
+   `tailwind.config.ts`. `permukaan.dasar` = `#f5f5f0` (krem, latar seluruh app), `permukaan.kontras`
+   = `#144738`, `glowAksen` = kilau putih 1px + bayangan teal 50%.
+2. **Rupa "liquid glass di atas krem"** — pola referensi dipertahankan memakai token yang ada:
+   kartu/kartuIsi = putih translusen (`bg-permukaan-kartu`) + `border-emas-300/60` + blur; tombol
+   utama = gradasi `aksen-700→600` + `ring-1 ring-emas-400/70` + `shadow-glowAksen`; badge info =
+   `bg-emas-100/70` + teks `emas-700`; nav tab = pil kaca putih/70, aktif = gradasi teal gelap +
+   `ring-emas-400/80`.
+3. **Header gelap teal berbingkai emas** — gradasi `aksen-800→700→600`, `border-b border-emas-400/40`,
+   judul & tagline putih/emas; baris tab di bawahnya kaca gradasi teal-tua→putih→emas (pola sesi 16
+   diteruskan dengan warna baru).
+4. **Ornamen lama dipertahankan apa adanya** — `BintangDelapan` ×3 + `LogoTartib` + `PitaIslami`
+   (12 bintang) tetap satu-satunya ornamen; diwarnai ulang samar `emas-200/*` agar selaras.
+   **DITOLAK sesuai arahan: garis gold gelombang dan bintang 4 arah dari berkas referensi TIDAK
+   diterapkan** (kode maupun aset dekoratifnya tidak pernah masuk proyek).
+5. **Cetak tidak berubah** — `@page A4 14mm` + `background-image: none` di blok cetak (glow kaca tidak
+   ikut tercetak); rupa baru murni presentasional layar.
+6. **Ikon ikut teal** — `LogoTartib.tsx` (artwork identik `src/app/icon.svg`) dan favicon
+   `#059669` → `#246b5a`; badge status Tamu "SELESAI" memakai `badgeAksen` (token, bukan slate mentah).
+
+---
+
 ## K-24 — 2026-08-29 — Sesi 19: Batch Y — sub-tugas, kategori rutin, cetak multi-ukuran, ekspor/impor papan
 
 Empat arahan Ahmed: *(1) "ubah teks headernya 'pembuat SOP Acara' menjadi = 'Pembuat SOP'*, *(2) fungsi
