@@ -42,15 +42,19 @@ export interface DataTulisDocx {
 const NS_W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const DEKLARASI = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 
-const KONTEN_TYPES = `${DEKLARASI}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;
+// Diekspor untuk penulis DOCX lain (tulisDocxSop — Batch Y) agar bentuk arsip
+// tidak terduplikasi dan tidak saling meleset.
+export { NS_W, DEKLARASI };
 
-const RELS = `${DEKLARASI}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+export const KONTEN_TYPES = `${DEKLARASI}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;
 
-function escapeXml(teks: string): string {
+export const RELS = `${DEKLARASI}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+
+export function escapeXml(teks: string): string {
   return teks.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function paragrafBiasa(teks: string): string {
+export function paragrafBiasa(teks: string): string {
   return `<w:p><w:r><w:t xml:space="preserve">${escapeXml(teks)}</w:t></w:r></w:p>`;
 }
 
