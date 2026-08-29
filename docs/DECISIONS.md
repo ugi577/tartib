@@ -4,6 +4,48 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-23 — 2026-08-29 — Sesi 18: Batch X — menu SOP berdiri sendiri: papan amanah semi-paten + SOP kustom
+
+Dua arahan Ahmed: *"tambahkan menu SOP untuk hal bersifat semi paten, misal SOP daftar
+tugas/amanah/khidmah santri dan PICnya yg mudah ceklist jg."* dan *"menu SOP customable"*. Keputusan:
+
+1. **Satu tab "SOP" dengan dua bagian, bukan dua tab baru** — jumlah tab utama menjadi **tujuh** (melebihi
+   catatan K-21 poin 4 "tetap enam" secara sadar, karena ini kelompok fitur baru yang setara), tetapi
+   pelajaran BUG-U2 dijaga: nav tab dibuat **selalu membungkus** (`sm:flex-wrap`, bukan `sm:flex-nowrap`)
+   sehingga tidak ada tab yang keluar batas di lebar mana pun; di ponsel tetap grid 3 kolom (3+3+1).
+   Bagian dalam memakai pola sub-nav Pengaturan: **Amanah & Khidmah** dan **SOP Kustom**.
+2. **"Semi-paten" = papan baku yang strukturnya relatif tetap tetapi isinya hidup.** Papan baku
+   "Amanah & Khidmah Santri" di-seed (11 amanah inti madrasah: imam, muadzin, khatib Jumat, temanasma,
+   piket kebersihan, penjaga gudang, tutor halaqah, koperasi, pelayanan wudhu, ronda). Aturannya:
+   **tidak dapat dihapus** (`hapusSop` menolak papan `baku`), tetapi item bebas ditambah/ubah/hapus/diurut
+   dan PIC diisi pengguna. PIC **tidak dihubungkan ke tabel Divisi** — amanah dipegang nama santri
+   (bebas teks), bukan divisi panitia acara; dua domain yang memang berbeda.
+3. **Ceklis = boolean + `selesaiPada`** (pola `perubahanStatusTugas`): masuk selesai mengisi waktu,
+   keluar menghapusnya — bukan siklus 4 status seperti tugas acara, karena permintaannya "mudah
+   ceklist". UI: centang satu klik dengan update **optimis**, bar progres x/y/%, tombol **Reset Ceklis**
+   per papan (dialog konfirmasi non-bahaya) untuk pemakaian harian/pekanan.
+4. **Idempotensi seed per TANDA `baku`, bukan per judul** — pengguna boleh mengganti judul papan baku
+   tanpa memicu seed menanam salinan kedua saat halaman dimuat ulang. `SopView` juga **self-heal**:
+   bila papan baku tidak ditemukan (data baru yang belum selesai di-seed — race seed-vs-load — atau
+   pemulihan cadangan lama v1), ia menanam sendiri lewat `seedSopAmanah()` yang idempoten.
+5. **Salinan SOP me-reset ceklis** — `duplikatSop` menyalin judul "(Salinan)", PIC, urutan, dan isi
+   item, tetapi semua centang dikosongkan: salinan adalah awal yang bersih, bukan arsip status lama.
+   Salinan papan baku menjadi SOP kustom biasa (`baku: false`).
+6. **Cadangan naik ke versi 2 dengan kompatibilitas baca v1** — tabel `tartib_sop`/`tartib_sopItem`
+   masuk `IsiCadangan`, statistik, dan pemulihan. `bacaCadangan` menerima berkas **v1** (dibuat sebelum
+   tabel SOP ada) dengan bagian SOP dibaca kosong, menolak selain v1/v2, dan mempertahankan `versi`
+   sumber pada objek hasil baca. Konsekuensi yang disengaja: memulihkan cadangan v1 tidak membawa SOP —
+   papan baku kembali lewat self-heal saat tab SOP dibuka / seed dijalankan ulang.
+7. **Cetak lembar ceklis A4** lewat varian `CetakPayload` baru `{ jenis: 'papanSop'; sopId }` (perluasan
+   aditif K-04): tabel ☐ / Amanah / PIC / Catatan berbingkai, kop lembaga ikut (`KopCetak`). Blok cetak
+   diletakkan **di luar kartu kaca** (jebakan CSS print K-22 poin 3) dan seluruh layar dibungkus
+   `print:hidden` saat mencetak. `flushSync` sebelum `host.cetak()` mengikuti pola Batch F/sesi 15.
+8. **Skema v4: `baku` sengaja TIDAK diindex** — boolean bukan kunci sah IndexedDB; pemilahan
+   papan baku/kustom cukup dengan filter memori (jumlah papan kecil). `urutan` SOP hanya dipakai
+   untuk menempelkan duplikat di akhir; daftar kustom diurut dari `urutan`.
+
+---
+
 ## K-22 — 2026-08-23 — Sesi 17: CI, ESLint, pemecahan TemplateView, pengingat cadangan — kualitas rekayasa tanpa menyentuh stack runtime
 
 Empat saran audit dikerjakan sekaligus atas arahan Ahmed *"oke kerjakan semuanya secara profesional"*. Keputusan:

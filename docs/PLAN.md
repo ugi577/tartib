@@ -238,7 +238,33 @@ Kendala teknis: tetap **tanpa library baru** (BRIEF Bagian 4) → penulis ZIP ma
 
 ---
 
+## Batch X — SOP berdiri sendiri: papan amanah semi-paten + SOP kustom · langsung di `master`
+
+Arahan Ahmed (2026-08-29): *"tambahkan menu SOP untuk hal bersifat semi paten, misal SOP daftar
+tugas/amanah/khidmah santri dan PICnya yg mudah ceklist jg., dan 2. menu SOP customable"*. Keputusan
+desain: **K-23**. Tidak menyentuh model acara (Template/Acara/Tugas tetap berbasis fase H-offset);
+SOP berdiri sendiri = tabel baru.
+
+1. `types` + `db/schema.ts` **v4** — `Sop` & `SopItem`; tabel `tartib_sop` (`id, urutan, dibuatPada`) & `tartib_sopItem` (`id, sopId, urutan`) + pemetaan field eksplisit (pola K-02). `baku` **tidak diindex** (boolean bukan kunci sah IndexedDB) — pemilahan baku/kustom lewat filter memori.
+2. `db/seed.ts` — `SOP_AMANAH_BAKU` (papan "Amanah & Khidmah Santri", 11 amanah inti madrasah, PIC kosong) + `seedSopAmanah()` **idempoten per tanda `baku`** (bukan per judul — pengguna boleh mengganti judul papan tanpa memicu seed duplikat) + test data murni.
+3. `services/sopService.ts` + test — fungsi murni teruji (`inputSopSah`, `inputItemSopSah`, `ikhtisarCeklis`, `perubahanCeklis` pola `perubahanStatusTugas`, `salinanSop` — ceklis salinan DIRESET) + CRUD SOP kustom, item (tambah/ubah/hapus/pindah), `tandaiCeklis` satu klik, `resetCeklis` per papan, `hapusSop` **menolak papan baku** (semi-paten), `duplikatSop` transaksi atomik.
+4. `services/cadanganService.ts` **v2** — `sop`/`sopItem` masuk `IsiCadangan`/`TABEL_CADANGAN`/ambil/pulihkan/statistik; `bacaCadangan` menerima **cadangan lama v1** (bagian SOP dibaca kosong), menolak selain v1/v2; `versi` sumber dipertahankan saat baca. Label tabel baru di Pengaturan.
+5. `components/SopView.tsx` + tab `?view=sop` — dua bagian dalam satu tab (pola sub-nav Pengaturan; jumlah tab utama jadi **tujuh**, nav dibuat selalu wrap — pelajaran BUG-U2): **Amanah & Khidmah** (papan baku, self-heal: tanam sendiri bila belum ada — race seed-vs-load & pasca-pulihkan) dan **SOP Kustom** (daftar kartu + editor). Ceklis satu klik (optimis) + bar progres + Reset Ceklis (KonfirmasiDialog) + Cetak A4 (varian `CetakPayload` `{ jenis: 'papanSop' }`, tabel ☐/tugas/PIC/catatan, blok cetak di luar kartu kaca — jebakan K-22 poin 3).
+6. `app/page.tsx` — tab "SOP", kartu pintu masuk beranda.
+
+**Gate X**
+- [x] Teknis: `tsc` bersih, lint bersih, `vitest` **229/229** (27 berkas: +3 seed, +13 sopService, +4 cadangan), `pnpm build` statis sukses, gate grep bersih (`window.confirm`/`as any` hanya komentar; `next/*` tidak ada di `src/tartib`)
+- [x] Papan baku ter-seed (11 amanah), ceklis satu klik memperbarui progres & waktu selesai, PIC tersimpan — verifikasi browser in-app
+- [x] SOP kustom: buat → tambah item → ceklis → reset (dialog) → duplikat (judul "(Salinan)", ceklis kosong) → hapus (dialog) — verifikasi browser in-app
+- [x] 375px: 7 tab terlihat semua, nol overflow; badge PIC tidak patah (tombol aksi turun baris) — verifikasi browser + screenshot
+- [x] Statistik Pengaturan menampilkan tabel SOP; cadangan v2 menyertakan SOP, berkas v1 tetap terbaca (test)
+- [ ] **Verifikasi manual Ahmed** — ceklis di perangkat fisik, isi PIC santri, cetak fisik lembar ceklis A4 (dialog cetak sistem tidak bisa diuji browser otomatis)
+
+---
+
 ## Changelog PLAN
+
+- **2026-08-29 — v1.27** — **Sesi 18 — Batch X: menu SOP berdiri sendiri (K-23)** — arahan Ahmed *"tambahkan menu SOP untuk hal bersifat semi paten, misal SOP daftar tugas/amanah/khidmah santri dan PICnya yg mudah ceklist jg., dan menu SOP customable"*. Skema Dexie **v4** (`tartib_sop`, `tartib_sopItem`), seed papan "Amanah & Khidmah Santri" (11 amanah, idempoten per tanda baku), `sopService` (+13 test: ceklis satu klik, reset, duplikat reset-ceklis, papan baku tak terhapus), cadangan **v2** (+4 test: tabel SOP ikut, cadangan lama v1 tetap terbaca), `SopView` dua bagian (Amanah & Khidmah semi-paten + SOP Kustom) dengan ceklis optimis, bar progres, Reset Ceklis, Cetak A4 (`papanSop`), tab ke-7 + pintu masuk beranda, nav selalu wrap. tsc & lint bersih, vitest **229/229** (27 berkas), build statis sukses, gate grep bersih; verifikasi browser in-app (ceklis/PIC/kustom/375px) — cetak fisik menunggu verifikasi Ahmed.
 
 - **2026-08-23 — v1.26** — **Sesi 17 — kualitas rekayasa (K-22)** — 4 commit: `e75f7b5` workflow CI (lint+tsc+vitest+build; jalan di push `main`/PR — `.github/` ikut snapshot publik), `23c7637` ESLint `next/core-web-vitals` (2 kutip JSX di-escape, nol pengecualian aturan), `449a910` refactor TemplateView 1416→930 (`components/template/`: PanelImpor, PanelEkspor, bersama; formulir cetak panduan tetap di induk di luar `print:hidden`), `2bfe6ac` pengingat cadangan 14 hari (`lib/cadanganPengingat.ts` + 6 test, localStorage, token semantik `peringatan`). tsc bersih, lint bersih, vitest **209/209** (26 berkas), build statis sukses, gate grep bersih.
 - **2026-08-22 — v1.25** — **Sesi 16 — warna dasar header jadi latar baris tab (arahan Ahmed: *"jadikan warna dasar header ke background tab sehingga liquid glass tab lebih keliatan"*)** — `d7bd6e1`: baris tab yang semula `bg-white/75` polos kini memakai **gradasi dasar header** (`from-sky-100/80 via-white/65 to-emerald-100/80` + `backdrop-blur-xl`, `border-t border-white/60`) sehingga **efek kaca pil tab (putih 60% + blur) tampak jelas** di atas latar bertinta; terverifikasi computed style (navBg linear-gradient sky→white→emerald, pillBg rgba(255,255,255,.6), blur 4px) dan 375px nol overflow/tab utuh. tsc bersih, vitest **203/203**.
