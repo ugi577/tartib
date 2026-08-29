@@ -123,7 +123,7 @@ function Konten() {
             </span>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-bold tracking-tight text-teks-utama sm:text-2xl">
-                Tartib — Pembuat SOP Acara
+                Tartib — Pembuat SOP
               </h1>
               <p className="hidden truncate text-xs text-teks-sedang sm:block sm:text-sm">
                 Susun template SOP, buat acara dari template, dan kawal tugas panitia sampai H+1.
