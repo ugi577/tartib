@@ -203,23 +203,23 @@ export const TEMPLATE_PANDUAN: {
 export const SOP_AMANAH_BAKU: {
   judul: string;
   catatan: string;
-  items: { judul: string; catatan: string }[];
+  items: { judul: string; catatan: string; rutin: string }[];
 } = {
   judul: 'Amanah & Khidmah Santri',
   catatan:
     'Papan amanah semi-paten: isi nama PIC tiap amanah, lalu centang saat tugas berjalan baik / sudah dikerjakan. Amanah boleh ditambah, diubah, atau dihapus sesuai keadaan madrasah.',
   items: [
-    { judul: 'Imam shalat fardhu', catatan: 'Giliran per pekan' },
-    { judul: 'Muadzin shalat fardhu', catatan: 'Giliran per pekan' },
-    { judul: 'Khatib & imam shalat Jumat', catatan: 'Sesuai jadwal bulanan' },
-    { judul: 'Temanasma (penjaga asrama)', catatan: 'Ketertiban & keamanan asrama' },
-    { judul: 'Piket kebersihan masjid', catatan: '' },
-    { judul: 'Piket kebersihan kamar & lingkungan', catatan: '' },
-    { judul: 'Penjaga gudang & perlengkapan', catatan: 'Catat barang masuk-keluar' },
-    { judul: 'Tutor halaqah tahfidz', catatan: '' },
-    { judul: 'Pengurus koperasi santri', catatan: '' },
-    { judul: 'Petugas pelayanan wudhu & toilet', catatan: '' },
-    { judul: 'Jaga malam (ronda)', catatan: 'Giliran per pekan' },
+    { judul: 'Imam shalat fardhu', catatan: 'Giliran per pekan', rutin: 'Harian' },
+    { judul: 'Muadzin shalat fardhu', catatan: 'Giliran per pekan', rutin: 'Harian' },
+    { judul: 'Khatib & imam shalat Jumat', catatan: 'Sesuai jadwal bulanan', rutin: 'Mingguan' },
+    { judul: 'Temanasma (penjaga asrama)', catatan: 'Ketertiban & keamanan asrama', rutin: 'Harian' },
+    { judul: 'Piket kebersihan masjid', catatan: '', rutin: 'Harian' },
+    { judul: 'Piket kebersihan kamar & lingkungan', catatan: '', rutin: 'Harian' },
+    { judul: 'Penjaga gudang & perlengkapan', catatan: 'Catat barang masuk-keluar', rutin: 'Insidental' },
+    { judul: 'Tutor halaqah tahfidz', catatan: '', rutin: 'Harian' },
+    { judul: 'Pengurus koperasi santri', catatan: 'Buku kas dicek tiap akhir bulan', rutin: 'Harian' },
+    { judul: 'Petugas pelayanan wudhu & toilet', catatan: '', rutin: 'Harian' },
+    { judul: 'Jaga malam (ronda)', catatan: 'Giliran per pekan', rutin: 'Mingguan' },
   ],
 };
 
@@ -326,6 +326,7 @@ export async function seedSopAmanah(db: TartibDb = tartibDb): Promise<number> {
         judul: it.judul,
         picNama: '',
         catatan: it.catatan,
+        rutin: it.rutin,
         selesai: false,
         urutan: i + 1,
       })),

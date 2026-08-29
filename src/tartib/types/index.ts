@@ -150,7 +150,24 @@ export interface SopItem {
   judul: string;
   picNama: string; // penanggung jawab amanah/tugas — boleh kosong
   catatan: string;
+  rutin?: string; // kategori pekerjaan rutin — bebas teks: Harian/Mingguan/Bulanan/Part/Insidental (Batch Y)
   selesai: boolean;
   selesaiPada?: string; // ISO, terisi saat dicentang, hilang saat diuncentang
+  urutan: number;
+}
+
+// Sub-tugas satu item (Batch Y, arahan Ahmed: "dalam satu checklist bisa
+// dibuatkan sub sehingga lebih detail tugas yg diberikan, mirip seperti
+// anggota dan tugasnya"): rincian di bawah amanah, tiap sub punya PIC dan
+// ceklis sendiri.
+export interface SopSubItem {
+  id: string;
+  sopId: string; // penyangga query per papan (reset, duplikat, hapus papan)
+  itemId: string; // item induk
+  judul: string;
+  picNama: string;
+  catatan: string;
+  selesai: boolean;
+  selesaiPada?: string;
   urutan: number;
 }

@@ -11,6 +11,7 @@ import type {
   Rsvp,
   Sop,
   SopItem,
+  SopSubItem,
   Template,
   TemplateItem,
   Tugas,
@@ -37,6 +38,7 @@ export class TartibDb extends Dexie {
   evaluasi!: Table<Evaluasi, string>;
   sop!: Table<Sop, string>;
   sopItem!: Table<SopItem, string>;
+  sopSubItem!: Table<SopSubItem, string>;
 
   constructor() {
     super('tartib-db');
@@ -107,6 +109,26 @@ export class TartibDb extends Dexie {
       tartib_sop: 'id, urutan, dibuatPada',
       tartib_sopItem: 'id, sopId, urutan',
     });
+    // v5: sub-tugas SOP (Batch Y) — rincian di bawah satu item ceklis, tiap
+    // sub punya PIC & ceklis sendiri. Index sopId menyangga operasi per
+    // papan (reset/duplikat/hapus), itemId untuk baca per induk.
+    this.version(5).stores({
+      tartib_jenisAcara: 'id, nama',
+      tartib_template: 'id, jenisAcaraId, dibuatPada',
+      tartib_fase: 'id, templateId, urutan',
+      tartib_templateItem: 'id, templateId, faseId, divisiId, urutan',
+      tartib_divisi: 'id, urutan',
+      tartib_acara: 'id, jenisAcaraId, templateId, status, dibuatPada',
+      tartib_acaraDivisi: 'id, acaraId, divisiId',
+      tartib_tugas: 'id, acaraId, faseId, divisiId, urutan',
+      tartib_kelompokTamu: 'id, acaraId',
+      tartib_rsvp: 'id, acaraId, kelompokId',
+      tartib_perlengkapan: 'id, acaraId, divisiId',
+      tartib_evaluasi: 'id, acaraId, divisiId',
+      tartib_sop: 'id, urutan, dibuatPada',
+      tartib_sopItem: 'id, sopId, urutan',
+      tartib_sopSubItem: 'id, sopId, itemId, urutan',
+    });
 
     // Dexie hanya mengisi otomatis this[namaStore] bila nama field class
     // sama persis dengan key di stores() (mis. this.tartib_divisi). Karena
@@ -128,6 +150,7 @@ export class TartibDb extends Dexie {
     this.evaluasi = this.table('tartib_evaluasi');
     this.sop = this.table('tartib_sop');
     this.sopItem = this.table('tartib_sopItem');
+    this.sopSubItem = this.table('tartib_sopSubItem');
   }
 }
 

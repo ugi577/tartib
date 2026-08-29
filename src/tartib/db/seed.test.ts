@@ -131,4 +131,14 @@ describe('seed papan amanah baku (Batch X)', () => {
     expect(judul.some((j) => j.toLowerCase().includes('muadzin'))).toBe(true);
     expect(judul.some((j) => j.toLowerCase().includes('kebersihan'))).toBe(true);
   });
+
+  it('tiap amanah membawa kategori rutin (Batch Y)', () => {
+    for (const it of SOP_AMANAH_BAKU.items) {
+      expect(it.rutin.trim(), `rutin "${it.judul}" kosong`).not.toBe('');
+    }
+    const rutin = SOP_AMANAH_BAKU.items.map((i) => i.rutin);
+    expect(rutin).toContain('Harian');
+    expect(rutin).toContain('Mingguan');
+    expect(rutin).toContain('Insidental');
+  });
 });
