@@ -12,23 +12,25 @@
     color-scheme: light;
   }
 
-  /* Kanvas liquid glass: gradasi mesh pastel (lavender / teal / biru) tetap
-     saat digulir, menjadi "cairan" yang tampak melalui kartu kaca bening. */
+  /* Kanvas krem (Sesi 20, referensi UI Ahmed): latar krem dengan glow teal di
+     kanan atas dan emas di kiri — tetap "cairan" yang tampak melalui kartu
+     kaca bening, tanpa mencuri perhatian dari isi. */
   body {
     @apply text-slate-700 antialiased;
-    background-color: #edeff7;
+    background-color: #f5f5f0;
     background-image:
-      radial-gradient(52rem 36rem at 88% -12%, rgb(167 139 250 / 0.2), transparent 62%),
-      radial-gradient(44rem 30rem at -8% 18%, rgb(45 212 191 / 0.16), transparent 60%),
-      radial-gradient(40rem 28rem at 55% 115%, rgb(147 197 253 / 0.22), transparent 62%),
-      linear-gradient(165deg, #f7f4ef 0%, #eef1f9 48%, #f2eef6 100%);
+      radial-gradient(52rem 36rem at 88% -12%, rgb(36 107 90 / 0.13), transparent 62%),
+      radial-gradient(44rem 30rem at -8% 18%, rgb(197 168 123 / 0.18), transparent 60%),
+      radial-gradient(40rem 28rem at 55% 115%, rgb(36 107 90 / 0.07), transparent 62%),
+      linear-gradient(165deg, #f8f7f2 0%, #f1f4ef 48%, #f6f1e8 100%);
     background-attachment: fixed;
   }
 
   /* Satu gaya fokus untuk seluruh aplikasi — sebelumnya tiap kontrol memakai
-     cincin fokus bawaan browser (oranye di Chrome) yang tidak selaras. */
+     cincin fokus bawaan browser (oranye di Chrome) yang tidak selaras. Warna
+     cincin mengikuti token aksen (teal, Sesi 20). */
   :focus-visible {
-    @apply outline-none ring-2 ring-emerald-500/70 ring-offset-2 ring-offset-white/80;
+    @apply outline-none ring-2 ring-aksen-600/70 ring-offset-2 ring-offset-white/80;
   }
 }
 
@@ -40,8 +42,11 @@
     margin: 14mm;
   }
 
-  /* Kertas selalu putih walau layar memakai latar abu (Batch U). */
+  /* Kertas selalu putih walau layar memakai latar krem (Batch U); Sesi 20
+     menambahkan background-image: none agar glow/gradasi kanvas tidak ikut
+     tercetak ke kertas (bg-white tidak menghapus gambar latar). */
   body {
     @apply bg-white;
+    background-image: none;
   }
 }

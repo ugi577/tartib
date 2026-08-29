@@ -1,4 +1,6 @@
-// Kelas tampilan bersama Tartib (Batch U-3), dimodifikasi ke rupa liquid glass.
+// Kelas tampilan bersama Tartib (Batch U-3), rupa kaca di atas krem dengan
+// aksen emas (Sesi 20, referensi UI Ahmed — ornamen kartu bertepi emas,
+// tombol utama teal gelap berbingkai emas).
 //
 // Satu-satunya sumber kelas untuk tombol, input, kartu, badge, dan status.
 // Sebelum Batch U, setiap komponen menulis kelasnya sendiri — akibatnya aksi
@@ -17,9 +19,8 @@
 //   `rounded-kontrol` untuk kontrol isian, `rounded-kartu` untuk kartu.
 //
 // Pola kaca: permukaan memakai token alpha dari tailwind.config (permukaan.*),
-// tepi putih luminous (garis-kuat / border-white/*), backdrop-blur agar latar
-// gradasi pastel tampak kabur di belakang kaca, dan shadow-glosAtas/glowAksen
-// untuk kilau candy.
+// tepi emas lembut (border-emas-*), backdrop-blur agar latar krem tampak
+// kabur di belakang kaca, dan shadow-glosAtas/glowAksen untuk kilau candy.
 
 import type { StatusAcara, StatusRsvp, StatusTugas } from '../types';
 
@@ -30,12 +31,12 @@ const UKURAN_KECIL = 'px-3 py-1.5 text-sm';
 
 export const KELAS = {
   // ── Permukaan ────────────────────────────────────────────────────────────
-  /** Kartu kaca berisi konten mandiri (daftar, panel, lembar). */
+  /** Kartu kaca berisi konten mandiri (daftar, panel, lembar) — tepi emas. */
   kartu:
-    'rounded-kartu border border-white/70 bg-permukaan-kartu shadow-kartu backdrop-blur-xl backdrop-saturate-150',
-  /** Kartu kaca dengan padding baku. */
+    'rounded-kartu border border-emas-300/60 bg-permukaan-kartu shadow-kartu backdrop-blur-xl backdrop-saturate-150',
+  /** Kartu kaca dengan padding baku — tepi emas. */
   kartuIsi:
-    'rounded-kartu border border-white/70 bg-permukaan-kartu p-4 shadow-kartu backdrop-blur-xl backdrop-saturate-150',
+    'rounded-kartu border border-emas-300/60 bg-permukaan-kartu p-4 shadow-kartu backdrop-blur-xl backdrop-saturate-150',
   /** Blok tenang di dalam kartu — baris item, kotak perhitungan. */
   blok: 'rounded-kontrol bg-permukaan-halus px-3 py-2 ring-1 ring-inset ring-white/50',
   /** Kondisi kosong ("belum ada …"). */
@@ -52,9 +53,9 @@ export const KELAS = {
   keteranganKecil: 'text-xs text-teks-halus',
 
   // ── Tombol ───────────────────────────────────────────────────────────────
-  /** Pil candy glossy: gradasi aksen + kilau putih di tepi atas + cahaya. */
-  tombolUtama: `${TOMBOL_DASAR} ${UKURAN_NORMAL} bg-gradient-to-b from-aksen-500 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-white/30 hover:from-aksen-400 hover:to-aksen-600 disabled:bg-none disabled:bg-netral-300 disabled:text-white disabled:shadow-none disabled:ring-0`,
-  tombolUtamaKecil: `${TOMBOL_DASAR} ${UKURAN_KECIL} bg-gradient-to-b from-aksen-500 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-white/30 hover:from-aksen-400 hover:to-aksen-600 disabled:bg-none disabled:bg-netral-300 disabled:text-white disabled:shadow-none disabled:ring-0`,
+  /** Pil teal gelap berbingkai emas: gradasi aksen + kilau + cahaya (Sesi 20). */
+  tombolUtama: `${TOMBOL_DASAR} ${UKURAN_NORMAL} bg-gradient-to-b from-aksen-700 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-emas-400/70 hover:from-aksen-600 hover:to-aksen-500 disabled:bg-none disabled:bg-netral-300 disabled:text-white disabled:shadow-none disabled:ring-0`,
+  tombolUtamaKecil: `${TOMBOL_DASAR} ${UKURAN_KECIL} bg-gradient-to-b from-aksen-700 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-emas-400/70 hover:from-aksen-600 hover:to-aksen-500 disabled:bg-none disabled:bg-netral-300 disabled:text-white disabled:shadow-none disabled:ring-0`,
   /** Pil kaca bening untuk aksi pendamping. */
   tombolSekunder: `${TOMBOL_DASAR} ${UKURAN_NORMAL} border border-white/80 bg-permukaan-kartu text-teks-sedang shadow-kartu backdrop-blur-md hover:bg-white/75 hover:text-teks-utama`,
   tombolSekunderKecil: `${TOMBOL_DASAR} ${UKURAN_KECIL} border border-white/80 bg-permukaan-kartu text-teks-sedang shadow-kartu backdrop-blur-md hover:bg-white/75 hover:text-teks-utama`,
@@ -91,7 +92,7 @@ export const KELAS = {
   badgeBahaya:
     'inline-flex items-center rounded-full bg-red-100/70 px-2 py-0.5 text-xs font-medium text-red-600 ring-1 ring-inset ring-red-200/70',
   badgeInfo:
-    'inline-flex items-center rounded-full bg-sky-100/70 px-2 py-0.5 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-200/70',
+    'inline-flex items-center rounded-full bg-emas-100/70 px-2 py-0.5 text-xs font-medium text-emas-700 ring-1 ring-inset ring-emas-200/70',
   badgeUngu:
     'inline-flex items-center rounded-full bg-violet-100/70 px-2 py-0.5 text-xs font-medium text-violet-700 ring-1 ring-inset ring-violet-200/70',
 } as const;
