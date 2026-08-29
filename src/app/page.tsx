@@ -13,6 +13,7 @@ import { TemplateView } from '../tartib/components/TemplateView';
 import { TamuView } from '../tartib/components/TamuView';
 import { PengaturanView } from '../tartib/components/PengaturanView';
 import { EKonfirmasiView } from '../tartib/components/EKonfirmasiView';
+import { SopView } from '../tartib/components/SopView';
 import { pasangUnduhanNative } from './unduhNative';
 import { jalankanSeed } from '../tartib/db/seed';
 import { KELAS } from '../tartib/ui/kelas';
@@ -22,16 +23,20 @@ import { BintangDelapan, PitaIslami } from '../tartib/components/OrnamenIslami';
 // 'tentang' bukan lagi tab tersendiri (sesi 16) — tab "Tentang" dipindah
 // menjadi bagian di dalam tab Pengaturan. Nilainya dipertahankan di tipe ini
 // agar tautan lama `?view=tentang` tetap membuka isi yang sama.
-type View = 'beranda' | 'template' | 'acara' | 'tamu' | 'evaluasi' | 'pengaturan' | 'tentang' | 'konfirmasi';
+// 'sop' (Batch X) = SOP berdiri sendiri: papan amanah semi-paten + SOP kustom.
+type View = 'beranda' | 'template' | 'acara' | 'sop' | 'tamu' | 'evaluasi' | 'pengaturan' | 'tentang' | 'konfirmasi';
 
 // BUG-U2 (Batch U): sebelumnya enam <Link> ditulis satu per satu di dalam
 // `flex` tanpa wrap — di lebar ponsel dua tab terakhir (Evaluasi, Tentang)
 // keluar batas kontainer dan tidak terjangkau. Daftar tab dijadikan data agar
 // satu kelas berlaku untuk semua dan tidak ada tab yang terlewat lagi.
+// Batch X menambah tab ketujuh (SOP) — nav dibuat selalu membungkus agar
+// pelajaran BUG-U2 tidak kambuh di lebar mana pun.
 const TAB: ReadonlyArray<{ view: View; label: string }> = [
   { view: 'beranda', label: 'Beranda' },
   { view: 'template', label: 'Template' },
   { view: 'acara', label: 'Acara' },
+  { view: 'sop', label: 'SOP' },
   { view: 'tamu', label: 'Tamu & Porsi' },
   { view: 'evaluasi', label: 'Evaluasi' },
   { view: 'pengaturan', label: 'Pengaturan' },
@@ -50,6 +55,12 @@ const PINTU_MASUK: ReadonlyArray<{ view: View; judul: string; keterangan: string
     view: 'acara',
     judul: 'Papan Acara',
     keterangan: 'Buat acara dari template, tetapkan PIC, dan pantau progres tugas per fase.',
+  },
+  {
+    view: 'sop',
+    judul: 'SOP & Amanah',
+    keterangan:
+      'Amanah/khidmah santri dan SOP kustom berdiri sendiri — lengkap dengan PIC dan ceklis mudah, siap cetak.',
   },
   {
     view: 'tamu',
@@ -130,7 +141,9 @@ function Konten() {
           aria-label="Navigasi utama"
           className="border-t border-white/60 bg-gradient-to-r from-sky-100/80 via-white/65 to-emerald-100/80 shadow-[0_8px_20px_-12px_rgb(15_23_42/0.15)] backdrop-blur-xl"
         >
-          <div className="mx-auto grid max-w-3xl grid-cols-3 gap-1.5 px-4 py-2.5 sm:flex sm:flex-nowrap sm:justify-center sm:gap-2">
+          {/* Batch X: kini tujuh tab — sm:flex-wrap (bukan nowrap) agar tidak
+              ada tab yang keluar batas di lebar sm sempit (pelajaran BUG-U2). */}
+          <div className="mx-auto grid max-w-3xl grid-cols-3 gap-1.5 px-4 py-2.5 sm:flex sm:flex-wrap sm:justify-center sm:gap-2">
             {TAB.map((t) => (
               <Link
                 key={t.view}
@@ -148,6 +161,7 @@ function Konten() {
       <main className="mx-auto max-w-3xl px-4 pb-10 pt-6">
         {view === 'template' && <TemplateView />}
       {view === 'acara' && <AcaraView />}
+      {view === 'sop' && <SopView />}
       {view === 'tamu' && <TamuView />}
       {view === 'evaluasi' && <EvaluasiView />}
       {(view === 'pengaturan' || view === 'tentang') && (
