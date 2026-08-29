@@ -129,3 +129,28 @@ export interface Evaluasi {
   usulan: string;
   sudahDipromosikan: boolean; // A-03: promosi evaluasi membuat versi template baru
 }
+
+// SOP berdiri sendiri (Batch X): daftar tugas/amanah yang TIDAK terikat acara
+// dan fase H-offset. Dua pemakaian dalam satu model:
+//  - papan baku semi-paten (amanah & khidmah santri — struktur relatif tetap,
+//    isi/PIC boleh berubah), dan
+//  - SOP kustom buatan pengguna.
+export interface Sop {
+  id: string;
+  judul: string;
+  catatan: string;
+  baku: boolean; // true = papan baku dari seed (semi-paten, tidak dapat dihapus)
+  urutan: number;
+  dibuatPada: string; // ISO
+}
+
+export interface SopItem {
+  id: string;
+  sopId: string;
+  judul: string;
+  picNama: string; // penanggung jawab amanah/tugas — boleh kosong
+  catatan: string;
+  selesai: boolean;
+  selesaiPada?: string; // ISO, terisi saat dicentang, hilang saat diuncentang
+  urutan: number;
+}

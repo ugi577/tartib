@@ -195,6 +195,34 @@ export const TEMPLATE_PANDUAN: {
   ],
 };
 
+// Papan baku SEMI-PATEN (Batch X, arahan Ahmed: "menu SOP untuk hal bersifat
+// semi paten, misal SOP daftar tugas/amanah/khidmah santri dan PICnya yg
+// mudah ceklist"): struktur amanah relatif tetap, nama PIC boleh berganti
+// kapan saja, dan tiap item mudah diceklis di tab SOP. Idempoten per judul
+// (pola TEMPLATE_PANDUAN) supaya muncul juga pada data yang sudah ada.
+export const SOP_AMANAH_BAKU: {
+  judul: string;
+  catatan: string;
+  items: { judul: string; catatan: string }[];
+} = {
+  judul: 'Amanah & Khidmah Santri',
+  catatan:
+    'Papan amanah semi-paten: isi nama PIC tiap amanah, lalu centang saat tugas berjalan baik / sudah dikerjakan. Amanah boleh ditambah, diubah, atau dihapus sesuai keadaan madrasah.',
+  items: [
+    { judul: 'Imam shalat fardhu', catatan: 'Giliran per pekan' },
+    { judul: 'Muadzin shalat fardhu', catatan: 'Giliran per pekan' },
+    { judul: 'Khatib & imam shalat Jumat', catatan: 'Sesuai jadwal bulanan' },
+    { judul: 'Temanasma (penjaga asrama)', catatan: 'Ketertiban & keamanan asrama' },
+    { judul: 'Piket kebersihan masjid', catatan: '' },
+    { judul: 'Piket kebersihan kamar & lingkungan', catatan: '' },
+    { judul: 'Penjaga gudang & perlengkapan', catatan: 'Catat barang masuk-keluar' },
+    { judul: 'Tutor halaqah tahfidz', catatan: '' },
+    { judul: 'Pengurus koperasi santri', catatan: '' },
+    { judul: 'Petugas pelayanan wudhu & toilet', catatan: '' },
+    { judul: 'Jaga malam (ronda)', catatan: 'Giliran per pekan' },
+  ],
+};
+
 // ===== Fungsi seed (hanya berjalan di browser, butuh IndexedDB) =====
 // Semua fungsi idempotent: tidak menulis apa pun jika tabel sudah terisi.
 
@@ -274,9 +302,42 @@ export async function seedTemplatePanduan(db: TartibDb = tartibDb): Promise<numb
   });
 }
 
+// Idempoten per TANDA baku (bukan per judul): pengguna boleh mengganti judul
+// papan baku tanpa memicu seed menanam salinan kedua saat halaman dimuat
+// ulang. Papan baku ditandai baku: true — sopService menolak menghapusnya
+// (semi-paten).
+export async function seedSopAmanah(db: TartibDb = tartibDb): Promise<number> {
+  return db.transaction('rw', db.sop, db.sopItem, async () => {
+    const sudahAda = await db.sop.filter((s) => s.baku).first();
+    if (sudahAda) return 0;
+    const sopId = buatId();
+    await db.sop.add({
+      id: sopId,
+      judul: SOP_AMANAH_BAKU.judul,
+      catatan: SOP_AMANAH_BAKU.catatan,
+      baku: true,
+      urutan: 1,
+      dibuatPada: new Date().toISOString(),
+    });
+    await db.sopItem.bulkAdd(
+      SOP_AMANAH_BAKU.items.map((it, i) => ({
+        id: buatId(),
+        sopId,
+        judul: it.judul,
+        picNama: '',
+        catatan: it.catatan,
+        selesai: false,
+        urutan: i + 1,
+      })),
+    );
+    return SOP_AMANAH_BAKU.items.length;
+  });
+}
+
 export async function jalankanSeed(db: TartibDb = tartibDb): Promise<void> {
   await seedDivisiBaku(db);
   await seedJenisAcara(db);
   await seedTemplateContoh(db);
   await seedTemplatePanduan(db);
+  await seedSopAmanah(db);
 }

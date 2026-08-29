@@ -9,6 +9,8 @@ import type {
   KelompokTamu,
   Perlengkapan,
   Rsvp,
+  Sop,
+  SopItem,
   Template,
   TemplateItem,
   Tugas,
@@ -33,6 +35,8 @@ export class TartibDb extends Dexie {
   rsvp!: Table<Rsvp, string>;
   perlengkapan!: Table<Perlengkapan, string>;
   evaluasi!: Table<Evaluasi, string>;
+  sop!: Table<Sop, string>;
+  sopItem!: Table<SopItem, string>;
 
   constructor() {
     super('tartib-db');
@@ -84,6 +88,25 @@ export class TartibDb extends Dexie {
       tartib_perlengkapan: 'id, acaraId, divisiId',
       tartib_evaluasi: 'id, acaraId, divisiId',
     });
+    // v4: SOP berdiri sendiri (Batch X) — papan baku amanah & khidmah
+    // (semi-paten) + SOP kustom. `baku` TIDAK diindex: boolean bukan kunci
+    // sah IndexedDB; pemilahan baku/kustom dilakukan filter di memori.
+    this.version(4).stores({
+      tartib_jenisAcara: 'id, nama',
+      tartib_template: 'id, jenisAcaraId, dibuatPada',
+      tartib_fase: 'id, templateId, urutan',
+      tartib_templateItem: 'id, templateId, faseId, divisiId, urutan',
+      tartib_divisi: 'id, urutan',
+      tartib_acara: 'id, jenisAcaraId, templateId, status, dibuatPada',
+      tartib_acaraDivisi: 'id, acaraId, divisiId',
+      tartib_tugas: 'id, acaraId, faseId, divisiId, urutan',
+      tartib_kelompokTamu: 'id, acaraId',
+      tartib_rsvp: 'id, acaraId, kelompokId',
+      tartib_perlengkapan: 'id, acaraId, divisiId',
+      tartib_evaluasi: 'id, acaraId, divisiId',
+      tartib_sop: 'id, urutan, dibuatPada',
+      tartib_sopItem: 'id, sopId, urutan',
+    });
 
     // Dexie hanya mengisi otomatis this[namaStore] bila nama field class
     // sama persis dengan key di stores() (mis. this.tartib_divisi). Karena
@@ -103,6 +126,8 @@ export class TartibDb extends Dexie {
     this.rsvp = this.table('tartib_rsvp');
     this.perlengkapan = this.table('tartib_perlengkapan');
     this.evaluasi = this.table('tartib_evaluasi');
+    this.sop = this.table('tartib_sop');
+    this.sopItem = this.table('tartib_sopItem');
   }
 }
 

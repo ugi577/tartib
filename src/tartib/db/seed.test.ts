@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DIVISI_BAKU, JENIS_ACARA_BAKU, TEMPLATE_CONTOH, TEMPLATE_PANDUAN } from './seed';
+import { DIVISI_BAKU, JENIS_ACARA_BAKU, SOP_AMANAH_BAKU, TEMPLATE_CONTOH, TEMPLATE_PANDUAN } from './seed';
 import { parseRumusQty } from '../lib/rumusQty';
 
 describe('seed divisi baku', () => {
@@ -109,5 +109,26 @@ describe('seed template panduan manual (sesi 15)', () => {
   it('total item template contoh minimal 20', () => {
     const total = TEMPLATE_CONTOH.fase.reduce((acc, f) => acc + f.items.length, 0);
     expect(total).toBeGreaterThanOrEqual(20);
+  });
+});
+
+describe('seed papan amanah baku (Batch X)', () => {
+  it('memiliki judul, catatan, dan minimal 8 amanah', () => {
+    expect(SOP_AMANAH_BAKU.judul.trim()).not.toBe('');
+    expect(SOP_AMANAH_BAKU.catatan.trim()).not.toBe('');
+    expect(SOP_AMANAH_BAKU.items.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('judul amanah unik dan tidak ada yang kosong', () => {
+    const judul = SOP_AMANAH_BAKU.items.map((i) => i.judul.trim());
+    expect(judul.every((j) => j !== ''), 'ada amanah tanpa judul').toBe(true);
+    expect(new Set(judul).size).toBe(judul.length);
+  });
+
+  it('mencakup amanah khidmah inti madrasah', () => {
+    const judul = SOP_AMANAH_BAKU.items.map((i) => i.judul);
+    expect(judul.some((j) => j.toLowerCase().includes('imam'))).toBe(true);
+    expect(judul.some((j) => j.toLowerCase().includes('muadzin'))).toBe(true);
+    expect(judul.some((j) => j.toLowerCase().includes('kebersihan'))).toBe(true);
   });
 });
