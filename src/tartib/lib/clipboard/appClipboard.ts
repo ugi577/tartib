@@ -5,7 +5,6 @@ export type TipeKlip = 'jabatan' | 'sub-tugas' | 'kbm' | 'teks';
 
 export interface ItemKlip {
   tipe: TipeKlip;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   teks: string;
   isCut?: boolean;

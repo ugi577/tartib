@@ -150,11 +150,11 @@ export function SearchModal({ terbuka, onTutup, onPilihHasil }: SearchModalProps
           {kataKunci.trim() === '' ? (
             <div className="py-8 text-center text-xs text-slate-400">
               <p>Mulai ketik untuk mencari di seluruh data aplikasi.</p>
-              <p className="mt-1 text-[11px] text-slate-300">Contoh: "Adrian", "Pompa", "Matematika", "Bendahara"</p>
+              <p className="mt-1 text-[11px] text-slate-300">Contoh: &quot;Adrian&quot;, &quot;Pompa&quot;, &quot;Matematika&quot;, &quot;Bendahara&quot;</p>
             </div>
           ) : hasilCari.length === 0 ? (
             <div className="py-8 text-center text-xs text-slate-400">
-              Tidak ditemukan hasil untuk "{kataKunci}".
+              Tidak ditemukan hasil untuk &quot;{kataKunci}&quot;.
             </div>
           ) : (
             hasilCari.map((item) => (

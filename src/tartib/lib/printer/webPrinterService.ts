@@ -70,7 +70,6 @@ export async function hubungkanPrinterBluetooth(): Promise<PerangkatPrinter> {
     throw new Error('Web Bluetooth tidak didukung di browser ini. Gunakan Chrome/Edge atau gunakan Printer Sistem.');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navBt = (navigator as any).bluetooth;
   const device = await navBt.requestDevice({
     acceptAllDevices: true,
@@ -100,7 +99,6 @@ export async function hubungkanPrinterUsb(): Promise<PerangkatPrinter> {
     throw new Error('WebUSB tidak didukung di browser ini. Gunakan Chrome/Edge atau gunakan Printer Sistem.');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navUsb = (navigator as any).usb;
   const device = await navUsb.requestDevice({
     filters: [], // Tampilkan semua USB device
