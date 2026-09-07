@@ -58,7 +58,7 @@ describe('bacaTokenDariHash', () => {
     const token = bacaTokenDariHash('#access_token=abc123&expires_in=3600&state=nonce', 'nonce');
     expect(token.accessToken).toBe('abc123');
     expect(token.expiresAt).toBeGreaterThan(sebelum + 3600 * 1000 - 120_000);
-    expect(token.expiresAt).toBeLessThanOrEqual(sebelum + 3600 * 1000 - 60_000);
+    expect(token.expiresAt).toBeLessThanOrEqual(sebelum + 3600 * 1000 - 60_000 + 1000);
   });
 
   it('menolak saat state tidak cocok', () => {

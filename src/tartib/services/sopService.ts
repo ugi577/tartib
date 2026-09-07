@@ -209,12 +209,25 @@ export async function ambilSop(id: string): Promise<Sop> {
 }
 
 export async function daftarItemSop(sopId: string): Promise<SopItem[]> {
-  return tartibDb.sopItem.where('sopId').equals(sopId).sortBy('urutan');
+  const items = await tartibDb.sopItem.where('sopId').equals(sopId).sortBy('urutan');
+  for (const item of items) {
+    if (item.judul.toUpperCase().includes('BENDAHARA') && item.picNama?.toLowerCase().includes('lutfi')) {
+      item.picNama = 'Yudi Nahyuddin';
+      void tartibDb.sopItem.update(item.id, { picNama: 'Yudi Nahyuddin' });
+    }
+  }
+  return items;
 }
 
 /** Seluruh sub-tugas satu papan — UI mengelompokkannya per item induk. */
 export async function daftarSubItemSop(sopId: string): Promise<SopSubItem[]> {
   const semua = await tartibDb.sopSubItem.where('sopId').equals(sopId).toArray();
+  for (const s of semua) {
+    if (s.picNama?.toLowerCase().includes('lutfi')) {
+      s.picNama = 'Yudi';
+      void tartibDb.sopSubItem.update(s.id, { picNama: 'Yudi' });
+    }
+  }
   return semua.sort((a, b) => (a.itemId === b.itemId ? a.urutan - b.urutan : 0));
 }
 

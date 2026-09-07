@@ -112,33 +112,40 @@ describe('seed template panduan manual (sesi 15)', () => {
   });
 });
 
-describe('seed papan amanah baku (Batch X)', () => {
-  it('memiliki judul, catatan, dan minimal 8 amanah', () => {
+describe('seed papan amanah baku (Batch Z - Struktur PIC Amanah)', () => {
+  it('memiliki judul, catatan, dan minimal 8 jabatan', () => {
     expect(SOP_AMANAH_BAKU.judul.trim()).not.toBe('');
     expect(SOP_AMANAH_BAKU.catatan.trim()).not.toBe('');
     expect(SOP_AMANAH_BAKU.items.length).toBeGreaterThanOrEqual(8);
   });
 
-  it('judul amanah unik dan tidak ada yang kosong', () => {
+  it('judul jabatan unik dan tidak ada yang kosong', () => {
     const judul = SOP_AMANAH_BAKU.items.map((i) => i.judul.trim());
-    expect(judul.every((j) => j !== ''), 'ada amanah tanpa judul').toBe(true);
+    expect(judul.every((j) => j !== ''), 'ada jabatan tanpa judul').toBe(true);
     expect(new Set(judul).size).toBe(judul.length);
   });
 
-  it('mencakup amanah khidmah inti madrasah', () => {
+  it('mencakup struktur inti: mudir, ketua, bendahara, sekretaris, media', () => {
     const judul = SOP_AMANAH_BAKU.items.map((i) => i.judul);
-    expect(judul.some((j) => j.toLowerCase().includes('imam'))).toBe(true);
-    expect(judul.some((j) => j.toLowerCase().includes('muadzin'))).toBe(true);
-    expect(judul.some((j) => j.toLowerCase().includes('kebersihan'))).toBe(true);
+    expect(judul).toContain('MUDIR');
+    expect(judul).toContain('KETUA');
+    expect(judul).toContain('BENDAHARA');
+    expect(judul).toContain('SEKRETARIS');
+    expect(judul).toContain('MEDIA');
   });
 
-  it('tiap amanah membawa kategori rutin (Batch Y)', () => {
+  it('tiap jabatan membawa tingkat tier (Pimpinan, Pengurus Inti, atau Divisi)', () => {
     for (const it of SOP_AMANAH_BAKU.items) {
-      expect(it.rutin.trim(), `rutin "${it.judul}" kosong`).not.toBe('');
+      expect(it.rutin.trim(), `tingkat tier "${it.judul}" kosong`).not.toBe('');
     }
     const rutin = SOP_AMANAH_BAKU.items.map((i) => i.rutin);
-    expect(rutin).toContain('Harian');
-    expect(rutin).toContain('Mingguan');
-    expect(rutin).toContain('Insidental');
+    expect(rutin).toContain('Pimpinan');
+    expect(rutin).toContain('Pengurus Inti');
+    expect(rutin).toContain('Divisi');
+  });
+
+  it('membawa sub-tugas detail di bawah divisi', () => {
+    const totalSub = SOP_AMANAH_BAKU.items.reduce((acc, it) => acc + (it.sub?.length ?? 0), 0);
+    expect(totalSub).toBeGreaterThanOrEqual(10);
   });
 });

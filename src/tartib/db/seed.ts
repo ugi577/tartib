@@ -203,23 +203,128 @@ export const TEMPLATE_PANDUAN: {
 export const SOP_AMANAH_BAKU: {
   judul: string;
   catatan: string;
-  items: { judul: string; catatan: string; rutin: string }[];
+  items: {
+    judul: string;
+    picNama?: string;
+    catatan: string;
+    rutin: string;
+    sub?: { judul: string; picNama?: string; catatan?: string }[];
+  }[];
 } = {
-  judul: 'Amanah & Khidmah Santri',
+  judul: 'Struktur PIC Amanah',
   catatan:
-    'Papan amanah semi-paten: isi nama PIC tiap amanah, lalu centang saat tugas berjalan baik / sudah dikerjakan. Amanah boleh ditambah, diubah, atau dihapus sesuai keadaan madrasah.',
+    'Struktur organisasi santri — jabatan dan penanggung jawab amanah. Klik jabatan untuk melihat daftar tugas, tambah/ubah jabatan dan tugas sesuai kebutuhan.',
   items: [
-    { judul: 'Imam shalat fardhu', catatan: 'Giliran per pekan', rutin: 'Harian' },
-    { judul: 'Muadzin shalat fardhu', catatan: 'Giliran per pekan', rutin: 'Harian' },
-    { judul: 'Khatib & imam shalat Jumat', catatan: 'Sesuai jadwal bulanan', rutin: 'Mingguan' },
-    { judul: 'Temanasma (penjaga asrama)', catatan: 'Ketertiban & keamanan asrama', rutin: 'Harian' },
-    { judul: 'Piket kebersihan masjid', catatan: '', rutin: 'Harian' },
-    { judul: 'Piket kebersihan kamar & lingkungan', catatan: '', rutin: 'Harian' },
-    { judul: 'Penjaga gudang & perlengkapan', catatan: 'Catat barang masuk-keluar', rutin: 'Insidental' },
-    { judul: 'Tutor halaqah tahfidz', catatan: '', rutin: 'Harian' },
-    { judul: 'Pengurus koperasi santri', catatan: 'Buku kas dicek tiap akhir bulan', rutin: 'Harian' },
-    { judul: 'Petugas pelayanan wudhu & toilet', catatan: '', rutin: 'Harian' },
-    { judul: 'Jaga malam (ronda)', catatan: 'Giliran per pekan', rutin: 'Mingguan' },
+    // Pimpinan
+    { judul: 'MUDIR', picNama: 'Pimpinan Pondok', catatan: '🕌', rutin: 'Pimpinan' },
+    // Pengurus Inti
+    { judul: 'HUMAS/SOSIAL', picNama: 'Habib Abdillah Al At thos', catatan: '🤝', rutin: 'Pengurus Inti' },
+    {
+      judul: 'KETUA',
+      picNama: 'Adrian',
+      catatan: '👑',
+      rutin: 'Pengurus Inti',
+      sub: [
+        { judul: 'Pompa Sungai', picNama: 'Adrian' },
+        { judul: 'Hp. Pondok', picNama: 'Adrian' },
+      ],
+    },
+    { judul: 'KORDINATOR MUSYRIF', picNama: 'ust Juswandi', catatan: '👥', rutin: 'Pengurus Inti' },
+    {
+      judul: 'LOGISTIK MAHAD',
+      picNama: 'Yudi Nahyuddin',
+      catatan: '📦',
+      rutin: 'Pengurus Inti',
+      sub: [
+        { judul: 'Kunci Motor', picNama: 'Yudhi' },
+        { judul: 'Lemari Tool', picNama: 'Hakim' },
+        { judul: 'Baterai & Charger', picNama: 'Syarif' },
+        { judul: 'Vacuum Cleaner', picNama: 'Zaki' },
+      ],
+    },
+    { judul: 'PEMBINA CIJULANG', picNama: 'ust Dimas Erilangga', catatan: '🏘️', rutin: 'Pengurus Inti' },
+    // Divisi
+    {
+      judul: 'BENDAHARA',
+      picNama: 'Yudi Nahyuddin',
+      catatan: '💰',
+      rutin: 'Divisi',
+      sub: [
+        { judul: 'PJ. Bendahara Kas', picNama: 'Yudi' },
+        { judul: 'Iuran Bulanan / Darda', picNama: 'Said' },
+      ],
+    },
+    {
+      judul: 'SEKRETARIS',
+      picNama: 'Husnil',
+      catatan: '📋',
+      rutin: 'Divisi',
+      sub: [{ judul: 'WC Aula Depan', picNama: 'Husnil' }],
+    },
+    {
+      judul: 'KEAMANAN',
+      picNama: 'Zikri, Fauzan',
+      catatan: '🔒',
+      rutin: 'Divisi',
+      sub: [
+        { judul: 'Kran Air', picNama: 'Farhan' },
+        { judul: 'Sandal', picNama: 'Andri - Farhan Petir' },
+        { judul: 'Matikan Lampu', picNama: 'Fikri - Ardi, Sam-Sam' },
+      ],
+    },
+    {
+      judul: 'BISNIS',
+      picNama: 'Hakim, Affil',
+      catatan: '💼',
+      rutin: 'Divisi',
+      sub: [
+        { judul: 'Nampan & Piring', picNama: 'Hafiz, Affil' },
+        { judul: 'Kerapihan Rak Pampers', picNama: 'Affil, Hafiz' },
+      ],
+    },
+    {
+      judul: 'KEMANAN GHAZA',
+      picNama: 'Syaiful',
+      catatan: '🛡️',
+      rutin: 'Divisi',
+      sub: [{ judul: 'Pompa Kolam', picNama: 'Ghaza' }],
+    },
+    {
+      judul: 'PJ KESEHATAN',
+      picNama: 'Rizky, Aziz',
+      catatan: '🏥',
+      rutin: 'Divisi',
+      sub: [{ judul: 'Jemuran Jatuh', picNama: 'Hadi - Aziz' }],
+    },
+    {
+      judul: 'PJ MEMBANGUNKAN',
+      picNama: 'Ardi, Said',
+      catatan: '⏰',
+      rutin: 'Divisi',
+      sub: [
+        { judul: 'Membangunkan Santri', picNama: 'Ardi, Said' },
+        { judul: 'Gazebo', picNama: 'Ardi' },
+        { judul: 'Aula', picNama: 'Ardi' },
+        { judul: 'Dapur', picNama: 'Ardi, Rishi A.' },
+        { judul: 'Ingatkan Jumat', picNama: 'Said, Hafiz' },
+        { judul: 'Alat Kebersihan', picNama: 'Said Syarif' },
+      ],
+    },
+    {
+      judul: 'MEDIA',
+      picNama: 'Fahmi, Abdul Hadi',
+      catatan: '📷',
+      rutin: 'Divisi',
+      sub: [
+        { judul: 'Hp. Media', picNama: 'Fahmi' },
+        { judul: 'Hadroh', picNama: 'Luthfi Maskur' },
+        { judul: 'Motor Ustadz', picNama: 'Hafizh, Aqi' },
+        { judul: 'Jendela & Lap Frame', picNama: 'Affan R.' },
+        { judul: 'Torrent Air', picNama: 'Azkhtar' },
+        { judul: 'Meja Majlis', picNama: 'Maher' },
+        { judul: 'Catat Lampu Rusak', picNama: 'Abdurrahman' },
+      ],
+    },
   ],
 };
 
@@ -307,7 +412,7 @@ export async function seedTemplatePanduan(db: TartibDb = tartibDb): Promise<numb
 // ulang. Papan baku ditandai baku: true — sopService menolak menghapusnya
 // (semi-paten).
 export async function seedSopAmanah(db: TartibDb = tartibDb): Promise<number> {
-  return db.transaction('rw', db.sop, db.sopItem, async () => {
+  return db.transaction('rw', db.sop, db.sopItem, db.sopSubItem, async () => {
     const sudahAda = await db.sop.filter((s) => s.baku).first();
     if (sudahAda) return 0;
     const sopId = buatId();
@@ -319,19 +424,39 @@ export async function seedSopAmanah(db: TartibDb = tartibDb): Promise<number> {
       urutan: 1,
       dibuatPada: new Date().toISOString(),
     });
-    await db.sopItem.bulkAdd(
-      SOP_AMANAH_BAKU.items.map((it, i) => ({
-        id: buatId(),
+
+    let totalItems = 0;
+    for (let i = 0; i < SOP_AMANAH_BAKU.items.length; i++) {
+      const it = SOP_AMANAH_BAKU.items[i];
+      const itemId = buatId();
+      await db.sopItem.add({
+        id: itemId,
         sopId,
         judul: it.judul,
-        picNama: '',
+        picNama: it.picNama ?? '',
         catatan: it.catatan,
         rutin: it.rutin,
         selesai: false,
         urutan: i + 1,
-      })),
-    );
-    return SOP_AMANAH_BAKU.items.length;
+      });
+      totalItems++;
+
+      if (it.sub && it.sub.length > 0) {
+        await db.sopSubItem.bulkAdd(
+          it.sub.map((s, j) => ({
+            id: buatId(),
+            sopId,
+            itemId,
+            judul: s.judul,
+            picNama: s.picNama ?? '',
+            catatan: s.catatan ?? '',
+            selesai: false,
+            urutan: j + 1,
+          })),
+        );
+      }
+    }
+    return totalItems;
   });
 }
 

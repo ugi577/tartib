@@ -34,19 +34,84 @@
   }
 }
 
-/* Batch F: dokumen cetak dibakukan ke kertas A4 dengan tepi aman agar
-   tidak ada teks menembus batas kertas (Gate F). */
+/* Dokumen cetak presisi: A4, F4 / Folio, dan Thermal roll */
 @media print {
   @page {
-    size: A4;
-    margin: 14mm;
+    size: auto;
+    margin: 10mm;
   }
 
-  /* Kertas selalu putih walau layar memakai latar krem (Batch U); Sesi 20
-     menambahkan background-image: none agar glow/gradasi kanvas tidak ikut
-     tercetak ke kertas (bg-white tidak menghapus gambar latar). */
+  body[data-kertas="a4"][data-orientasi="portrait"] {
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+  }
+
+  body[data-kertas="a4"][data-orientasi="landscape"] {
+    @page {
+      size: A4 landscape;
+      margin: 10mm;
+    }
+  }
+
+  body[data-kertas="f4"][data-orientasi="portrait"] {
+    @page {
+      size: 215mm 330mm portrait;
+      margin: 10mm;
+    }
+  }
+
+  body[data-kertas="f4"][data-orientasi="landscape"] {
+    @page {
+      size: 330mm 215mm landscape;
+      margin: 10mm;
+    }
+  }
+
+  body[data-kertas="thermal"] {
+    @page {
+      size: 80mm auto;
+      margin: 2mm;
+    }
+  }
+
+  /* Kertas selalu putih, hilangkan ornamen layar dan bayangan */
   body {
-    @apply bg-white;
-    background-image: none;
+    @apply bg-white text-black;
+    background-image: none !important;
+    background-color: #ffffff !important;
+  }
+
+  #print-ready-sheet {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: none !important;
+  }
+}
+
+/* ── Floating nav capsule (Batch Z, Instagram-style) ────────────────────── */
+.nav-capsule {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s ease;
+  will-change: transform, opacity;
+  transform-origin: bottom center;
+}
+
+.nav-capsule.shrunk {
+  transform: scale(0.82) translateY(6px);
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-capsule {
+    transition: none !important;
+  }
+  .nav-capsule.shrunk {
+    transform: none;
+    opacity: 1;
   }
 }

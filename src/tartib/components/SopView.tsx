@@ -29,6 +29,10 @@ import { standaloneHost } from '../host/standaloneHost';
 import { KELAS } from '../ui/kelas';
 import { AppDialog, FormDialog, KonfirmasiDialog } from './AppDialog';
 import { KopCetak } from './KopCetak';
+import { ContextMenu, type ItemMenuKlikKanan } from './ContextMenu';
+import { salinItem, potongItem, ambilKlipAktif, bersihkanKlip } from '../lib/clipboard/appClipboard';
+import { ambilIkonJabatan, ambilIkonTugas, saranIkonCepat } from '../lib/ikonKontekstual';
+import { PemilihIkonManual } from './PemilihIkonManual';
 import type { Sop, SopItem, SopSubItem } from '../types';
 
 function pesanError(e: unknown): string {
@@ -86,10 +90,40 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
   const [cetakAktif, setCetakAktif] = useState(false);
   const [ukuranKertas, setUkuranKertas] = useState<UkuranKertas>('a4');
   const [sibukEkspor, setSibukEkspor] = useState(false);
+  const [menuKlikKanan, setMenuKlikKanan] = useState<{
+    x: number;
+    y: number;
+    judul?: string;
+    items: ItemMenuKlikKanan[];
+  } | null>(null);
 
   const muat = useCallback(async () => {
     try {
       const [it, sub] = await Promise.all([sopSvc.daftarItemSop(sop.id), sopSvc.daftarSubItemSop(sop.id)]);
+
+      // Auto-sinkronisasi PIC Bendahara lama ke Yudi Nahyuddin jika masih ada data lama di IndexedDB
+      for (const item of it) {
+        if (item.judul.toUpperCase().includes('BENDAHARA') && item.picNama?.toLowerCase().includes('lutfi')) {
+          item.picNama = 'Yudi Nahyuddin';
+          void sopSvc.ubahItemSop(item.id, {
+            judul: item.judul,
+            picNama: 'Yudi Nahyuddin',
+            catatan: item.catatan,
+            rutin: item.rutin,
+          });
+        }
+      }
+      for (const s of sub) {
+        if (s.picNama?.toLowerCase().includes('lutfi')) {
+          s.picNama = 'Yudi';
+          void sopSvc.ubahSubItemSop(s.id, {
+            judul: s.judul,
+            picNama: 'Yudi',
+            catatan: s.catatan,
+          });
+        }
+      }
+
       setItems(it);
       setSubItems(sub);
       setError(null);
@@ -214,6 +248,240 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
     } catch (e) {
       setError(pesanError(e));
     }
+  }
+
+  function handleContextMenuListItem(e: React.MouseEvent, it: SopItem) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const klip = ambilKlipAktif();
+    const subs = subByItem.get(it.id) ?? [];
+
+    const menuItems: ItemMenuKlikKanan[] = [
+      {
+        label: 'Salin Item',
+        ikon: '📋',
+        shortcut: 'Ctrl+C',
+        onClick: () => {
+          salinItem('jabatan', { ...it, subItems: subs }, `${it.judul} (PIC: ${it.picNama || '-'})`, it.id);
+        },
+      },
+      {
+        label: 'Duplikat Item',
+        ikon: '📑',
+        shortcut: 'Ctrl+D',
+        onClick: async () => {
+          try {
+            const baru = await sopSvc.tambahItemSop(sop.id, {
+              judul: `${it.judul} (Salinan)`,
+              picNama: it.picNama || '',
+              catatan: it.catatan || '',
+              rutin: it.rutin || '',
+            });
+            if (subs.length > 0) {
+              for (const s of subs) {
+                await sopSvc.tambahSubItemSop(baru.id, {
+                  judul: s.judul,
+                  picNama: s.picNama,
+                  catatan: s.catatan,
+                });
+              }
+            }
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      },
+      {
+        label: 'Potong Item',
+        ikon: '✂️',
+        shortcut: 'Ctrl+X',
+        onClick: () => {
+          potongItem('jabatan', { ...it, subItems: subs }, `${it.judul} (PIC: ${it.picNama || '-'})`, it.id);
+        },
+      },
+      {
+        label: klip?.tipe === 'sub-tugas' ? 'Tempel Sub-tugas ke Sini' : 'Tempel',
+        ikon: '📥',
+        shortcut: 'Ctrl+V',
+        disabled: !klip,
+        onClick: async () => {
+          if (!klip) return;
+          try {
+            if (klip.tipe === 'sub-tugas' && klip.data) {
+              await sopSvc.tambahSubItemSop(it.id, {
+                judul: klip.data.judul || 'Sub-tugas Baru',
+                picNama: klip.data.picNama || '',
+                catatan: klip.data.catatan || '',
+              });
+              if (klip.isCut && klip.sumberId) {
+                await sopSvc.hapusSubItemSop(klip.sumberId);
+                bersihkanKlip();
+              }
+            } else if (klip.tipe === 'jabatan' && klip.data) {
+              const baru = await sopSvc.tambahItemSop(sop.id, {
+                judul: `${klip.data.judul} (Salinan)`,
+                picNama: klip.data.picNama || '',
+                catatan: klip.data.catatan || '',
+                rutin: klip.data.rutin || it.rutin || '',
+              });
+              if (Array.isArray(klip.data.subItems)) {
+                for (const s of klip.data.subItems) {
+                  await sopSvc.tambahSubItemSop(baru.id, {
+                    judul: s.judul,
+                    picNama: s.picNama,
+                    catatan: s.catatan,
+                  });
+                }
+              }
+              if (klip.isCut && klip.sumberId) {
+                await sopSvc.hapusItemSop(klip.sumberId);
+                bersihkanKlip();
+              }
+            } else {
+              await sopSvc.tambahSubItemSop(it.id, {
+                judul: klip.teks || 'Sub-tugas Baru',
+                picNama: '',
+                catatan: '',
+              });
+            }
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      },
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: '+ Tambah Sub-tugas',
+        ikon: '➕',
+        onClick: () => {
+          bukaTambahSub(it.id, it.judul);
+        },
+      },
+      {
+        label: 'Ubah Item',
+        ikon: '✏️',
+        onClick: () => {
+          bukaUbah(it);
+        },
+      },
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: 'Hapus Item',
+        ikon: '🗑️',
+        bahaya: true,
+        shortcut: 'Del',
+        onClick: () => {
+          setHapusTarget({ jenis: 'item', id: it.id, judul: it.judul });
+        },
+      },
+    ];
+
+    setMenuKlikKanan({
+      x: e.clientX,
+      y: e.clientY,
+      judul: `Item: ${it.judul}`,
+      items: menuItems,
+    });
+  }
+
+  function handleContextMenuListSub(e: React.MouseEvent, it: SopItem, s: SopSubItem) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const klip = ambilKlipAktif();
+
+    const menuItems: ItemMenuKlikKanan[] = [
+      {
+        label: 'Salin Sub-tugas',
+        ikon: '📋',
+        shortcut: 'Ctrl+C',
+        onClick: () => {
+          salinItem('sub-tugas', s, `${s.judul} (PIC: ${s.picNama || '-'})`, s.id);
+        },
+      },
+      {
+        label: 'Duplikat Sub-tugas',
+        ikon: '📑',
+        shortcut: 'Ctrl+D',
+        onClick: async () => {
+          try {
+            await sopSvc.tambahSubItemSop(it.id, {
+              judul: `${s.judul} (Salinan)`,
+              picNama: s.picNama || '',
+              catatan: s.catatan || '',
+            });
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      },
+      {
+        label: 'Potong Sub-tugas',
+        ikon: '✂️',
+        shortcut: 'Ctrl+X',
+        onClick: () => {
+          potongItem('sub-tugas', s, `${s.judul} (PIC: ${s.picNama || '-'})`, s.id);
+        },
+      },
+      {
+        label: 'Tempel Sub-tugas di Sini',
+        ikon: '📥',
+        shortcut: 'Ctrl+V',
+        disabled: !klip,
+        onClick: async () => {
+          if (!klip) return;
+          try {
+            const judulTugas = klip.data?.judul || klip.teks || 'Sub-tugas Baru';
+            const pic = klip.data?.picNama || '';
+            const catatan = klip.data?.catatan || '';
+            await sopSvc.tambahSubItemSop(it.id, { judul: judulTugas, picNama: pic, catatan });
+            if (klip.isCut && klip.sumberId) {
+              await sopSvc.hapusSubItemSop(klip.sumberId);
+              bersihkanKlip();
+            }
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      },
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: s.selesai ? 'Tandai Belum Selesai' : 'Tandai Selesai (Ceklis)',
+        ikon: s.selesai ? '↩️' : '✅',
+        onClick: () => {
+          void centangSub(s, !s.selesai);
+        },
+      },
+      {
+        label: 'Ubah Sub-tugas',
+        ikon: '✏️',
+        onClick: () => {
+          bukaUbahSub(it.id, it.judul, s);
+        },
+      },
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: 'Hapus Sub-tugas',
+        ikon: '🗑️',
+        bahaya: true,
+        shortcut: 'Del',
+        onClick: () => {
+          setHapusTarget({ jenis: 'sub', id: s.id, judul: s.judul });
+        },
+      },
+    ];
+
+    setMenuKlikKanan({
+      x: e.clientX,
+      y: e.clientY,
+      judul: `Sub-tugas: ${s.judul}`,
+      items: menuItems,
+    });
   }
 
   // Ceklis satu klik — alasan utama menu ini ada (arahan Ahmed Batch X).
@@ -379,7 +647,7 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
             {items.map((it, i) => {
               const subs = subByItem.get(it.id) ?? [];
               return (
-                <li key={it.id} className={KELAS.kartuIsi}>
+                <li key={it.id} className={KELAS.kartuIsi} onContextMenu={(e) => handleContextMenuListItem(e, it)}>
                   {/* flex-wrap: di layar sempit tombol aksi turun ke baris
                       sendiri sehingga badge PIC tidak patah di dalam pil. */}
                   <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
@@ -391,12 +659,17 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
                       className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer"
                     />
                     <div className="min-w-44 flex-1">
-                      <p className={`text-sm font-medium ${it.selesai ? 'text-teks-halus line-through' : 'text-teks-utama'}`}>
-                        {it.judul}
+                      <p className={`text-sm font-medium flex items-center gap-1.5 ${it.selesai ? 'text-teks-halus line-through' : 'text-teks-utama'}`}>
+                        <span className="text-base select-none" aria-hidden="true">
+                          {ambilIkonJabatan(it.judul, it.catatan, it.rutin)}
+                        </span>
+                        <span>{it.judul}</span>
                       </p>
                       <div className="mt-1 flex flex-wrap items-center gap-1.5">
                         <span className={`${it.picNama ? KELAS.badgeInfo : KELAS.badgeNetral} whitespace-nowrap`}>
-                          {it.picNama ? `PIC: ${it.picNama}` : 'PIC: belum diisi'}
+                          {it.picNama
+                            ? `PIC: ${it.judul.toUpperCase().includes('BENDAHARA') && it.picNama.toLowerCase().includes('lutfi') ? 'Yudi Nahyuddin' : it.picNama}`
+                            : 'PIC: belum diisi'}
                         </span>
                         {it.rutin && (
                           <span className={`${KELAS.badgePeringatan} whitespace-nowrap`}>Rutin: {it.rutin}</span>
@@ -443,7 +716,7 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
                   {subs.length > 0 && (
                     <ul className="ml-8 mt-2 space-y-1.5 border-l-2 border-white/70 pl-3">
                       {subs.map((s, j) => (
-                        <li key={s.id} className="flex flex-wrap items-start gap-x-2 gap-y-1">
+                        <li key={s.id} onContextMenu={(e) => handleContextMenuListSub(e, it, s)} className="flex flex-wrap items-start gap-x-2 gap-y-1">
                           <input
                             type="checkbox"
                             checked={s.selesai}
@@ -452,8 +725,11 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
                             className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer"
                           />
                           <div className="min-w-36 flex-1">
-                            <p className={`text-sm ${s.selesai ? 'text-teks-halus line-through' : 'text-teks-kuat'}`}>
-                              {s.judul}
+                            <p className={`text-sm flex items-center gap-1.5 ${s.selesai ? 'text-teks-halus line-through' : 'text-teks-kuat'}`}>
+                              <span className="text-xs select-none opacity-85" aria-hidden="true">
+                                {ambilIkonTugas(s.judul, s.catatan)}
+                              </span>
+                              <span>{s.judul}</span>
                             </p>
                             <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                               <span className={`${s.picNama ? KELAS.badgeInfo : KELAS.badgeNetral} whitespace-nowrap`}>
@@ -544,6 +820,15 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
         onSimpan={() => void simpanItem()}
         error={errorDialog}
       >
+        <PemilihIkonManual
+          judul={formItem.judul}
+          catatan={formItem.catatan}
+          rutin={formItem.rutin}
+          jenis="jabatan"
+          label="Ikon Item / Amanah"
+          onUbahCatatan={(catatanBaru) => setFormItem({ ...formItem, catatan: catatanBaru })}
+        />
+
         <div>
           <label className={KELAS.label} htmlFor="sop-item-judul">
             Amanah / tugas
@@ -610,6 +895,13 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
         {dialogSub && (
           <p className={KELAS.keteranganKecil}>Di bawah item: {dialogSub.induk}</p>
         )}
+        <PemilihIkonManual
+          judul={formSub.judul}
+          catatan={formSub.catatan}
+          jenis="tugas"
+          label="Ikon Sub-Tugas"
+          onUbahCatatan={(catatanBaru) => setFormSub({ ...formSub, catatan: catatanBaru })}
+        />
         <div>
           <label className={KELAS.label} htmlFor="sop-sub-judul">
             Sub-tugas
@@ -669,6 +961,15 @@ function PanelItemSop({ sop, aksiHeader }: { sop: Sop; aksiHeader?: ReactNode })
         onBatal={() => setResetTerbuka(false)}
         onYa={() => void resetCeklis()}
       />
+
+      <ContextMenu
+        x={menuKlikKanan?.x ?? 0}
+        y={menuKlikKanan?.y ?? 0}
+        terbuka={menuKlikKanan !== null}
+        onTutup={() => setMenuKlikKanan(null)}
+        judul={menuKlikKanan?.judul}
+        items={menuKlikKanan?.items ?? []}
+      />
     </>
   );
 }
@@ -679,7 +980,10 @@ function FragmentCetak({ item, subs }: { item: SopItem; subs: SopSubItem[] }) {
     <>
       <tr className="break-inside-avoid">
         <td className="border border-slate-400 px-2 py-1 text-center">☐</td>
-        <td className="border border-slate-400 px-2 py-1 font-medium">{item.judul}</td>
+        <td className="border border-slate-400 px-2 py-1 font-medium">
+          <span className="mr-1.5 inline-block">{ambilIkonJabatan(item.judul, item.catatan, item.rutin)}</span>
+          {item.judul}
+        </td>
         <td className="border border-slate-400 px-2 py-1">{item.picNama}</td>
         <td className="border border-slate-400 px-2 py-1">{item.rutin}</td>
         <td className="border border-slate-400 px-2 py-1">{item.catatan}</td>
@@ -687,12 +991,884 @@ function FragmentCetak({ item, subs }: { item: SopItem; subs: SopSubItem[] }) {
       {subs.map((s) => (
         <tr key={s.id} className="break-inside-avoid">
           <td className="border border-slate-400 px-2 py-1 text-center">☐</td>
-          <td className="border border-slate-400 px-2 py-1">↳ {s.judul}</td>
+          <td className="border border-slate-400 px-2 py-1">
+            ↳ <span className="mr-1 inline-block">{ambilIkonTugas(s.judul, s.catatan)}</span>
+            {s.judul}
+          </td>
           <td className="border border-slate-400 px-2 py-1">{s.picNama}</td>
           <td className="border border-slate-400 px-2 py-1" />
           <td className="border border-slate-400 px-2 py-1">{s.catatan}</td>
         </tr>
       ))}
+    </>
+  );
+}
+
+// ===== Tampilan Bagan Organisasi (PIC Amanah, Batch Z) =====
+// Menampilkan jabatan dalam hierarki visual mirip struktur OSIS santri.
+// Setiap jabatan adalah SopItem, tiap tugas detail di bawahnya SopSubItem.
+// Tier dikendalikan oleh field `rutin`: Pimpinan → Pengurus Inti → Divisi.
+
+function ikonUntuk(judul: string, catatan: string, rutin?: string): string {
+  return ambilIkonJabatan(judul, catatan, rutin);
+}
+
+function BaganOrganisasi({ sop }: { sop: Sop }) {
+  const [items, setItems] = useState<SopItem[]>([]);
+  const [subItems, setSubItems] = useState<SopSubItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [modeTampilan, setModeTampilan] = useState<'bagan' | 'daftar'>('bagan');
+  const [dialogItem, setDialogItem] = useState<{ item?: SopItem } | null>(null);
+  const [formItem, setFormItem] = useState({ judul: '', picNama: '', catatan: '', rutin: '' });
+  const [errorDialog, setErrorDialog] = useState<string | null>(null);
+  const [dialogSub, setDialogSub] = useState<{ itemId: string; induk: string; sub?: SopSubItem } | null>(null);
+  const [formSub, setFormSub] = useState({ judul: '', picNama: '', catatan: '' });
+  const [errorDialogSub, setErrorDialogSub] = useState<string | null>(null);
+  const [hapusTarget, setHapusTarget] = useState<{ jenis: 'item' | 'sub'; id: string; judul: string } | null>(null);
+  const [menuKlikKanan, setMenuKlikKanan] = useState<{
+    x: number;
+    y: number;
+    judul?: string;
+    items: ItemMenuKlikKanan[];
+  } | null>(null);
+
+  const muat = useCallback(async () => {
+    try {
+      const [it, sub] = await Promise.all([sopSvc.daftarItemSop(sop.id), sopSvc.daftarSubItemSop(sop.id)]);
+      for (const item of it) {
+        if (item.judul.toUpperCase().includes('BENDAHARA') && item.picNama?.toLowerCase().includes('lutfi')) {
+          item.picNama = 'Yudi Nahyuddin';
+        }
+      }
+      for (const s of sub) {
+        if (s.picNama?.toLowerCase().includes('lutfi')) {
+          s.picNama = 'Yudi';
+        }
+      }
+      setItems(it);
+      setSubItems(sub);
+      setError(null);
+    } catch (e) { setError(pesanError(e)); }
+  }, [sop.id]);
+
+  useEffect(() => { void muat(); }, [muat]);
+
+  const subByItem = useMemo(() => {
+    const peta = new Map<string, SopSubItem[]>();
+    for (const s of subItems) { const d = peta.get(s.itemId) ?? []; d.push(s); peta.set(s.itemId, d); }
+    peta.forEach((d) => d.sort((a, b) => a.urutan - b.urutan));
+    return peta;
+  }, [subItems]);
+
+  const tiers = useMemo(() => {
+    const g: Record<string, SopItem[]> = {};
+    for (const it of items) { const t = it.rutin || 'Lainnya'; (g[t] ??= []).push(it); }
+    return g;
+  }, [items]);
+
+  const tierOrder = ['Pimpinan', 'Pengurus Inti', 'Divisi', 'Lainnya'];
+  const sortedTiers = tierOrder.filter((t) => tiers[t]?.length);
+
+  const ikhtisar = useMemo(() => {
+    const total = subItems.length;
+    const selesai = subItems.filter((s) => s.selesai).length;
+    const persen = total > 0 ? Math.round((selesai / total) * 100) : 0;
+    return { total, selesai, persen };
+  }, [subItems]);
+
+  function toggleExpand(id: string) {
+    setExpanded((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  }
+
+  function expandSemua() {
+    if (expanded.size === items.length) {
+      setExpanded(new Set());
+    } else {
+      setExpanded(new Set(items.map((it) => it.id)));
+    }
+  }
+
+  async function centangSub(sub: SopSubItem, selesai: boolean) {
+    setSubItems((lama) => lama.map((x) => (x.id === sub.id ? { ...x, selesai } : x)));
+    try {
+      await sopSvc.tandaiCeklisSub(sub.id, selesai);
+      await muat();
+    } catch (e) {
+      setError(pesanError(e));
+      await muat();
+    }
+  }
+
+  function bukaTambah() {
+    setFormItem({ judul: '', picNama: '', catatan: '', rutin: 'Divisi' });
+    setErrorDialog(null);
+    setDialogItem({});
+  }
+
+  function bukaUbah(it: SopItem) {
+    const pic = it.judul.toUpperCase().includes('BENDAHARA') && it.picNama?.toLowerCase().includes('lutfi')
+      ? 'Yudi Nahyuddin'
+      : it.picNama;
+    setFormItem({ judul: it.judul, picNama: pic, catatan: it.catatan, rutin: it.rutin ?? '' });
+    setErrorDialog(null);
+    setDialogItem({ item: it });
+  }
+
+  async function simpanItem() {
+    try {
+      if (dialogItem?.item) await sopSvc.ubahItemSop(dialogItem.item.id, formItem);
+      else await sopSvc.tambahItemSop(sop.id, formItem);
+      setDialogItem(null);
+      await muat();
+    } catch (e) { setErrorDialog(pesanError(e)); }
+  }
+
+  function bukaTambahSub(itemId: string, induk: string) {
+    setFormSub({ judul: '', picNama: '', catatan: '' });
+    setErrorDialogSub(null);
+    setDialogSub({ itemId, induk });
+  }
+
+  function bukaUbahSub(itemId: string, induk: string, sub: SopSubItem) {
+    setFormSub({ judul: sub.judul, picNama: sub.picNama, catatan: sub.catatan });
+    setErrorDialogSub(null);
+    setDialogSub({ itemId, induk, sub });
+  }
+
+  async function simpanSub() {
+    if (!dialogSub) return;
+    try {
+      if (dialogSub.sub) await sopSvc.ubahSubItemSop(dialogSub.sub.id, formSub);
+      else await sopSvc.tambahSubItemSop(dialogSub.itemId, formSub);
+      setDialogSub(null);
+      await muat();
+    } catch (e) { setErrorDialogSub(pesanError(e)); }
+  }
+
+  async function hapusBaris() {
+    if (!hapusTarget) return;
+    try {
+      if (hapusTarget.jenis === 'item') await sopSvc.hapusItemSop(hapusTarget.id);
+      else await sopSvc.hapusSubItemSop(hapusTarget.id);
+      setHapusTarget(null);
+      await muat();
+    } catch (e) { setHapusTarget(null); setError(pesanError(e)); }
+  }
+
+  function handleContextMenuJabatan(e: React.MouseEvent, it: SopItem) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const klip = ambilKlipAktif();
+    const subs = subByItem.get(it.id) ?? [];
+
+    const menuItems: ItemMenuKlikKanan[] = [
+      {
+        label: 'Salin Jabatan',
+        ikon: '📋',
+        shortcut: 'Ctrl+C',
+        onClick: () => {
+          salinItem('jabatan', { ...it, subItems: subs }, `Jabatan: ${it.judul} (PIC: ${it.picNama || '-'})`, it.id);
+        },
+      },
+      {
+        label: 'Duplikat Jabatan',
+        ikon: '📑',
+        shortcut: 'Ctrl+D',
+        onClick: async () => {
+          try {
+            const baru = await sopSvc.tambahItemSop(sop.id, {
+              judul: `${it.judul} (Salinan)`,
+              picNama: it.picNama || '',
+              catatan: it.catatan || '',
+              rutin: it.rutin || 'Divisi',
+            });
+            if (subs.length > 0) {
+              for (const s of subs) {
+                await sopSvc.tambahSubItemSop(baru.id, {
+                  judul: s.judul,
+                  picNama: s.picNama,
+                  catatan: s.catatan,
+                });
+              }
+            }
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      },
+      {
+        label: 'Potong Jabatan',
+        ikon: '✂️',
+        shortcut: 'Ctrl+X',
+        onClick: () => {
+          potongItem('jabatan', { ...it, subItems: subs }, `Jabatan: ${it.judul} (PIC: ${it.picNama || '-'})`, it.id);
+        },
+      },
+      {
+        label: klip?.tipe === 'sub-tugas' ? 'Tempel Tugas ke Sini' : 'Tempel (Paste)',
+        ikon: '📥',
+        shortcut: 'Ctrl+V',
+        disabled: !klip,
+        onClick: async () => {
+          if (!klip) return;
+          try {
+            if (klip.tipe === 'sub-tugas' && klip.data) {
+              await sopSvc.tambahSubItemSop(it.id, {
+                judul: klip.data.judul || 'Tugas Baru',
+                picNama: klip.data.picNama || '',
+                catatan: klip.data.catatan || '',
+              });
+              if (klip.isCut && klip.sumberId) {
+                await sopSvc.hapusSubItemSop(klip.sumberId);
+                bersihkanKlip();
+              }
+            } else if (klip.tipe === 'jabatan' && klip.data) {
+              const baru = await sopSvc.tambahItemSop(sop.id, {
+                judul: `${klip.data.judul} (Salinan)`,
+                picNama: klip.data.picNama || '',
+                catatan: klip.data.catatan || '',
+                rutin: klip.data.rutin || it.rutin || 'Divisi',
+              });
+              if (Array.isArray(klip.data.subItems)) {
+                for (const s of klip.data.subItems) {
+                  await sopSvc.tambahSubItemSop(baru.id, {
+                    judul: s.judul,
+                    picNama: s.picNama,
+                    catatan: s.catatan,
+                  });
+                }
+              }
+              if (klip.isCut && klip.sumberId) {
+                await sopSvc.hapusItemSop(klip.sumberId);
+                bersihkanKlip();
+              }
+            } else {
+              await sopSvc.tambahSubItemSop(it.id, {
+                judul: klip.teks || 'Tugas Baru',
+                picNama: '',
+                catatan: '',
+              });
+            }
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      },
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: '+ Tambah Tugas Detail',
+        ikon: '➕',
+        onClick: () => {
+          bukaTambahSub(it.id, it.judul);
+        },
+      },
+      {
+        label: 'Ubah Jabatan',
+        ikon: '✏️',
+        onClick: () => {
+          bukaUbah(it);
+        },
+      },
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: 'Hapus Jabatan',
+        ikon: '🗑️',
+        bahaya: true,
+        shortcut: 'Del',
+        onClick: () => {
+          setHapusTarget({ jenis: 'item', id: it.id, judul: it.judul });
+        },
+      },
+    ];
+
+    setMenuKlikKanan({
+      x: e.clientX,
+      y: e.clientY,
+      judul: `Jabatan: ${it.judul}`,
+      items: menuItems,
+    });
+  }
+
+  function handleContextMenuSub(e: React.MouseEvent, it: SopItem, s: SopSubItem) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const klip = ambilKlipAktif();
+
+    const menuItems: ItemMenuKlikKanan[] = [
+      {
+        label: 'Salin Tugas',
+        ikon: '📋',
+        shortcut: 'Ctrl+C',
+        onClick: () => {
+          salinItem('sub-tugas', s, `Tugas: ${s.judul} (PIC: ${s.picNama || '-'})`, s.id);
+        },
+      },
+      {
+        label: 'Duplikat Tugas',
+        ikon: '📑',
+        shortcut: 'Ctrl+D',
+        onClick: async () => {
+          try {
+            await sopSvc.tambahSubItemSop(it.id, {
+              judul: `${s.judul} (Salinan)`,
+              picNama: s.picNama || '',
+              catatan: s.catatan || '',
+            });
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      },
+      {
+        label: 'Potong Tugas',
+        ikon: '✂️',
+        shortcut: 'Ctrl+X',
+        onClick: () => {
+          potongItem('sub-tugas', s, `Tugas: ${s.judul} (PIC: ${s.picNama || '-'})`, s.id);
+        },
+      },
+      {
+        label: 'Tempel Tugas di Sini',
+        ikon: '📥',
+        shortcut: 'Ctrl+V',
+        disabled: !klip,
+        onClick: async () => {
+          if (!klip) return;
+          try {
+            const judulTugas = klip.data?.judul || klip.teks || 'Tugas Baru';
+            const pic = klip.data?.picNama || '';
+            const catatan = klip.data?.catatan || '';
+            await sopSvc.tambahSubItemSop(it.id, { judul: judulTugas, picNama: pic, catatan });
+            if (klip.isCut && klip.sumberId) {
+              await sopSvc.hapusSubItemSop(klip.sumberId);
+              bersihkanKlip();
+            }
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      },
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: s.selesai ? 'Tandai Belum Selesai' : 'Tandai Selesai (Ceklis)',
+        ikon: s.selesai ? '↩️' : '✅',
+        onClick: () => {
+          void centangSub(s, !s.selesai);
+        },
+      },
+      {
+        label: 'Ubah Tugas',
+        ikon: '✏️',
+        onClick: () => {
+          bukaUbahSub(it.id, it.judul, s);
+        },
+      },
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: 'Hapus Tugas',
+        ikon: '🗑️',
+        bahaya: true,
+        shortcut: 'Del',
+        onClick: () => {
+          setHapusTarget({ jenis: 'sub', id: s.id, judul: s.judul });
+        },
+      },
+    ];
+
+    setMenuKlikKanan({
+      x: e.clientX,
+      y: e.clientY,
+      judul: `Tugas: ${s.judul}`,
+      items: menuItems,
+    });
+  }
+
+  function handleContextMenuArea(e: React.MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (target.closest('input') || target.closest('textarea') || target.closest('button')) {
+      return;
+    }
+    e.preventDefault();
+    const klip = ambilKlipAktif();
+
+    const menuItems: ItemMenuKlikKanan[] = [
+      {
+        label: '+ Tambah Jabatan Baru',
+        ikon: '➕',
+        onClick: () => {
+          bukaTambah();
+        },
+      },
+    ];
+
+    if (klip) {
+      menuItems.push({
+        label: klip.tipe === 'jabatan' ? 'Tempel Jabatan (Paste)' : 'Tempel sebagai Jabatan Baru',
+        ikon: '📥',
+        shortcut: 'Ctrl+V',
+        onClick: async () => {
+          try {
+            if (klip.tipe === 'jabatan' && klip.data) {
+              const baru = await sopSvc.tambahItemSop(sop.id, {
+                judul: klip.data.judul ? `${klip.data.judul} (Salinan)` : 'Jabatan Baru',
+                picNama: klip.data.picNama || '',
+                catatan: klip.data.catatan || '',
+                rutin: klip.data.rutin || 'Divisi',
+              });
+              if (Array.isArray(klip.data.subItems)) {
+                for (const s of klip.data.subItems) {
+                  await sopSvc.tambahSubItemSop(baru.id, {
+                    judul: s.judul,
+                    picNama: s.picNama,
+                    catatan: s.catatan,
+                  });
+                }
+              }
+              if (klip.isCut && klip.sumberId) {
+                await sopSvc.hapusItemSop(klip.sumberId);
+                bersihkanKlip();
+              }
+            } else {
+              const judul = klip.data?.judul || klip.teks || 'Jabatan Baru';
+              await sopSvc.tambahItemSop(sop.id, {
+                judul,
+                picNama: klip.data?.picNama || '',
+                catatan: klip.data?.catatan || '',
+                rutin: 'Divisi',
+              });
+            }
+            await muat();
+          } catch (err) {
+            setError(pesanError(err));
+          }
+        },
+      });
+    }
+
+    menuItems.push(
+      { pemisah: true, label: '', onClick: () => {} },
+      {
+        label: expanded.size === items.length ? 'Tutup Semua Tugas' : 'Buka Semua Tugas',
+        ikon: '👁️',
+        onClick: () => {
+          expandSemua();
+        },
+      }
+    );
+
+    setMenuKlikKanan({
+      x: e.clientX,
+      y: e.clientY,
+      judul: 'Papan Bagan Organisasi',
+      items: menuItems,
+    });
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className={KELAS.kosong}>
+        <p>Belum ada jabatan di struktur ini.</p>
+        <button onClick={bukaTambah} className={`mt-3 ${KELAS.tombolUtama}`}>Tambah Jabatan</button>
+      </div>
+    );
+  }
+
+  if (modeTampilan === 'daftar') {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setModeTampilan('bagan')}
+            className={KELAS.tombolSekunderKecil}
+          >
+            ← Kembali ke Bagan Visual
+          </button>
+        </div>
+        <PanelItemSop sop={sop} />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="print:hidden space-y-6" onContextMenu={handleContextMenuArea}>
+        {/* Bilah Ringkasan & Aksi Atas */}
+        <div className={`${KELAS.kartuIsi} flex flex-wrap items-center justify-between gap-3`}>
+          <div>
+            <p className={KELAS.judulKartu}>{sop.judul}</p>
+            <p className={KELAS.keteranganKecil}>
+              {items.length} jabatan · {subItems.length} tugas detail · {ikhtisar.selesai}/{ikhtisar.total} tugas selesai ({ikhtisar.persen}%)
+            </p>
+            {subItems.length > 0 && (
+              <div className="mt-2 h-1.5 w-48 overflow-hidden rounded-full bg-netral-200 sm:w-64">
+                <div
+                  className="h-full rounded-full bg-aksen-500 transition-all duration-300"
+                  style={{ width: `${ikhtisar.persen}%` }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={expandSemua}
+              className={KELAS.tombolHalus}
+            >
+              {expanded.size === items.length ? 'Tutup Semua' : 'Buka Semua Tugas'}
+            </button>
+            <button
+              onClick={() => setModeTampilan('daftar')}
+              className={KELAS.tombolSekunderKecil}
+            >
+              Mode Daftar / Cetak
+            </button>
+            <button onClick={bukaTambah} className={KELAS.tombolUtamaKecil}>
+              + Tambah Jabatan
+            </button>
+          </div>
+        </div>
+
+        {error && <p className={KELAS.error}>{error}</p>}
+
+        {/* Bagan organisasi hierarki visual */}
+        <div className="space-y-6">
+          {sortedTiers.map((tierName, tierIdx) => {
+            const tierItems = tiers[tierName]!;
+            const isPimpinan = tierName === 'Pimpinan';
+            const isPengurus = tierName === 'Pengurus Inti';
+
+            return (
+              <div key={tierName} className="relative space-y-3">
+                {/* Garis penghubung hierarki antar tingkat */}
+                {tierIdx > 0 && (
+                  <div className="flex flex-col items-center">
+                    <div className="h-6 w-0.5 bg-gradient-to-b from-emas-400/80 to-aksen-400/80" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-aksen-500" />
+                  </div>
+                )}
+
+                {/* Header label tingkat */}
+                <div className="flex items-center justify-center gap-2">
+                  <span className="h-px w-8 bg-emas-300/40" />
+                  <span className="text-[11px] font-semibold uppercase tracking-widest text-teks-halus">
+                    {tierName}
+                  </span>
+                  <span className="h-px w-8 bg-emas-300/40" />
+                </div>
+
+                {/* Grid kartu jabatan */}
+                <div
+                  className={`flex flex-wrap justify-center gap-3 ${
+                    isPimpinan
+                      ? ''
+                      : isPengurus
+                        ? 'max-w-2xl mx-auto'
+                        : 'max-w-3xl mx-auto'
+                  }`}
+                >
+                  {tierItems.map((it) => {
+                    const subs = subByItem.get(it.id) ?? [];
+                    const isOpen = expanded.has(it.id);
+                    const ikon = ambilIkonJabatan(it.judul, it.catatan, it.rutin);
+                    const subsSelesai = subs.filter((s) => s.selesai).length;
+
+                    return (
+                      <div
+                        key={it.id}
+                        className={`transition-all duration-200 ${
+                          isPimpinan
+                            ? 'w-full max-w-xs'
+                            : 'w-[calc(50%-0.375rem)] sm:w-44'
+                        }`}
+                      >
+                        {/* Kartu Jabatan */}
+                        <div
+                          onContextMenu={(e) => handleContextMenuJabatan(e, it)}
+                          className={`group relative overflow-hidden rounded-kartu border text-center transition-all duration-200 hover:-translate-y-0.5 ${
+                            isPimpinan
+                              ? 'border-emas-400/60 bg-gradient-to-b from-aksen-800 via-aksen-700 to-aksen-600 p-4 text-white shadow-glowAksen'
+                              : 'border-emas-300/60 bg-permukaan-kartu p-3 shadow-kartu backdrop-blur-xl hover:border-emas-400/80 hover:shadow-angkat'
+                          }`}
+                        >
+                          {/* Ikon & Judul Jabatan */}
+                          <div
+                            onClick={() => toggleExpand(it.id)}
+                            className="cursor-pointer select-none"
+                          >
+                            <span
+                              className={`block ${isPimpinan ? 'text-3xl' : 'text-2xl'} transition-transform duration-200 group-hover:scale-110`}
+                              aria-hidden="true"
+                            >
+                              {ikon}
+                            </span>
+                            <p
+                              className={`mt-1 font-bold uppercase tracking-wider ${
+                                isPimpinan ? 'text-sm text-white' : 'text-xs text-teks-utama'
+                              }`}
+                            >
+                              {it.judul}
+                            </p>
+                            {it.picNama && (
+                              <p
+                                className={`mt-0.5 text-xs font-medium ${
+                                  isPimpinan ? 'text-emas-200' : 'text-aksen-700'
+                                }`}
+                              >
+                                {it.judul.toUpperCase().includes('BENDAHARA') && it.picNama.toLowerCase().includes('lutfi')
+                                  ? 'Yudi Nahyuddin'
+                                  : it.picNama}
+                              </p>
+                            )}
+                            {subs.length > 0 && (
+                              <div className="mt-1 flex items-center justify-center gap-1">
+                                <span
+                                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                    isPimpinan
+                                      ? 'bg-white/20 text-white'
+                                      : subsSelesai === subs.length
+                                        ? 'bg-aksen-100/80 text-aksen-700 ring-1 ring-aksen-300/60'
+                                        : 'bg-white/70 text-teks-sedang ring-1 ring-white/80'
+                                  }`}
+                                >
+                                  {subsSelesai}/{subs.length} tugas {isOpen ? '▲' : '▼'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Tombol aksi cepat Ubah/Hapus jabatan */}
+                          <div className="mt-2 flex items-center justify-center gap-1 border-t border-emas-200/30 pt-1.5 opacity-60 transition-opacity group-hover:opacity-100">
+                            <button
+                              onClick={() => bukaUbah(it)}
+                              className={`text-[10px] ${isPimpinan ? 'text-emas-100 hover:text-white' : 'text-teks-halus hover:text-aksen-600'}`}
+                            >
+                              Ubah
+                            </button>
+                            <span className={isPimpinan ? 'text-white/40' : 'text-teks-redup'}>·</span>
+                            <button
+                              onClick={() => bukaTambahSub(it.id, it.judul)}
+                              className={`text-[10px] font-medium ${isPimpinan ? 'text-emas-200 hover:text-white' : 'text-aksen-700 hover:text-aksen-900'}`}
+                            >
+                              + Tugas
+                            </button>
+                            <span className={isPimpinan ? 'text-white/40' : 'text-teks-redup'}>·</span>
+                            <button
+                              onClick={() => setHapusTarget({ jenis: 'item', id: it.id, judul: it.judul })}
+                              className={`text-[10px] ${isPimpinan ? 'text-red-300 hover:text-red-100' : 'text-teks-halus hover:text-red-500'}`}
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Dropdown / Expanded: Sub-tugas & Detail PIC */}
+                        {isOpen && (
+                          <div className="mt-1.5 space-y-1.5 rounded-kontrol border border-emas-200/60 bg-white/85 p-2.5 shadow-md backdrop-blur-md">
+                            {subs.length === 0 ? (
+                              <p className="py-1 text-center text-[10px] text-teks-halus">
+                                Belum ada rincian tugas.
+                              </p>
+                            ) : (
+                              subs.map((s) => (
+                                <div
+                                  key={s.id}
+                                  onContextMenu={(e) => handleContextMenuSub(e, it, s)}
+                                  className={`flex items-start gap-2 rounded-lg p-1.5 transition-colors ${
+                                    s.selesai ? 'bg-aksen-50/50' : 'bg-white/70 hover:bg-white'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={s.selesai}
+                                    onChange={() => void centangSub(s, !s.selesai)}
+                                    aria-label={`Centang ${s.judul}`}
+                                    className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer accent-aksen-600"
+                                  />
+                                  <div className="min-w-0 flex-1 text-left">
+                                    <p
+                                      className={`text-xs font-medium leading-snug flex items-center gap-1.5 ${
+                                        s.selesai ? 'text-teks-halus line-through' : 'text-teks-utama'
+                                      }`}
+                                    >
+                                      <span className="text-xs shrink-0 select-none opacity-85" aria-hidden="true">
+                                        {ambilIkonTugas(s.judul, s.catatan)}
+                                      </span>
+                                      <span className="min-w-0 flex-1">{s.judul}</span>
+                                    </p>
+                                    {s.picNama && (
+                                      <span className="mt-0.5 inline-block rounded bg-emas-100/70 px-1.5 py-0.2 text-[10px] font-semibold text-emas-800 ring-1 ring-emas-300/40">
+                                        PIC: {s.picNama}
+                                      </span>
+                                    )}
+                                    {s.catatan && (
+                                      <p className="text-[10px] text-teks-halus">{s.catatan}</p>
+                                    )}
+                                  </div>
+                                  <div className="flex shrink-0 items-center gap-0.5">
+                                    <button
+                                      onClick={() => bukaUbahSub(it.id, it.judul, s)}
+                                      className="text-teks-redup hover:text-aksen-600"
+                                      title="Ubah tugas"
+                                    >
+                                      ✎
+                                    </button>
+                                    <button
+                                      onClick={() => setHapusTarget({ jenis: 'sub', id: s.id, judul: s.judul })}
+                                      className="text-teks-redup hover:text-red-500"
+                                      title="Hapus tugas"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                            <button
+                              onClick={() => bukaTambahSub(it.id, it.judul)}
+                              className="mt-1 w-full rounded-full border border-dashed border-emas-300 py-1 text-center text-[10px] font-medium text-aksen-700 transition-colors hover:border-aksen-400 hover:bg-aksen-50/50"
+                            >
+                              + Tambah Tugas Detail
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Dialog tambah/ubah jabatan */}
+      <FormDialog
+        terbuka={dialogItem !== null}
+        judul={dialogItem?.item ? 'Ubah Jabatan' : 'Tambah Jabatan'}
+        onTutup={() => setDialogItem(null)}
+        onSimpan={() => void simpanItem()}
+        error={errorDialog}
+      >
+        <PemilihIkonManual
+          judul={formItem.judul}
+          catatan={formItem.catatan}
+          rutin={formItem.rutin}
+          jenis="jabatan"
+          label="Ikon Jabatan / Posisi"
+          onUbahCatatan={(catatanBaru) => setFormItem({ ...formItem, catatan: catatanBaru })}
+        />
+
+        <div>
+          <label className={KELAS.label} htmlFor="org-judul">Nama jabatan</label>
+          <input
+            id="org-judul"
+            value={formItem.judul}
+            onChange={(e) => setFormItem({ ...formItem, judul: e.target.value })}
+            placeholder="mis. BENDAHARA"
+            className={`mt-1 ${KELAS.input}`}
+          />
+        </div>
+        <div>
+          <label className={KELAS.label} htmlFor="org-pic">Nama PIC</label>
+          <input
+            id="org-pic"
+            value={formItem.picNama}
+            onChange={(e) => setFormItem({ ...formItem, picNama: e.target.value })}
+            placeholder="mis. Yudi Nahyuddin"
+            className={`mt-1 ${KELAS.input}`}
+          />
+        </div>
+        <div>
+          <label className={KELAS.label} htmlFor="org-tier">Tingkat</label>
+          <select
+            id="org-tier"
+            value={formItem.rutin}
+            onChange={(e) => setFormItem({ ...formItem, rutin: e.target.value })}
+            className={`mt-1 ${KELAS.input}`}
+          >
+            <option value="Pimpinan">Pimpinan (paling atas)</option>
+            <option value="Pengurus Inti">Pengurus Inti</option>
+            <option value="Divisi">Divisi</option>
+          </select>
+        </div>
+      </FormDialog>
+
+      {/* Dialog tambah/ubah tugas */}
+      <FormDialog
+        terbuka={dialogSub !== null}
+        judul={dialogSub?.sub ? 'Ubah Tugas' : 'Tambah Tugas'}
+        onTutup={() => setDialogSub(null)}
+        onSimpan={() => void simpanSub()}
+        error={errorDialogSub}
+      >
+        {dialogSub && <p className={KELAS.keteranganKecil}>Di bawah jabatan: {dialogSub.induk}</p>}
+
+        <PemilihIkonManual
+          judul={formSub.judul}
+          catatan={formSub.catatan}
+          jenis="tugas"
+          label="Ikon Tugas / Perlengkapan"
+          onUbahCatatan={(catatanBaru) => setFormSub({ ...formSub, catatan: catatanBaru })}
+        />
+
+        <div>
+          <label className={KELAS.label} htmlFor="org-sub-judul">Deskripsi tugas</label>
+          <input
+            id="org-sub-judul"
+            value={formSub.judul}
+            onChange={(e) => setFormSub({ ...formSub, judul: e.target.value })}
+            placeholder="mis. Catat barang masuk-keluar"
+            className={`mt-1 ${KELAS.input}`}
+          />
+        </div>
+        <div>
+          <label className={KELAS.label} htmlFor="org-sub-pic">PIC tugas</label>
+          <input
+            id="org-sub-pic"
+            value={formSub.picNama}
+            onChange={(e) => setFormSub({ ...formSub, picNama: e.target.value })}
+            placeholder="Boleh dikosongkan"
+            className={`mt-1 ${KELAS.input}`}
+          />
+        </div>
+        <div>
+          <label className={KELAS.label} htmlFor="org-sub-catatan">Keterangan / Jadwal (opsional)</label>
+          <input
+            id="org-sub-catatan"
+            value={formSub.catatan}
+            onChange={(e) => setFormSub({ ...formSub, catatan: e.target.value })}
+            placeholder="mis. setiap hari Senin"
+            className={`mt-1 ${KELAS.input}`}
+          />
+        </div>
+      </FormDialog>
+
+      <KonfirmasiDialog
+        terbuka={hapusTarget !== null}
+        judul={hapusTarget?.jenis === 'sub' ? 'Hapus tugas ini?' : 'Hapus jabatan ini?'}
+        pesan={
+          hapusTarget
+            ? `"${hapusTarget.judul}" dihapus${hapusTarget.jenis === 'item' ? ' beserta seluruh tugasnya' : ''}. Tindakan ini tidak bisa dibatalkan.`
+            : ''
+        }
+        onBatal={() => setHapusTarget(null)}
+        onYa={() => void hapusBaris()}
+      />
+
+      <ContextMenu
+        x={menuKlikKanan?.x ?? 0}
+        y={menuKlikKanan?.y ?? 0}
+        terbuka={menuKlikKanan !== null}
+        onTutup={() => setMenuKlikKanan(null)}
+        judul={menuKlikKanan?.judul}
+        items={menuKlikKanan?.items ?? []}
+      />
     </>
   );
 }
@@ -710,7 +1886,7 @@ interface PratinjauImpor {
 type Bagian = 'amanah' | 'kustom';
 
 const BAGIAN: ReadonlyArray<{ id: Bagian; label: string }> = [
-  { id: 'amanah', label: 'Amanah & Khidmah' },
+  { id: 'amanah', label: 'Struktur PIC' },
   { id: 'kustom', label: 'SOP Kustom' },
 ];
 
@@ -906,18 +2082,30 @@ export function SopView() {
 
   const judulBagian =
     bagian === 'amanah'
-      ? 'Papan amanah baku — struktur semi-paten, isi & PIC berubah sesuai keadaan.'
+      ? 'Struktur organisasi santri — jabatan, PIC, dan daftar tugas di bawahnya.'
       : 'SOP berdiri sendiri buatan Anda — bebas bentuk, lengkap dengan PIC & ceklis.';
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className={KELAS.judulHalaman}>SOP &amp; Amanah</h2>
-        <p className={`mt-1 ${KELAS.judulKartu}`}>{judulBagian}</p>
-        <p className={`mt-1 ${KELAS.keterangan}`}>
-          Daftar tugas yang berdiri sendiri — tidak terikat acara. Isi nama PIC tiap item, beri
-          sub-tugas bila perlu rincian, centang saat dikerjakan, dan cetak/unduh lembar ceklisnya.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className={KELAS.judulHalaman}>PIC Amanah</h2>
+          <p className={`mt-1 ${KELAS.keterangan}`}>{judulBagian}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/?view=preset"
+            className="flex items-center gap-1.5 rounded-xl border border-emas-400/80 bg-white/80 px-3 py-1.5 text-xs font-semibold text-aksen-900 shadow-sm transition hover:bg-white active:scale-95"
+          >
+            <span>⚡ Preset</span>
+          </a>
+          <a
+            href="/?view=canvas"
+            className="flex items-center gap-1.5 rounded-xl bg-aksen-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-aksen-800 active:scale-95"
+          >
+            <span>🖨️ Kanvas Cetak</span>
+          </a>
+        </div>
       </div>
 
       {/* Sub-navigasi bagian — pil yang membungkus sendiri di layar sempit. */}
@@ -950,10 +2138,10 @@ export function SopView() {
           {memuatBaku ? (
             <p className="text-sm text-teks-halus">Memuat…</p>
           ) : papanBaku ? (
-            <PanelItemSop sop={papanBaku} />
+            <BaganOrganisasi sop={papanBaku} />
           ) : (
             <div className={KELAS.kosong}>
-              <p>Papan baku amanah tidak dapat dimuat dari penyimpanan lokal.</p>
+              <p>Struktur PIC tidak dapat dimuat dari penyimpanan lokal.</p>
               <button onClick={() => void muatBaku()} className={`mt-3 ${KELAS.tombolSekunder}`}>
                 Coba muat ulang
               </button>
