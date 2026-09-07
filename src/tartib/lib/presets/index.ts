@@ -45,13 +45,14 @@ export function ambilSemuaMetadataPreset(): MetadataPreset[] {
     });
   }
 
-  for (const kbm of DAFTAR_PRESET_KBM) {
+  const semuaKbm = bacaSemuaKatalogKbm();
+  for (const kbm of semuaKbm) {
     list.push({
       id: kbm.id,
       nama: kbm.judul,
       kategori: 'kbm',
       deskripsi: kbm.deskripsi,
-      ikon: '📅',
+      ikon: kbm.kustom ? '⭐' : '📅',
       jumlahItem: kbm.entri.length,
     });
   }
@@ -125,25 +126,102 @@ export async function terapkanPresetStruktur(preset: PresetStruktur): Promise<st
   });
 }
 
-// Kunci penyimpanan lokal untuk Jadwal KBM aktif
+// Kunci penyimpanan lokal untuk Jadwal KBM aktif & Template Kustom
 export const KUNCI_STORAGE_KBM = 'tartib_jadwal_kbm_aktif';
+export const KUNCI_STORAGE_TEMPLATE_KBM_KUSTOM = 'tartib_daftar_template_kbm_kustom';
+
+const memoryStore: Record<string, string> = {};
+
+function ambilStorage(): { getItem(k: string): string | null; setItem(k: string, v: string): void; removeItem(k: string): void } {
+  if (typeof window !== 'undefined' && window.localStorage) return window.localStorage;
+  if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') return localStorage;
+  return {
+    getItem: (k) => (k in memoryStore ? memoryStore[k] : null),
+    setItem: (k, v) => {
+      memoryStore[k] = v;
+    },
+    removeItem: (k) => {
+      delete memoryStore[k];
+    },
+  };
+}
 
 export function simpanJadwalKbmLokal(jadwal: ModelJadwalKbm): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(KUNCI_STORAGE_KBM, JSON.stringify(jadwal));
-  }
+  const store = ambilStorage();
+  store.setItem(KUNCI_STORAGE_KBM, JSON.stringify(jadwal));
 }
 
 export function bacaJadwalKbmLokal(): ModelJadwalKbm {
-  if (typeof window !== 'undefined') {
-    const raw = localStorage.getItem(KUNCI_STORAGE_KBM);
-    if (raw) {
-      try {
-        return JSON.parse(raw) as ModelJadwalKbm;
-      } catch {
-        // fallback bawaan
-      }
+  const store = ambilStorage();
+  const raw = store.getItem(KUNCI_STORAGE_KBM);
+  if (raw) {
+    try {
+      return JSON.parse(raw) as ModelJadwalKbm;
+    } catch {
+      // fallback bawaan
     }
   }
   return DAFTAR_PRESET_KBM[0];
 }
+
+export function bacaDaftarTemplateKbmKustom(): ModelJadwalKbm[] {
+  const store = ambilStorage();
+  const raw = store.getItem(KUNCI_STORAGE_TEMPLATE_KBM_KUSTOM);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // abaikan
+    }
+  }
+  return [];
+}
+
+export function simpanTemplateKbmKustom(template: ModelJadwalKbm): void {
+  const store = ambilStorage();
+  const list = bacaDaftarTemplateKbmKustom();
+  const idx = list.findIndex((t) => t.id === template.id);
+  const dataSimpan: ModelJadwalKbm = {
+    ...template,
+    kustom: true,
+    diubahPada: new Date().toISOString(),
+  };
+
+  if (idx !== -1) {
+    list[idx] = dataSimpan;
+  } else {
+    list.push(dataSimpan);
+  }
+  store.setItem(KUNCI_STORAGE_TEMPLATE_KBM_KUSTOM, JSON.stringify(list));
+}
+
+export function hapusTemplateKbmKustom(id: string): void {
+  const store = ambilStorage();
+  const list = bacaDaftarTemplateKbmKustom().filter((t) => t.id !== id);
+  store.setItem(KUNCI_STORAGE_TEMPLATE_KBM_KUSTOM, JSON.stringify(list));
+}
+
+export function bacaSemuaKatalogKbm(): ModelJadwalKbm[] {
+  const kustom = bacaDaftarTemplateKbmKustom();
+  return [...DAFTAR_PRESET_KBM, ...kustom];
+}
+
+export function eksporJadwalJson(jadwal: ModelJadwalKbm): string {
+  return JSON.stringify(jadwal, null, 2);
+}
+
+export function imporJadwalJson(teksJson: string): ModelJadwalKbm {
+  const parsed = JSON.parse(teksJson) as ModelJadwalKbm;
+  if (!parsed || !Array.isArray(parsed.daftarHari) || !Array.isArray(parsed.daftarJam) || !Array.isArray(parsed.entri)) {
+    throw new Error('Format file template jadwal tidak valid');
+  }
+  return {
+    ...parsed,
+    id: parsed.id || `kbm-impor-${Date.now()}`,
+    judul: parsed.judul || 'Jadwal Impor Kustom',
+    kustom: true,
+    dibuatPada: parsed.dibuatPada || new Date().toISOString(),
+  };
+}
+

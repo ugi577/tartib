@@ -1,34 +1,40 @@
 // Definisi tipe data untuk Matriks Jadwal KBM & Manajemen Printer (Pilar 3 & 4)
 
-export type HariKbm = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu' | 'Ahad';
+export type HariKbm = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | "Jum'at" | 'Sabtu' | 'Ahad';
 
 export interface SesiJam {
   ke: number;
-  label: string; // mis. '07:30 - 08:15'
+  label: string; // mis. '07:30 - 08:15' atau '03.00 - 03.45'
+  nomorSesi?: number | null; // Nomor sesi resmi (mis. 1 sampai 8)
   istirahat?: boolean;
+  warna?: string;
 }
 
 export interface EntriJadwal {
   id: string;
   hari: HariKbm;
   jamKe: number;
-  kelas: string; // mis. 'VII-A' atau 'Halaqah 1'
-  mapel: string; // mis. 'Tahfidz' atau 'Matematika'
-  guru: string; // mis. 'Ust. Farhan' atau 'Drs. Ahmad'
+  kelas: string; // mis. 'VII-A' atau 'Halaqah 1' atau 'Semua Santri'
+  mapel: string; // mis. 'Tahfidz' atau 'Qiyamullail berjamaah'
+  guru?: string; // mis. 'Ust. Farhan' atau 'Musyrif'
   ruang?: string;
-  warna?: string;
+  warna?: string; // warna sorotan sel: 'kuning' | 'hijau' | 'biru' | 'oranye' | 'abu'
 }
 
 export interface ModelJadwalKbm {
   id: string;
   judul: string;
-  tipe: '5-hari' | '6-hari' | 'tahfidz';
+  tahunAjaran?: string; // mis. 'TAHUN AJARAN 2026-2027'
+  subJudul?: string; // mis. 'Hari/ Mata Pelajaran'
+  tipe: '5-hari' | '6-hari' | 'tahfidz' | 'pesantren' | 'kustom';
   deskripsi: string;
   daftarHari: HariKbm[];
   daftarJam: SesiJam[];
   daftarKelas: string[];
   entri: EntriJadwal[];
   dibuatPada: string;
+  diubahPada?: string;
+  kustom?: boolean;
 }
 
 export type TipePrinter = 'bluetooth' | 'usb' | 'system' | 'simulasi';

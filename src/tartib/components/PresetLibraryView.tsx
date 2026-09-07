@@ -10,7 +10,7 @@ import { useState } from 'react';
 import {
   DAFTAR_PRESET_STRUKTUR,
   DAFTAR_PRESET_SOP,
-  DAFTAR_PRESET_KBM,
+  bacaSemuaKatalogKbm,
   terapkanPresetStruktur,
   simpanJadwalKbmLokal,
   type PresetStruktur,
@@ -212,43 +212,64 @@ export function PresetLibraryView({ onPilihPresetSelesai }: PresetLibraryViewPro
 
         {/* Preset KBM */}
         {(tab === 'semua' || tab === 'kbm') &&
-          DAFTAR_PRESET_KBM.map((p) => (
-            <div
-              key={p.id}
-              className="flex flex-col justify-between rounded-2xl border border-emas-300/40 bg-white/90 p-5 shadow-sm transition hover:border-emas-400 hover:shadow-md"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-xl shadow-inner">
-                    📅
-                  </span>
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-                    Jadwal KBM
-                  </span>
+          bacaSemuaKatalogKbm().map((p) => {
+            const isPesantren = p.id === 'kbm-pesantren-2026-2027';
+            return (
+              <div
+                key={p.id}
+                className={`flex flex-col justify-between rounded-2xl border p-5 shadow-sm transition hover:shadow-md ${
+                  isPesantren
+                    ? 'border-amber-400 bg-amber-50/40 ring-1 ring-amber-300'
+                    : 'border-emas-300/40 bg-white/90 hover:border-emas-400'
+                }`}
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-xl shadow-inner">
+                      {p.kustom ? '⭐' : '📅'}
+                    </span>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                        isPesantren
+                          ? 'bg-amber-200 text-amber-900 border border-amber-300'
+                          : p.kustom
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-emerald-100 text-emerald-800'
+                      }`}
+                    >
+                      {isPesantren
+                        ? '★ Jadwal Pesantren 2026-2027'
+                        : p.kustom
+                        ? 'Template Kustom'
+                        : 'Jadwal KBM'}
+                    </span>
+                  </div>
+                  <h3 className="mt-3 font-bold text-slate-800">
+                    {p.judul} {p.tahunAjaran ? `(${p.tahunAjaran})` : ''}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-500 leading-relaxed">{p.deskripsi}</p>
+                  <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
+                    <span>🗓️ {p.daftarHari.length} Hari Aktif</span>
+                    <span>•</span>
+                    <span>⏰ {p.daftarJam.length} Sesi Waktu</span>
+                    <span>•</span>
+                    <span>📖 {p.entri.length} Sesi Terjadwal</span>
+                  </div>
                 </div>
-                <h3 className="mt-3 font-bold text-slate-800">{p.judul}</h3>
-                <p className="mt-1 text-xs text-slate-500 leading-relaxed">{p.deskripsi}</p>
-                <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
-                  <span>🗓️ {p.daftarHari.length} Hari Aktif</span>
-                  <span>•</span>
-                  <span>🏫 {p.daftarKelas.length} Kelas</span>
-                  <span>•</span>
-                  <span>📖 {p.entri.length} Sesi Terjadwal</span>
-                </div>
-              </div>
 
-              <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-3">
-                <button
-                  type="button"
-                  disabled={memuatId === p.id}
-                  onClick={() => gunakanKbm(p)}
-                  className="flex-1 rounded-xl bg-aksen-700 py-2 text-center text-xs font-semibold text-white shadow-sm transition hover:bg-aksen-800 disabled:opacity-50"
-                >
-                  {memuatId === p.id ? 'Menerapkan…' : '⚡ Gunakan Template Ini'}
-                </button>
+                <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-3">
+                  <button
+                    type="button"
+                    disabled={memuatId === p.id}
+                    onClick={() => gunakanKbm(p)}
+                    className="flex-1 rounded-xl bg-aksen-700 py-2 text-center text-xs font-semibold text-white shadow-sm transition hover:bg-aksen-800 disabled:opacity-50"
+                  >
+                    {memuatId === p.id ? 'Menerapkan…' : '⚡ Gunakan & Sesuaikan'}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
     </div>
   );

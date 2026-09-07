@@ -98,14 +98,14 @@ export function SearchModal({ terbuka, onTutup, onPilihHasil }: SearchModalProps
     for (const e of kbm.entri) {
       if (
         e.mapel.toLowerCase().includes(q) ||
-        e.guru.toLowerCase().includes(q) ||
-        e.kelas.toLowerCase().includes(q)
+        (e.guru && e.guru.toLowerCase().includes(q)) ||
+        (e.kelas && e.kelas.toLowerCase().includes(q))
       ) {
         hasil.push({
           id: `kbm-${e.id}`,
           kategori: 'Jadwal KBM',
-          judul: `${e.mapel} (${e.kelas})`,
-          keterangan: `${e.hari} JP ${e.jamKe} • Pengampu: ${e.guru}`,
+          judul: `${e.mapel} (${e.kelas || 'Semua'})`,
+          keterangan: `${e.hari} JP ${e.jamKe}${e.guru ? ` • Pengampu: ${e.guru}` : ''}`,
           viewTujuan: 'canvas',
         });
       }
