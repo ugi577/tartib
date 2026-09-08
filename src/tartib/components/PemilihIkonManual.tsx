@@ -1,4 +1,16 @@
-import { useState, useMemo } from 'react';
+'use client';
+
+// Pemilih ikon (emoji) untuk item SOP — di dalam FormDialog. Pratinjau ikon
+// aktif (otomatis kontekstual atau manual), saran cepat, katalog berkategori
+// dengan pencarian, dan input emoji bebas.
+//
+// Sesi 22: semua varian `dark:` dihapus (Tailwind tanpa `darkMode` = mode
+// media → panel jadi hitam di HP bermode gelap padahal aplikasi wajib terang)
+// dan warna mentah neutral/emerald diganti token `KELAS`. Tata letak HP:
+// baris pratinjau `flex-wrap` (tombol aksi turun ke baris kedua), tombol
+// saran 36px, tab 36px, tombol grid ≥ 44px, label ikon 10px.
+
+import { useId, useMemo, useState, type KeyboardEvent } from 'react';
 import {
   ambilIkonJabatan,
   ambilIkonTugas,
@@ -7,6 +19,7 @@ import {
   ekstrakEmojiKustom,
   pasangEmojiKustom,
 } from '../lib/ikonKontekstual';
+import { KELAS } from '../ui/kelas';
 
 export interface PemilihIkonManualProps {
   judul: string;
@@ -17,6 +30,44 @@ export interface PemilihIkonManualProps {
   onUbahCatatan: (catatanBaru: string) => void;
 }
 
+const KELAS_TERPILIH = 'bg-aksen-100/70 ring-aksen-500';
+const KELAS_BELUM = 'bg-permukaan-kartu ring-white/80 hover:bg-white/75 hover:ring-aksen-300';
+
+/** Tombol emoji di grid katalog / hasil pencarian. */
+function TombolEmoji({
+  ikon,
+  label,
+  keterangan,
+  terpilih,
+  onPilih,
+}: {
+  ikon: string;
+  label: string;
+  keterangan?: string;
+  terpilih: boolean;
+  onPilih: (ikon: string) => void;
+}) {
+  const judulTombol = keterangan ? `${label} (${keterangan})` : label;
+  return (
+    <button
+      type="button"
+      onClick={() => onPilih(ikon)}
+      title={judulTombol}
+      aria-pressed={terpilih}
+      className={`flex min-h-[44px] flex-col items-center justify-center rounded-kontrol p-1.5 ring-1 ring-inset transition-colors ${
+        terpilih ? KELAS_TERPILIH : KELAS_BELUM
+      }`}
+    >
+      <span className="select-none text-2xl leading-none" aria-hidden="true">
+        {ikon}
+      </span>
+      <span className="mt-1 line-clamp-1 w-full text-center text-[10px] text-teks-sedang" title={judulTombol}>
+        {label}
+      </span>
+    </button>
+  );
+}
+
 export function PemilihIkonManual({
   judul,
   catatan,
@@ -25,36 +76,31 @@ export function PemilihIkonManual({
   label = 'Ikon Tampilan',
   onUbahCatatan,
 }: PemilihIkonManualProps) {
+  const idLabel = useId();
   const [panelTerbuka, setPanelTerbuka] = useState(false);
   const [tabAktif, setTabAktif] = useState<string>('perabotan');
   const [kataCari, setKataCari] = useState('');
   const [inputBebas, setInputBebas] = useState('');
 
-  // Ikon yang sedang aktif dipakai (bisa manual atau otomatis kontekstual)
+  // Ikon yang sedang aktif dipakai (manual kustom atau otomatis kontekstual)
   const ikonAktif = useMemo(() => {
     return jenis === 'jabatan'
       ? ambilIkonJabatan(judul, catatan, rutin)
       : ambilIkonTugas(judul, catatan);
   }, [jenis, judul, catatan, rutin]);
 
-  // Apakah saat ini sedang memakai pilihan manual kustom
-  const emojiManual = useMemo(() => {
-    return ekstrakEmojiKustom(catatan);
-  }, [catatan]);
+  // Emoji pilihan manual yang tersimpan di catatan (null = otomatis)
+  const emojiManual = useMemo(() => ekstrakEmojiKustom(catatan), [catatan]);
 
-  // Saran cepat kontekstual berdasarkan input teks saat ini
-  const saranCepat = useMemo(() => {
-    return saranIkonCepat(judul, jenis);
-  }, [judul, jenis]);
+  // Saran cepat kontekstual berdasarkan teks judul saat ini
+  const saranCepat = useMemo(() => saranIkonCepat(judul, jenis), [judul, jenis]);
 
   function pilihEmoji(emoji: string) {
-    const hasil = pasangEmojiKustom(emoji, catatan);
-    onUbahCatatan(hasil);
+    onUbahCatatan(pasangEmojiKustom(emoji, catatan));
   }
 
   function resetOtomatis() {
-    const hasil = pasangEmojiKustom(null, catatan);
-    onUbahCatatan(hasil);
+    onUbahCatatan(pasangEmojiKustom(null, catatan));
   }
 
   function terapkanInputBebas() {
@@ -66,7 +112,12 @@ export function PemilihIkonManual({
     }
   }
 
-  // Semua item gabungan dari seluruh kategori untuk fitur pencarian
+  // Enter di dalam input komponen ini tidak boleh men-submit FormDialog induk.
+  function cegahSubmit(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') e.preventDefault();
+  }
+
+  // Semua item gabungan dari seluruh kategori untuk pencarian
   const semuaItem = useMemo(() => {
     const peta = new Map<string, { ikon: string; label: string; kategori: string }>();
     for (const kat of KATALOG_EMOJI_MANUAL) {
@@ -79,12 +130,15 @@ export function PemilihIkonManual({
     return Array.from(peta.values());
   }, []);
 
-  // Filter pencarian jika ada kata kunci pencarian
+  // Hasil pencarian (null = tidak sedang mencari → tampilkan tab kategori)
   const hasilFilter = useMemo(() => {
     const q = kataCari.trim().toLowerCase();
     if (!q) return null;
     return semuaItem.filter(
-      (item) => item.label.toLowerCase().includes(q) || item.kategori.toLowerCase().includes(q) || item.ikon.includes(q),
+      (item) =>
+        item.label.toLowerCase().includes(q) ||
+        item.kategori.toLowerCase().includes(q) ||
+        item.ikon.includes(q),
     );
   }, [kataCari, semuaItem]);
 
@@ -93,50 +147,48 @@ export function PemilihIkonManual({
   }, [tabAktif]);
 
   return (
-    <div className="space-y-2 rounded-2xl border border-emerald-500/30 bg-emerald-950/10 p-3 shadow-sm">
-      {/* Header: Label & Status Mode */}
-      <div className="flex items-center justify-between gap-2">
-        <label className="text-xs font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+    <div role="group" aria-labelledby={idLabel} className={`${KELAS.blok} space-y-2 py-3`}>
+      {/* Kepala: label & status mode */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span id={idLabel} className="text-[11px] font-semibold uppercase tracking-wider text-teks-halus">
           {label}
-        </label>
+        </span>
         {emojiManual ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 ring-1 ring-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:ring-amber-700/50">
-            <span>🎨 Ikon Manual:</span>
-            <span className="text-xs">{emojiManual}</span>
+          <span className={`${KELAS.badgePeringatan} gap-1`}>
+            <span>Ikon manual</span>
+            <span aria-hidden="true">{emojiManual}</span>
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 ring-1 ring-emerald-300 dark:bg-emerald-950/70 dark:text-emerald-200 dark:ring-emerald-700/50">
-            <span>✨ Otomatis Kontekstual</span>
-          </span>
+          <span className={KELAS.badgeAksen}>Otomatis kontekstual</span>
         )}
       </div>
 
-      {/* Baris Pratinjau Ikon Besar & Tombol Aksi */}
-      <div className="flex items-center gap-3 rounded-xl border border-emerald-400/40 bg-white/90 p-2.5 shadow-sm dark:bg-neutral-900/90">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-amber-100 text-3xl shadow-sm ring-1 ring-emerald-300/60 dark:from-emerald-900/60 dark:to-neutral-800 dark:ring-emerald-500/40">
+      {/* Baris pratinjau: ikon + teks di baris 1, tombol aksi turun ke baris 2 di HP */}
+      <div className="flex flex-wrap items-center gap-3 rounded-kontrol border border-white/80 bg-permukaan-kartu p-2.5 shadow-glosAtas">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-kontrol bg-aksen-100/70 text-3xl ring-1 ring-inset ring-emas-300/60">
           <span className="select-none" aria-hidden="true">
             {ikonAktif}
           </span>
         </div>
 
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-neutral-900 dark:text-neutral-100">
-            {emojiManual ? 'Pilihan Manual Terkunci' : 'Ikon Cerdas Sesuai Teks'}
+        <div className="min-w-0 flex-1 basis-40">
+          <p className="text-sm font-semibold text-teks-utama">
+            {emojiManual ? 'Pilihan manual terkunci' : 'Ikon cerdas sesuai teks'}
           </p>
-          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+          <p className="line-clamp-2 text-xs text-teks-halus">
             {emojiManual
               ? 'Ikon ini akan tetap dipakai pada kartu.'
               : `Otomatis mendeteksi kata "${judul || 'judul'}"`}
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="flex basis-full items-center justify-end gap-1.5 sm:basis-auto">
           {emojiManual && (
             <button
               type="button"
               onClick={resetOtomatis}
-              title="Kembali ke deteksi otomatis cerdas"
-              className="rounded-lg border border-emerald-300/70 bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-800 transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-200"
+              title="Kembali ke deteksi otomatis"
+              className={`${KELAS.tombolHalus} min-h-[40px]`}
             >
               🔄 Otomatis
             </button>
@@ -145,25 +197,26 @@ export function PemilihIkonManual({
           <button
             type="button"
             onClick={() => setPanelTerbuka(!panelTerbuka)}
-            className="rounded-lg border border-neutral-300 bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold text-neutral-800 shadow-sm transition hover:bg-neutral-200 active:scale-95 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+            aria-expanded={panelTerbuka}
+            className={`${KELAS.tombolSekunderKecil} min-h-[40px]`}
           >
             {panelTerbuka ? 'Tutup ▲' : 'Katalog Ikon ▼'}
           </button>
         </div>
       </div>
 
-      {/* Saran Cepat 1-Klik */}
+      {/* Saran cepat 1-ketuk */}
       <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-        <span className="text-[11px] text-neutral-500 dark:text-neutral-400">Saran Cepat:</span>
+        <span className="text-xs text-teks-halus">Saran cepat:</span>
         {saranCepat.map((em) => (
           <button
             key={em}
             type="button"
             onClick={() => pilihEmoji(em)}
-            className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm transition active:scale-95 ${
-              ikonAktif === em
-                ? 'border-2 border-emerald-600 bg-emerald-100 shadow-sm ring-1 ring-emerald-500 dark:bg-emerald-900/60'
-                : 'border border-neutral-200 bg-white hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800'
+            aria-pressed={ikonAktif === em}
+            aria-label={`Pakai ikon ${em}`}
+            className={`flex h-9 w-9 items-center justify-center rounded-kontrol text-base ring-1 ring-inset transition-colors ${
+              ikonAktif === em ? KELAS_TERPILIH : KELAS_BELUM
             }`}
           >
             {em}
@@ -171,141 +224,123 @@ export function PemilihIkonManual({
         ))}
       </div>
 
-      {/* Panel Katalog Pilihan Manual Lengkap */}
+      {/* Panel katalog lengkap */}
       {panelTerbuka && (
-        <div className="mt-2 space-y-2.5 rounded-xl border border-emerald-300/60 bg-white p-3 shadow-md dark:border-neutral-700 dark:bg-neutral-900 animate-in fade-in zoom-in-95 duration-150">
-          {/* Kotak Pencarian Ikon Instan */}
+        <div className={`${KELAS.kartu} mt-2 space-y-2.5 p-3`}>
+          {/* Kotak pencarian */}
           <div className="relative">
             <input
               type="text"
               value={kataCari}
               onChange={(e) => setKataCari(e.target.value)}
-              placeholder="🔍 Cari ikon... mis. motor, toren, kursi, piring, kasur, alat"
-              className="w-full rounded-lg border border-neutral-300 bg-neutral-50/70 px-3 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-emerald-500 focus:bg-white focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:border-emerald-500"
+              onKeyDown={cegahSubmit}
+              placeholder="Cari ikon…"
+              aria-label="Cari ikon"
+              className={`${KELAS.input} pr-11`}
             />
             {kataCari && (
               <button
                 type="button"
                 onClick={() => setKataCari('')}
-                className="absolute right-2.5 top-1.5 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                aria-label="Hapus kata pencarian"
+                className={`${KELAS.tombolIkon} absolute inset-y-0 right-1 my-auto min-h-[40px] min-w-[40px]`}
               >
                 ✕
               </button>
             )}
           </div>
 
-          {/* Mode Hasil Pencarian */}
           {hasilFilter !== null ? (
+            /* Mode hasil pencarian */
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
-                <span>Hasil pencarian: {hasilFilter.length} ikon</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-teks-halus">Hasil pencarian: {hasilFilter.length} ikon</span>
                 <button
                   type="button"
                   onClick={() => setKataCari('')}
-                  className="text-emerald-600 hover:underline dark:text-emerald-400"
+                  className={`${KELAS.tombolHalus} min-h-[36px]`}
                 >
-                  Lihat Kategori
+                  Lihat kategori
                 </button>
               </div>
 
               {hasilFilter.length === 0 ? (
-                <div className="py-6 text-center text-xs text-neutral-400">
-                  Tidak ditemukan ikon yang cocok. Silakan tempel emoji bebas di bawah.
-                </div>
+                <p className="py-6 text-center text-xs text-teks-halus">
+                  Tidak ada ikon yang cocok. Tempel emoji bebas di bawah.
+                </p>
               ) : (
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 max-h-56 overflow-y-auto p-1">
-                  {hasilFilter.map((item) => {
-                    const isSelected = ikonAktif === item.ikon;
-                    return (
-                      <button
-                        key={item.ikon + item.label}
-                        type="button"
-                        onClick={() => pilihEmoji(item.ikon)}
-                        title={`${item.label} (${item.kategori})`}
-                        className={`flex flex-col items-center justify-center rounded-xl p-1.5 transition active:scale-95 ${
-                          isSelected
-                            ? 'border-2 border-emerald-600 bg-emerald-100 shadow-sm ring-1 ring-emerald-500 dark:bg-emerald-900/60'
-                            : 'border border-neutral-200/80 bg-neutral-50/70 hover:border-emerald-400 hover:bg-emerald-50/50 dark:border-neutral-800 dark:bg-neutral-800/60'
-                        }`}
-                      >
-                        <span className="text-2xl select-none" aria-hidden="true">
-                          {item.ikon}
-                        </span>
-                        <span className="mt-1 line-clamp-1 w-full text-center text-[9px] text-neutral-600 dark:text-neutral-300">
-                          {item.label}
-                        </span>
-                      </button>
-                    );
-                  })}
+                <div className="grid max-h-56 grid-cols-4 gap-1.5 overflow-y-auto p-1 sm:grid-cols-5">
+                  {hasilFilter.map((item) => (
+                    <TombolEmoji
+                      key={item.ikon + item.label}
+                      ikon={item.ikon}
+                      label={item.label}
+                      keterangan={item.kategori}
+                      terpilih={ikonAktif === item.ikon}
+                      onPilih={pilihEmoji}
+                    />
+                  ))}
                 </div>
               )}
             </div>
           ) : (
-            /* Mode Navigasi 8 Tab Kategori */
+            /* Mode tab kategori */
             <div className="space-y-2">
-              <div className="flex flex-wrap gap-1 border-b border-neutral-200 pb-2 dark:border-neutral-800">
-                {KATALOG_EMOJI_MANUAL.map((kat) => (
-                  <button
-                    key={kat.id}
-                    type="button"
-                    onClick={() => setTabAktif(kat.id)}
-                    className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition ${
-                      tabAktif === kat.id
-                        ? 'bg-emerald-700 text-white shadow-sm'
-                        : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300'
-                    }`}
-                  >
-                    <span>{kat.ikon}</span>
-                    <span>{kat.nama}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Grid Emoji Kategori Aktif */}
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 max-h-52 overflow-y-auto p-1">
-                {kategoriTerpilih.daftar.map((item) => {
-                  const isSelected = ikonAktif === item.ikon;
+              <div role="tablist" aria-label="Kategori ikon" className={`${KELAS.subNav} border-b border-garis pb-2`}>
+                {KATALOG_EMOJI_MANUAL.map((kat) => {
+                  const aktif = tabAktif === kat.id;
                   return (
                     <button
-                      key={item.ikon + item.label}
+                      key={kat.id}
                       type="button"
-                      onClick={() => pilihEmoji(item.ikon)}
-                      title={item.label}
-                      className={`flex flex-col items-center justify-center rounded-xl p-1.5 transition active:scale-95 ${
-                        isSelected
-                          ? 'border-2 border-emerald-600 bg-emerald-100 shadow-sm ring-1 ring-emerald-500 dark:bg-emerald-900/60'
-                          : 'border border-neutral-200/80 bg-neutral-50/70 hover:border-emerald-400 hover:bg-emerald-50/50 dark:border-neutral-800 dark:bg-neutral-800/60'
-                      }`}
+                      role="tab"
+                      aria-selected={aktif}
+                      onClick={() => setTabAktif(kat.id)}
+                      className={`${aktif ? KELAS.subNavPilAktif : KELAS.subNavPil} inline-flex min-h-[36px] items-center gap-1`}
                     >
-                      <span className="text-2xl select-none" aria-hidden="true">
-                        {item.ikon}
-                      </span>
-                      <span className="mt-1 line-clamp-1 w-full text-center text-[9px] text-neutral-600 dark:text-neutral-300">
-                        {item.label}
-                      </span>
+                      <span aria-hidden="true">{kat.ikon}</span>
+                      <span>{kat.nama}</span>
                     </button>
                   );
                 })}
               </div>
+
+              <div className="grid max-h-52 grid-cols-4 gap-1.5 overflow-y-auto p-1 sm:grid-cols-5">
+                {kategoriTerpilih.daftar.map((item) => (
+                  <TombolEmoji
+                    key={item.ikon + item.label}
+                    ikon={item.ikon}
+                    label={item.label}
+                    terpilih={ikonAktif === item.ikon}
+                    onPilih={pilihEmoji}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Input Emoji Bebas */}
-          <div className="flex items-center gap-2 border-t border-neutral-200 pt-2 dark:border-neutral-800">
-            <span className="text-[11px] text-neutral-500 shrink-0 dark:text-neutral-400">
-              Tempel Emoji Apapun:
-            </span>
+          {/* Input emoji bebas */}
+          <div className="flex flex-wrap items-center gap-2 border-t border-garis pt-2">
+            <span className="text-xs text-teks-halus">Tempel emoji apa pun:</span>
             <input
               type="text"
               value={inputBebas}
               onChange={(e) => setInputBebas(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  terapkanInputBebas();
+                }
+              }}
               placeholder="mis. 🛢️ atau 🚀"
-              className="w-24 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-center text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+              aria-label="Emoji bebas"
+              className={`${KELAS.inputKecil} w-28 text-center`}
             />
             <button
               type="button"
               onClick={terapkanInputBebas}
-              className="rounded-lg bg-emerald-700 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-emerald-800 active:scale-95"
+              disabled={!inputBebas.trim()}
+              className={`${KELAS.tombolSekunderKecil} min-h-[40px]`}
             >
               Gunakan
             </button>
