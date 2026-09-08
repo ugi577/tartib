@@ -8,7 +8,8 @@
     "build": "next build",
     "build:apk": "next build && cap sync android && cd android && ./gradlew assembleDebug",
     "tsc": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "gate": "bash scripts/gate.sh"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
