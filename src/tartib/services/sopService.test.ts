@@ -1,14 +1,21 @@
 // Test service SOP (Batch X/Y) — fungsi murni, tanpa IndexedDB.
+// Sesi 22: perhitungan urutan penyisipan & salinan item/sub-tugas yang dipakai
+// operasi transaksional duplikat/salin/pindah.
 import { describe, expect, it } from 'vitest';
 import type { Sop, SopItem, SopSubItem } from '../types';
 import {
+  AKHIRAN_SALINAN,
+  akhiranSalinan,
   bangunStrukturImporPapan,
   ikhtisarCeklis,
   inputItemSopSah,
   inputSubItemSopSah,
   inputSopSah,
   perubahanCeklis,
+  salinanItem,
   salinanSop,
+  salinanSubItem,
+  sisipkanUrutan,
   SopError,
 } from './sopService';
 
@@ -220,5 +227,154 @@ describe('bangunStrukturImporPapan (Batch Y)', () => {
   it('menolak judul papan atau judul item kosong', () => {
     expect(() => bangunStrukturImporPapan({ judul: '  ', items: [] })).toThrow(SopError);
     expect(() => bangunStrukturImporPapan({ judul: 'SOP', items: [{ judul: '' }] })).toThrow(SopError);
+  });
+});
+
+// ===== Sesi 22: salin / pindah item & sub-tugas =====
+
+describe('akhiranSalinan (sesi 22)', () => {
+  it('wadah sama → "(Salinan)", wadah beda → judul apa adanya', () => {
+    expect(akhiranSalinan('s1', 's1')).toBe(AKHIRAN_SALINAN);
+    expect(akhiranSalinan('s1', 's2')).toBe('');
+  });
+
+  it('akhiran eksplisit (termasuk kosong) selalu menang', () => {
+    expect(akhiranSalinan('s1', 's1', '')).toBe('');
+    expect(akhiranSalinan('s1', 's2', ' (2)')).toBe(' (2)');
+  });
+});
+
+describe('sisipkanUrutan (sesi 22)', () => {
+  const daftar = [
+    { id: 'a', urutan: 1 },
+    { id: 'b', urutan: 2 },
+    { id: 'c', urutan: 3 },
+    { id: 'd', urutan: 4 },
+  ];
+
+  it('menyisipkan tepat setelah acuan dan menggeser baris sesudahnya', () => {
+    expect(sisipkanUrutan(daftar, 'b')).toEqual({
+      urutanBaru: 3,
+      geser: [
+        { id: 'c', urutan: 4 },
+        { id: 'd', urutan: 5 },
+      ],
+    });
+  });
+
+  it('acuan di paling bawah → tidak ada yang digeser', () => {
+    expect(sisipkanUrutan(daftar, 'd')).toEqual({ urutanBaru: 5, geser: [] });
+  });
+
+  it('daftar tidak terurut dan nomor berlubang tetap benar (urut berdasarkan urutan, bukan posisi array)', () => {
+    const acak = [
+      { id: 'z', urutan: 10 },
+      { id: 'x', urutan: 2 },
+      { id: 'y', urutan: 7 },
+    ];
+    expect(sisipkanUrutan(acak, 'x')).toEqual({
+      urutanBaru: 3,
+      geser: [
+        { id: 'y', urutan: 4 },
+        { id: 'z', urutan: 5 },
+      ],
+    });
+  });
+
+  it('nomor kembar dari data lama ikut terurai', () => {
+    const kembar = [
+      { id: 'a', urutan: 1 },
+      { id: 'b', urutan: 1 },
+      { id: 'c', urutan: 2 },
+    ];
+    const hasil = sisipkanUrutan(kembar, 'a');
+    expect(hasil.urutanBaru).toBe(2);
+    expect(hasil.geser).toEqual([
+      { id: 'b', urutan: 3 },
+      { id: 'c', urutan: 4 },
+    ]);
+  });
+
+  it('acuan tidak ada → SopError', () => {
+    expect(() => sisipkanUrutan(daftar, 'tidak-ada')).toThrow(SopError);
+  });
+});
+
+describe('salinanItem (sesi 22)', () => {
+  const sumber = item({
+    id: 'i1',
+    sopId: 's1',
+    judul: 'BENDAHARA',
+    picNama: 'Fulan',
+    rutin: 'Pengurus Inti',
+    selesai: true,
+    selesaiPada: '2026-09-01T00:00:00.000Z',
+    urutan: 2,
+  });
+  const subs = [
+    sub({ id: 'b1', itemId: 'i1', judul: 'Catat kas', selesai: true, selesaiPada: '2026-09-01T00:00:00.000Z', urutan: 1 }),
+    sub({ id: 'b2', itemId: 'i1', judul: 'Lapor bulanan', urutan: 2 }),
+  ];
+
+  it('id baru, sopId & urutan tujuan, judul berakhiran (Salinan), ceklis DIRESET, PIC & rutin ikut', () => {
+    const hasil = salinanItem(sumber, subs, { sopId: 's1', urutan: 3 });
+    expect(hasil.item.id).not.toBe('i1');
+    expect(hasil.item.sopId).toBe('s1');
+    expect(hasil.item.urutan).toBe(3);
+    expect(hasil.item.judul).toBe('BENDAHARA (Salinan)');
+    expect(hasil.item.selesai).toBe(false);
+    expect(hasil.item.selesaiPada).toBeUndefined();
+    expect(hasil.item.picNama).toBe('Fulan');
+    expect(hasil.item.rutin).toBe('Pengurus Inti');
+  });
+
+  it('sub-tugas ikut dengan id baru, menunjuk item baru, sopId tujuan, urutan asli, ceklis direset', () => {
+    const hasil = salinanItem(sumber, subs, { sopId: 's2', urutan: 1, akhiran: '' });
+    expect(hasil.subItem).toHaveLength(2);
+    expect(hasil.subItem.every((s) => s.itemId === hasil.item.id && s.sopId === 's2')).toBe(true);
+    expect(hasil.subItem.map((s) => s.id)).not.toContain('b1');
+    expect(hasil.subItem.map((s) => s.urutan)).toEqual([1, 2]);
+    expect(hasil.subItem.every((s) => s.selesai === false && s.selesaiPada === undefined)).toBe(true);
+    expect(hasil.item.judul).toBe('BENDAHARA'); // akhiran '' = judul apa adanya
+  });
+
+  it('rutin bisa ditimpa (tier tempat menempel) atau dikosongkan; undefined = rutin sumber', () => {
+    expect(salinanItem(sumber, [], { sopId: 's1', urutan: 9, rutin: 'Divisi' }).item.rutin).toBe('Divisi');
+    expect(salinanItem(sumber, [], { sopId: 's1', urutan: 9, rutin: '' }).item.rutin).toBeUndefined();
+    expect(salinanItem(sumber, [], { sopId: 's1', urutan: 9 }).item.rutin).toBe('Pengurus Inti');
+  });
+
+  it('menolak sub-tugas milik item lain (bukti snapshot basi)', () => {
+    const asing = sub({ id: 'b9', itemId: 'i-lain' });
+    expect(() => salinanItem(sumber, [asing], { sopId: 's1', urutan: 3 })).toThrow(SopError);
+  });
+});
+
+describe('salinanSubItem (sesi 22)', () => {
+  const sumber = sub({
+    id: 'b1',
+    itemId: 'i1',
+    sopId: 's1',
+    judul: 'Set azan',
+    picNama: 'Fauzan',
+    selesai: true,
+    selesaiPada: 'x',
+    urutan: 4,
+  });
+
+  it('id baru, induk & papan tujuan, urutan tujuan, ceklis direset, PIC ikut', () => {
+    const hasil = salinanSubItem(sumber, { itemId: 'i2', sopId: 's2', urutan: 1, akhiran: '' });
+    expect(hasil.id).not.toBe('b1');
+    expect(hasil.itemId).toBe('i2');
+    expect(hasil.sopId).toBe('s2');
+    expect(hasil.urutan).toBe(1);
+    expect(hasil.judul).toBe('Set azan');
+    expect(hasil.selesai).toBe(false);
+    expect(hasil.selesaiPada).toBeUndefined();
+    expect(hasil.picNama).toBe('Fauzan');
+  });
+
+  it('tanpa akhiran eksplisit judul diberi (Salinan)', () => {
+    expect(salinanSubItem(sumber, { itemId: 'i1', sopId: 's1', urutan: 5 }).judul).toBe('Set azan (Salinan)');
   });
 });
