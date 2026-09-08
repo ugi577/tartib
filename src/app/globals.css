@@ -34,46 +34,16 @@
   }
 }
 
-/* Dokumen cetak presisi: A4, F4 / Folio, dan Thermal roll */
+/* ── Cetak ─────────────────────────────────────────────────────────────────
+   Sesi 22: dulu @page ditulis BERSARANG di dalam selector body[data-kertas]
+   — CSS tidak mengizinkannya, browser membuang seluruh blok, sehingga ukuran/
+   orientasi kertas tidak pernah berlaku. Kini hanya ada @page baku di sini;
+   ukuran dinamis disuntik sebagai <style> oleh standaloneHost.cetak
+   (lib/cetak/kertas.ts → aturanPage) atau blok cetak papan SOP. */
 @media print {
   @page {
     size: auto;
     margin: 10mm;
-  }
-
-  body[data-kertas="a4"][data-orientasi="portrait"] {
-    @page {
-      size: A4 portrait;
-      margin: 10mm;
-    }
-  }
-
-  body[data-kertas="a4"][data-orientasi="landscape"] {
-    @page {
-      size: A4 landscape;
-      margin: 10mm;
-    }
-  }
-
-  body[data-kertas="f4"][data-orientasi="portrait"] {
-    @page {
-      size: 215mm 330mm portrait;
-      margin: 10mm;
-    }
-  }
-
-  body[data-kertas="f4"][data-orientasi="landscape"] {
-    @page {
-      size: 330mm 215mm landscape;
-      margin: 10mm;
-    }
-  }
-
-  body[data-kertas="thermal"] {
-    @page {
-      size: 80mm auto;
-      margin: 2mm;
-    }
   }
 
   /* Kertas selalu putih, hilangkan ornamen layar dan bayangan */
@@ -83,13 +53,52 @@
     background-color: #ffffff !important;
   }
 
-  #print-ready-sheet {
-    box-shadow: none !important;
+  /* Kerangka halaman tidak boleh menambah jarak di atas @page margin. */
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Cetak lembar Kanvas: host menandai body.cetak-lembar dan setiap leluhur
+     #print-ready-sheet dengan .cetak-jalur. Saudara di sepanjang jalur
+     disembunyikan, jalurnya sendiri direset, dan lembar mengisi area cetak
+     (lebar area = kertas − 2×margin @page = lebar isi pratinjau). */
+  body.cetak-lembar > :not(.cetak-jalur) {
+    display: none !important;
+  }
+  body.cetak-lembar .cetak-jalur > :not(.cetak-jalur):not(#print-ready-sheet) {
+    display: none !important;
+  }
+  body.cetak-lembar .cetak-jalur {
+    display: block !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    border: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    max-width: none !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
     transform: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+  body.cetak-lembar #print-ready-sheet {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Warna latar sel (mis. kode warna matriks KBM) harus ikut tercetak. */
+  #print-ready-sheet,
+  #print-ready-sheet * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 }
 
@@ -101,9 +110,11 @@
   transform-origin: bottom center;
 }
 
+/* Sesi 22: dulu scale(0.82) memperkecil target sentuh tepat saat pengguna
+   menggulir; kini hanya sedikit turun & meredup. */
 .nav-capsule.shrunk {
-  transform: scale(0.82) translateY(6px);
-  opacity: 0.85;
+  transform: translateY(6px);
+  opacity: 0.8;
 }
 
 @media (prefers-reduced-motion: reduce) {

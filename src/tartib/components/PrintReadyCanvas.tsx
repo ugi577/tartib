@@ -1,250 +1,271 @@
 'use client';
 
-// 'Print-Ready Canvas' di Layar Tengah
-// Lembar kerja pratinjau dokumen dengan fidelitas tinggi sesuai dimensi fisik kertas:
-// - Toggle ukuran kertas langsung: A4 (210×297mm), F4/Folio (215×330mm), Thermal (58mm/80mm roll).
-// - Garis batas margin cetak halus (print safe-zone) 10mm (atau 3mm pada thermal).
-// - Orientasi Portrait & Landscape.
-// - Tombol eksekusi cetak langsung.
+// Kanvas Cetak — pratinjau lembar fisik yang benar-benar mengikuti kertas
+// (sesi 22, keluhan Ahmed: "print preview yg tdk mengikuti ukuran kertas
+// sebenarnya"). Yang diperbaiki dari versi sebelumnya:
+//   - lembar berdimensi TETAP dalam mm (lebar × tinggi kertas, dari
+//     lib/cetak/kertas.ts) dan padding = margin cetak, sehingga garis batas
+//     cetak di pratinjau tepat di tepi area cetak;
+//   - fit-to-width: lembar diskalakan dengan transform agar seluruh halaman
+//     terlihat di HP (dulu lembar A4 dipipihkan flex-shrink jadi 309px, atau
+//     terpotong); pembungkus diberi tinggi = tinggi lembar × skala karena
+//     transform tidak mengubah kotak layout;
+//   - tanpa transform saat skala 1 (elemen ber-transform menjadi containing
+//     block bagi dialog/menu `position: fixed` di dalamnya);
+//   - garis perkiraan batas halaman bila isi melebihi satu halaman;
+//   - cetak lewat host.cetak({ jenis: 'kanvas', … }) yang menyuntik @page
+//     sesuai kertas & orientasi (K-04) — bukan window.print() langsung;
+//   - slot `#kanvas-toolbar-slot` di toolbar untuk kontrol milik dokumen
+//     (mis. pemilih template KBM) agar tidak ikut berada di dalam kertas.
 
-import React, { useState } from 'react';
-import type { OrientasiKertas, UkuranKertas } from '../types/kbm';
-import { jalankanCetak } from '../lib/printer/webPrinterService';
+import { useState, type ReactNode } from 'react';
+import {
+  DAFTAR_KERTAS,
+  apakahGulung,
+  bacaPilihanKertas,
+  dimensiKertas,
+  labelDimensi,
+  mmKePx,
+  simpanPilihanKertas,
+  simpananPerangkat,
+  type IdKertas,
+  type OrientasiKertas,
+} from '../lib/cetak/kertas';
+import { useUkuranElemen } from '../lib/useUkuranElemen';
+import { standaloneHost } from '../host/standaloneHost';
+import type { DokumenKanvas } from '../host/TartibHost';
+import { KELAS } from '../ui/kelas';
+
+export const ID_SLOT_TOOLBAR_KANVAS = 'kanvas-toolbar-slot';
 
 interface PrintReadyCanvasProps {
-  judulDokumen?: string;
-  subjudulDokumen?: string;
-  jenisDokumen?: 'struktur' | 'sop' | 'kbm' | 'tiket-amanah';
-  ukuranAwal?: UkuranKertas;
+  judulDokumen: string;
+  dokumen: DokumenKanvas;
+  /** Kertas awal; bila kosong dibaca dari preferensi perangkat. */
+  ukuranAwal?: IdKertas;
   orientasiAwal?: OrientasiKertas;
-  tombolKustom?: React.ReactNode;
-  children: React.ReactNode;
+  /** Batasi pilihan kertas (mis. tiket thermal saja). */
+  pilihanKertas?: readonly IdKertas[];
+  /** Kontrol tambahan milik dokumen (dirender di baris aksi toolbar). */
+  tombolKustom?: ReactNode;
+  children: ReactNode;
 }
 
+/** Padding meja kerja (px) — dikurangkan dari lebar wadah saat menghitung skala pas. */
+const PADDING_MEJA_PX = 16;
+const LANGKAH_ZOOM = 0.1;
+
 export function PrintReadyCanvas({
-  judulDokumen = 'Dokumen Siap Cetak',
-  subjudulDokumen = 'Pratinjau proporsional lembar fisik',
-  jenisDokumen = 'struktur',
-  ukuranAwal = 'a4',
-  orientasiAwal = 'portrait',
+  judulDokumen,
+  dokumen,
+  ukuranAwal,
+  orientasiAwal,
+  pilihanKertas,
   tombolKustom,
   children,
 }: PrintReadyCanvasProps) {
-  const [ukuran, setUkuran] = useState<UkuranKertas>(ukuranAwal);
-  const [orientasi, setOrientasi] = useState<OrientasiKertas>(orientasiAwal);
-  const [tampilkanSafeZone, setTampilkanSafeZone] = useState(true);
-  const [sedangMencetak, setSedangMencetak] = useState(false);
-  const [zoom, setZoom] = useState<number>(100);
+  const daftarKertas = pilihanKertas
+    ? DAFTAR_KERTAS.filter((k) => pilihanKertas.includes(k.id))
+    : DAFTAR_KERTAS;
 
-  async function handleCetak() {
+  const [kertas, setKertas] = useState<IdKertas>(() => {
+    if (ukuranAwal) return ukuranAwal;
+    const p = bacaPilihanKertas(simpananPerangkat());
+    return daftarKertas.some((k) => k.id === p.id) ? p.id : daftarKertas[0].id;
+  });
+  const [orientasi, setOrientasi] = useState<OrientasiKertas>(() => {
+    if (orientasiAwal) return orientasiAwal;
+    return bacaPilihanKertas(simpananPerangkat()).orientasi;
+  });
+  const [tampilkanBatas, setTampilkanBatas] = useState(true);
+  const [modeZoom, setModeZoom] = useState<'pas' | 'manual'>('pas');
+  const [zoomManual, setZoomManual] = useState(1);
+  const [sedangMencetak, setSedangMencetak] = useState(false);
+
+  const [refMeja, ukuranMeja] = useUkuranElemen<HTMLDivElement>();
+  const [refLembar, ukuranLembar] = useUkuranElemen<HTMLDivElement>();
+
+  const gulung = apakahGulung(kertas);
+  const dim = dimensiKertas(kertas, orientasi);
+  const lebarLembarPx = mmKePx(dim.lebarMm);
+  const tinggiHalamanPx = dim.tinggiMm === null ? null : mmKePx(dim.tinggiMm);
+
+  const lebarTersedia = Math.max(0, ukuranMeja.lebar - PADDING_MEJA_PX * 2);
+  const skalaPas = lebarTersedia > 0 ? Math.min(1, lebarTersedia / lebarLembarPx) : 1;
+  const skala = modeZoom === 'pas' ? skalaPas : zoomManual;
+
+  // Tinggi lembar nyata (isi bisa lebih panjang dari satu halaman).
+  const tinggiLembarPx = ukuranLembar.tinggi > 0 ? ukuranLembar.tinggi : tinggiHalamanPx ?? mmKePx(120);
+  const jumlahHalaman =
+    tinggiHalamanPx && tinggiLembarPx > 0 ? Math.max(1, Math.ceil((tinggiLembarPx - 1) / tinggiHalamanPx)) : 1;
+
+  function pilihKertas(id: IdKertas) {
+    setKertas(id);
+    // Preferensi perangkat hanya untuk kertas lembaran — pilihan thermal
+    // milik dokumen tiket saja, jangan menular ke cetak papan/laporan.
+    if (!apakahGulung(id)) simpanPilihanKertas(simpananPerangkat(), { id, orientasi });
+  }
+
+  function pilihOrientasi(o: OrientasiKertas) {
+    setOrientasi(o);
+    if (!gulung) simpanPilihanKertas(simpananPerangkat(), { id: kertas, orientasi: o });
+  }
+
+  function ubahZoom(arah: 1 | -1) {
+    const dasar = modeZoom === 'pas' ? skalaPas : zoomManual;
+    const baru = Math.min(2, Math.max(0.25, Math.round((dasar + arah * LANGKAH_ZOOM) * 100) / 100));
+    setModeZoom('manual');
+    setZoomManual(baru);
+  }
+
+  async function cetak() {
     setSedangMencetak(true);
     try {
-      await jalankanCetak(judulDokumen, jenisDokumen, ukuran, orientasi);
+      await standaloneHost.cetak({ jenis: 'kanvas', dokumen, judul: judulDokumen, kertas, orientasi });
     } finally {
       setSedangMencetak(false);
     }
   }
 
-  // Dimensi CSS sesuai ukuran kertas
-  function getGayaKertas(): { className: string; labelDimensi: string } {
-    if (ukuran === 'thermal80') {
-      return {
-        className: 'w-[80mm] max-w-full min-h-[140mm] font-mono p-[4mm] text-xs',
-        labelDimensi: 'Thermal Roll 80mm',
-      };
-    }
-
-    if (ukuran === 'f4') {
-      return orientasi === 'portrait'
-        ? { className: 'w-[215mm] min-h-[330mm] p-[12mm]', labelDimensi: 'F4 / Folio (215 × 330 mm)' }
-        : { className: 'w-[330mm] min-h-[215mm] p-[12mm]', labelDimensi: 'F4 Landscape (330 × 215 mm)' };
-    }
-
-    // A4 bawaan
-    return orientasi === 'portrait'
-      ? { className: 'w-[210mm] min-h-[297mm] p-[12mm]', labelDimensi: 'A4 Portrait (210 × 297 mm)' }
-      : { className: 'w-[297mm] min-h-[210mm] p-[12mm]', labelDimensi: 'A4 Landscape (297 × 210 mm)' };
-  }
-
-  const { className: kertasClass, labelDimensi } = getGayaKertas();
+  const klasPil = (aktif: boolean) => (aktif ? KELAS.subNavPilAktif : KELAS.subNavPil);
 
   return (
-    <div className="space-y-4">
-      {/* ── Toolbar Pengaturan Kertas di Atas Kanvas ────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emas-300/60 bg-white/90 p-3.5 shadow-sm backdrop-blur-md print:hidden sm:p-4">
-        {/* Info & Pilihan Ukuran Kertas */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">Kertas:</span>
-          <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-0.5 text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => setUkuran('a4')}
-              className={`rounded-lg px-2.5 py-1 transition ${
-                ukuran === 'a4' ? 'bg-white text-aksen-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              A4
-            </button>
-            <button
-              type="button"
-              onClick={() => setUkuran('f4')}
-              className={`rounded-lg px-2.5 py-1 transition ${
-                ukuran === 'f4' ? 'bg-white text-aksen-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              F4 / Folio
-            </button>
-            <button
-              type="button"
-              onClick={() => setUkuran('thermal80')}
-              className={`rounded-lg px-2.5 py-1 transition ${
-                ukuran === 'thermal80' ? 'bg-white text-aksen-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Thermal Roll
-            </button>
-          </div>
+    <div className="space-y-3">
+      {/* ── Toolbar (dua baris di HP): kertas & tampilan · aksi dokumen ── */}
+      <div className="space-y-2 print:hidden">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <label className="sr-only" htmlFor="kanvas-kertas">
+            Ukuran kertas
+          </label>
+          <select
+            id="kanvas-kertas"
+            value={kertas}
+            onChange={(e) => pilihKertas(e.target.value as IdKertas)}
+            className={`${KELAS.inputKecil} w-auto`}
+          >
+            {daftarKertas.map((k) => (
+              <option key={k.id} value={k.id}>
+                {k.label}
+              </option>
+            ))}
+          </select>
 
-          {/* Toggle Orientasi (jika bukan thermal) */}
-          {ukuran !== 'thermal80' && (
-            <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-0.5 text-xs font-medium">
+          {!gulung && (
+            <>
               <button
                 type="button"
-                onClick={() => setOrientasi('portrait')}
-                title="Tegak (Portrait)"
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 transition ${
-                  orientasi === 'portrait' ? 'bg-white text-aksen-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => pilihOrientasi('portrait')}
+                aria-pressed={orientasi === 'portrait'}
+                className={klasPil(orientasi === 'portrait')}
               >
-                <span>📄</span>
-                <span className="hidden sm:inline">Portrait</span>
+                Tegak
               </button>
               <button
                 type="button"
-                onClick={() => setOrientasi('landscape')}
-                title="Mendatar (Landscape)"
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 transition ${
-                  orientasi === 'landscape' ? 'bg-white text-aksen-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => pilihOrientasi('landscape')}
+                aria-pressed={orientasi === 'landscape'}
+                className={klasPil(orientasi === 'landscape')}
               >
-                <span className="rotate-90">📄</span>
-                <span className="hidden sm:inline">Landscape</span>
+                Mendatar
               </button>
-            </div>
+            </>
           )}
 
-          {/* Toggle Safe-zone */}
           <button
             type="button"
-            onClick={() => setTampilkanSafeZone(!tampilkanSafeZone)}
-            title="Tampilkan garis batas aman margin printer"
-            className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-xs font-medium transition ${
-              tampilkanSafeZone
-                ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-                : 'border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100'
-            }`}
+            onClick={() => setTampilkanBatas((v) => !v)}
+            aria-pressed={tampilkanBatas}
+            title="Tampilkan garis batas area cetak (margin printer)"
+            className={klasPil(tampilkanBatas)}
           >
-            <span>📐</span>
-            <span className="hidden sm:inline">Safe-Zone</span>
+            Batas cetak
           </button>
+
+          <div className="ml-auto inline-flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => setModeZoom('pas')}
+              aria-pressed={modeZoom === 'pas'}
+              className={klasPil(modeZoom === 'pas')}
+            >
+              Pas lebar
+            </button>
+            <button type="button" onClick={() => ubahZoom(-1)} aria-label="Perkecil" className={KELAS.tombolIkon}>
+              −
+            </button>
+            <span className="w-11 text-center font-mono text-xs text-teks-sedang">{Math.round(skala * 100)}%</span>
+            <button type="button" onClick={() => ubahZoom(1)} aria-label="Perbesar" className={KELAS.tombolIkon}>
+              +
+            </button>
+          </div>
         </div>
 
-        {/* Tombol Aksi Tambahan & Tombol Cetak Utama */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div id={ID_SLOT_TOOLBAR_KANVAS} className="flex flex-wrap items-center gap-1.5" />
           {tombolKustom}
-
           <button
             type="button"
             disabled={sedangMencetak}
-            onClick={() => void handleCetak()}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-aksen-700 to-aksen-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-md transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
+            onClick={() => void cetak()}
+            className={`ml-auto ${KELAS.tombolUtamaKecil}`}
           >
-            <span>🖨️</span>
-            <span>{sedangMencetak ? 'Memproses…' : 'Cetak Dokumen'}</span>
+            {sedangMencetak ? 'Menyiapkan…' : '🖨️ Cetak'}
           </button>
         </div>
+
+        <p className={`truncate ${KELAS.keteranganKecil}`}>
+          {labelDimensi(kertas, orientasi)} · margin {dim.marginMm} mm
+          {jumlahHalaman > 1 ? ` · ±${jumlahHalaman} halaman` : ''}
+          {' · untuk PDF pilih "Simpan sebagai PDF" di dialog cetak'}
+        </p>
       </div>
 
-      {/* ── Indikator Bar Dimensi Fisik Kertas ────────────────────────────── */}
-      <div className="flex items-center justify-between px-1 text-[11px] text-slate-500 print:hidden">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-700">{labelDimensi}</span>
-          {tampilkanSafeZone && (
-            <span className="inline-flex items-center gap-1 text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Garis putus-putus = Batas aman cetak (Margin {ukuran === 'thermal80' ? '3mm' : '10mm'})
-            </span>
-          )}
-        </div>
-
-        {/* Kontrol Zoom Pratinjau */}
-        <div className="hidden items-center gap-1.5 sm:flex">
-          <button
-            type="button"
-            onClick={() => setZoom(Math.max(60, zoom - 10))}
-            className="rounded px-1.5 py-0.5 text-slate-600 hover:bg-slate-200"
-          >
-            -
-          </button>
-          <span className="w-10 text-center font-mono">{zoom}%</span>
-          <button
-            type="button"
-            onClick={() => setZoom(Math.min(150, zoom + 10))}
-            className="rounded px-1.5 py-0.5 text-slate-600 hover:bg-slate-200"
-          >
-            +
-          </button>
-          <button
-            type="button"
-            onClick={() => setZoom(100)}
-            className="ml-1 text-[10px] text-aksen-700 hover:underline"
-          >
-            Reset
-          </button>
-        </div>
-      </div>
-
-      {/* ── Area Meja Kerja (Workbench) & Lembar Kertas Fisik ─────────────── */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-300/60 bg-slate-200/50 p-4 shadow-inner sm:p-8">
-        <div className="flex justify-center">
-          {/* Kontainer Lembar Kertas Putih */}
+      {/* ── Meja kerja & lembar ─────────────────────────────────────────── */}
+      <div
+        ref={refMeja}
+        className="overflow-x-auto rounded-kartu border border-emas-300/40 bg-netral-300/30 shadow-inner"
+        style={{ padding: PADDING_MEJA_PX }}
+      >
+        <div
+          className="mx-auto"
+          style={{ width: lebarLembarPx * skala, height: tinggiLembarPx * skala }}
+        >
           <div
+            ref={refLembar}
             id="print-ready-sheet"
-            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center' }}
-            className={`relative mx-auto rounded-lg bg-white text-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.15),0_1px_3px_rgba(0,0,0,0.08)] transition-all ${kertasClass}`}
+            className="relative shrink-0 bg-white text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.18),0_1px_3px_rgba(0,0,0,0.08)]"
+            style={{
+              width: `${dim.lebarMm}mm`,
+              minHeight: dim.tinggiMm === null ? '80mm' : `${dim.tinggiMm}mm`,
+              padding: `${dim.marginMm}mm`,
+              transform: skala !== 1 ? `scale(${skala})` : undefined,
+              transformOrigin: 'top left',
+            }}
           >
-            {/* Garis batas margin cetak halus (Print Safe-Zone) */}
-            {tampilkanSafeZone && (
+            {tampilkanBatas && (
               <div
                 aria-hidden="true"
-                className={`pointer-events-none absolute inset-2.5 rounded border border-dashed border-emerald-400/60 print:hidden ${
-                  ukuran === 'thermal80' ? 'inset-1' : 'inset-3.5'
-                }`}
-              >
-                <span className="absolute -top-2.5 left-3 bg-white px-1 font-mono text-[9px] font-semibold text-emerald-600">
-                  SAFE MARGIN
-                </span>
-              </div>
+                className="pointer-events-none absolute border border-dashed border-aksen-400/70 print:hidden"
+                style={{ inset: `${dim.marginMm}mm` }}
+              />
             )}
 
-            {/* Mode Thermal: Garis Sobek Tiket Kasir */}
-            {ukuran === 'thermal80' && (
-              <div className="mb-3 border-b-2 border-dashed border-slate-300 pb-2 text-center">
-                <p className="text-sm font-bold tracking-wider">TARTIB THERMAL</p>
-                <p className="text-[10px] text-slate-500">{new Date().toLocaleDateString('id-ID')}</p>
-              </div>
-            )}
+            {/* Perkiraan batas halaman berikutnya (hanya di layar). */}
+            {tinggiHalamanPx !== null &&
+              Array.from({ length: jumlahHalaman - 1 }, (_, i) => (
+                <div
+                  key={i}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 border-t border-dashed border-red-400/70 print:hidden"
+                  style={{ top: `${(i + 1) * (dim.tinggiMm ?? 0)}mm` }}
+                >
+                  <span className="absolute right-1 -top-4 rounded bg-white/90 px-1 text-[10px] text-red-500">
+                    ± halaman {i + 2}
+                  </span>
+                </div>
+              ))}
 
-            {/* Konten Lembar Dokumen */}
-            <div className="relative z-10">{children}</div>
-
-            {/* Mode Thermal: Footer Slip */}
-            {ukuran === 'thermal80' && (
-              <div className="mt-4 border-t-2 border-dashed border-slate-300 pt-2 text-center text-[9px] text-slate-400">
-                <p>*** TANDA AMANAH SELESAI ***</p>
-                <p>Simpan tanda ini untuk bukti serah terima</p>
-              </div>
-            )}
+            <div className="relative">{children}</div>
           </div>
         </div>
       </div>
