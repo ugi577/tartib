@@ -1,10 +1,116 @@
-// Layanan Papan Klip Internal Aplikasi (Copy, Cut, Paste, Delete)
-// Mendukung navigasi clipboard lokal dan sinkronisasi dengan navigator.clipboard sistem
+// Papan klip internal aplikasi (Salin / Potong / Tempel) — sesi 22.
+//
+// Sebelumnya satu slot `data: any` yang dibaca tanpa pemeriksaan bentuk oleh
+// tiga komponen: klip 'kbm' bisa tertempel ke bagan sebagai jabatan, klip
+// 'jabatan' bisa "ditempel sebagai sub-tugas" lalu menghapus ID yang salah.
+// Kini:
+//   - discriminated union bertipe — tiap tujuan tempel hanya menerima tipe yang
+//     cocok (`ambilKlipTipe('sub-tugas')`), dan menu Tempel dinonaktifkan bila
+//     isi klip tidak cocok;
+//   - klip jabatan/sub-tugas hanya menyimpan ID — data dibaca dari DB saat
+//     tempel, sehingga tidak ada snapshot basi;
+//   - reaktif (subscribe / hook useKlip) agar kartu yang "dipotong" bisa diberi
+//     tanda dan pil "Klip: …" bisa tampil;
+//   - TIDAK menulis ke clipboard sistem (menimpa clipboard pengguna diam-diam
+//     dan melempar NotAllowedError di WebView).
+//
+// API lama (salinItem/potongItem/ambilKlipAktif) masih ada di bawah sebagai
+// jembatan sementara — dihapus setelah semua pemanggil pindah.
 
-export type TipeKlip = 'jabatan' | 'sub-tugas' | 'kbm' | 'teks';
+import type { EntriJadwal } from '../../types/kbm';
 
-export interface ItemKlip {
-  tipe: TipeKlip;
+interface KlipDasar {
+  /** true = Potong (tempel = pindah, sumber dihapus); false = Salin. */
+  isCut: boolean;
+  /** ISO — kapan klip diisi. */
+  waktu: string;
+}
+
+export type ItemKlip =
+  | ({ tipe: 'jabatan'; id: string; sopId: string; judul: string } & KlipDasar)
+  | ({ tipe: 'sub-tugas'; id: string; itemId: string; sopId: string; judul: string } & KlipDasar)
+  | ({ tipe: 'kbm'; entri: EntriJadwal } & KlipDasar);
+
+export type TipeKlip = ItemKlip['tipe'];
+
+export type InputKlip =
+  | { tipe: 'jabatan'; id: string; sopId: string; judul: string; isCut?: boolean }
+  | { tipe: 'sub-tugas'; id: string; itemId: string; sopId: string; judul: string; isCut?: boolean }
+  | { tipe: 'kbm'; entri: EntriJadwal; isCut?: boolean };
+
+let klipAktif: ItemKlip | null = null;
+const pendengar = new Set<() => void>();
+
+function siarkan(): void {
+  pendengar.forEach((fn) => fn());
+}
+
+/** Isi klip (Salin bila isCut=false, Potong bila true). */
+export function simpanKlip(input: InputKlip): ItemKlip {
+  const dasar: KlipDasar = { isCut: input.isCut ?? false, waktu: new Date().toISOString() };
+  let klip: ItemKlip;
+  switch (input.tipe) {
+    case 'jabatan':
+      klip = { tipe: 'jabatan', id: input.id, sopId: input.sopId, judul: input.judul, ...dasar };
+      break;
+    case 'sub-tugas':
+      klip = { tipe: 'sub-tugas', id: input.id, itemId: input.itemId, sopId: input.sopId, judul: input.judul, ...dasar };
+      break;
+    case 'kbm':
+      klip = { tipe: 'kbm', entri: { ...input.entri }, ...dasar };
+      break;
+  }
+  klipAktif = klip;
+  siarkan();
+  return klip;
+}
+
+export function ambilKlip(): ItemKlip | null {
+  return klipAktif;
+}
+
+/** Klip hanya bila tipenya cocok — dipakai tiap tujuan tempel. */
+export function ambilKlipTipe<T extends TipeKlip>(tipe: T): Extract<ItemKlip, { tipe: T }> | null {
+  if (!klipAktif || klipAktif.tipe !== tipe) return null;
+  return klipAktif as Extract<ItemKlip, { tipe: T }>;
+}
+
+export function bersihkanKlip(): void {
+  if (klipAktif === null) return;
+  klipAktif = null;
+  siarkan();
+}
+
+/** Berlangganan perubahan klip (dipakai hook useKlip lewat useSyncExternalStore). */
+export function subscribeKlip(fn: () => void): () => void {
+  pendengar.add(fn);
+  return () => {
+    pendengar.delete(fn);
+  };
+}
+
+/** Teks singkat untuk pil "Klip: …" dan pesan umpan balik. */
+export function labelKlip(k: ItemKlip): string {
+  const aksi = k.isCut ? 'dipotong' : 'disalin';
+  switch (k.tipe) {
+    case 'jabatan':
+      return `Jabatan "${k.judul}" ${aksi}`;
+    case 'sub-tugas':
+      return `Tugas "${k.judul}" ${aksi}`;
+    case 'kbm':
+      return `Sesi "${k.entri.mapel}" ${aksi}`;
+  }
+}
+
+// ── Jembatan API lama (dihapus setelah KbmMatriksView & SopView bermigrasi) ──
+
+/** @deprecated pakai ItemKlip */
+export type TipeKlipLama = 'jabatan' | 'sub-tugas' | 'kbm' | 'teks';
+
+/** @deprecated pakai ItemKlip */
+export interface ItemKlipLama {
+  tipe: TipeKlipLama;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   teks: string;
   isCut?: boolean;
@@ -12,43 +118,24 @@ export interface ItemKlip {
   waktu: string;
 }
 
-let itemKlipAktif: ItemKlip | null = null;
+let klipLama: ItemKlipLama | null = null;
 
-export function salinItem(tipe: TipeKlip, data: any, teks: string, sumberId?: string): void {
-  itemKlipAktif = {
-    tipe,
-    data,
-    teks,
-    isCut: false,
-    sumberId,
-    waktu: new Date().toISOString(),
-  };
-
-  // Salin ke sistem clipboard juga jika diizinkan
-  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-    void navigator.clipboard.writeText(teks);
-  }
+/** @deprecated pakai simpanKlip({ …, isCut: false }) */
+export function salinItem(tipe: TipeKlipLama, data: unknown, teks: string, sumberId?: string): void {
+  klipLama = { tipe, data, teks, isCut: false, sumberId, waktu: new Date().toISOString() };
 }
 
-export function potongItem(tipe: TipeKlip, data: any, teks: string, sumberId?: string): void {
-  itemKlipAktif = {
-    tipe,
-    data,
-    teks,
-    isCut: true,
-    sumberId,
-    waktu: new Date().toISOString(),
-  };
-
-  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-    void navigator.clipboard.writeText(teks);
-  }
+/** @deprecated pakai simpanKlip({ …, isCut: true }) */
+export function potongItem(tipe: TipeKlipLama, data: unknown, teks: string, sumberId?: string): void {
+  klipLama = { tipe, data, teks, isCut: true, sumberId, waktu: new Date().toISOString() };
 }
 
-export function ambilKlipAktif(): ItemKlip | null {
-  return itemKlipAktif;
+/** @deprecated pakai ambilKlip / ambilKlipTipe */
+export function ambilKlipAktif(): ItemKlipLama | null {
+  return klipLama;
 }
 
-export function bersihkanKlip(): void {
-  itemKlipAktif = null;
+/** @deprecated bersihkanKlip() sudah mencakup keduanya */
+export function bersihkanKlipLama(): void {
+  klipLama = null;
 }

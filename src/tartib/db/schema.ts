@@ -20,7 +20,16 @@ import type {
 // Semua tabel berprefix `tartib_` (K-02) agar tidak bertabrakan dengan
 // skema v3 (mis. `cabang`, `santri`, `users`).
 export function buatId(): string {
-  return globalThis.crypto.randomUUID();
+  const c = globalThis.crypto;
+  if (typeof c.randomUUID === 'function') return c.randomUUID();
+  // randomUUID hanya ada di konteks aman (https/localhost). Saat build dibuka
+  // lewat IP LAN untuk uji HP, jatuh ke UUID v4 dari getRandomValues.
+  const b = new Uint8Array(16);
+  c.getRandomValues(b);
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
 export class TartibDb extends Dexie {

@@ -1,5 +1,7 @@
 // Definisi tipe data untuk Matriks Jadwal KBM & Manajemen Printer (Pilar 3 & 4)
 
+import type { IdKertas, OrientasiKertas as OrientasiKertasBersama } from '../lib/cetak/kertas';
+
 export type HariKbm = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | "Jum'at" | 'Sabtu' | 'Ahad';
 
 export interface SesiJam {
@@ -38,8 +40,11 @@ export interface ModelJadwalKbm {
 }
 
 export type TipePrinter = 'bluetooth' | 'usb' | 'system' | 'simulasi';
-export type UkuranKertas = 'a4' | 'f4' | 'thermal';
-export type OrientasiKertas = 'portrait' | 'landscape';
+// Sesi 22: ukuran kertas kini satu sumber di lib/cetak/kertas.ts (A4, F4
+// 215×330, Letter, Legal, A5, Thermal 80/58). Nama lama 'thermal' dinormalisasi
+// ke 'thermal80' oleh normalisasiIdKertas() saat dibaca dari penyimpanan lama.
+export type UkuranKertas = IdKertas;
+export type OrientasiKertas = OrientasiKertasBersama;
 
 export interface PerangkatPrinter {
   id: string;

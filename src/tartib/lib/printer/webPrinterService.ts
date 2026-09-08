@@ -84,7 +84,7 @@ export async function hubungkanPrinterBluetooth(): Promise<PerangkatPrinter> {
     nama: device.name || 'Printer Bluetooth POS',
     tipe: 'bluetooth',
     terhubung: true,
-    lebarKertasBawaan: 'thermal',
+    lebarKertasBawaan: 'thermal80',
     baterai: 85,
     terakhirTerhubung: new Date().toISOString(),
   };
@@ -138,7 +138,7 @@ export function hubungkanPrinterSimulasi(nama = 'POS-58 Bluetooth (Simulasi)'): 
     nama,
     tipe: 'simulasi',
     terhubung: true,
-    lebarKertasBawaan: nama.includes('POS') ? 'thermal' : 'a4',
+    lebarKertasBawaan: nama.includes('POS') ? 'thermal80' : 'a4',
     baterai: 94,
     terakhirTerhubung: new Date().toISOString(),
   };

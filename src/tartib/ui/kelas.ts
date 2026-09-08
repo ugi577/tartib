@@ -47,7 +47,9 @@ export const KELAS = {
     'rounded-kontrol bg-red-100/70 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-300/60',
 
   // ── Tipografi ────────────────────────────────────────────────────────────
-  judulHalaman: 'text-xl font-semibold text-teks-utama',
+  /** Judul view — dipakai lewat komponen HeaderView (sesi 22: text-lg agar
+   *  kepala halaman di HP tidak memakan layar; sebelumnya text-xl). */
+  judulHalaman: 'text-lg font-semibold leading-tight text-teks-utama',
   judulKartu: 'text-base font-semibold text-teks-utama',
   keterangan: 'text-sm text-teks-halus',
   keteranganKecil: 'text-xs text-teks-halus',
@@ -79,6 +81,16 @@ export const KELAS = {
   inputKecil:
     'rounded-kontrol border border-white/80 bg-permukaan-kartu px-2 py-1.5 text-sm text-teks-utama shadow-glosAtas backdrop-blur-md placeholder:text-teks-redup',
   label: 'block text-sm font-medium text-teks-sedang',
+
+  // ── Sub-navigasi (pil bagian di dalam satu view) ─────────────────────────
+  // Sesi 22: sebelumnya pil ini ditulis inline identik di SopView &
+  // PengaturanView, sementara Preset/Kanvas memakai kotak segmented sendiri.
+  /** Baris pil sub-nav — membungkus sendiri di layar sempit. */
+  subNav: 'flex flex-wrap gap-1.5',
+  subNavPil:
+    'whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium bg-white/60 text-teks-sedang ring-1 ring-inset ring-white/70 backdrop-blur-sm hover:bg-white/80 hover:text-teks-utama',
+  subNavPilAktif:
+    'whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium bg-gradient-to-b from-aksen-500 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-white/30',
 
   // ── Badge ────────────────────────────────────────────────────────────────
   badgeNetral:

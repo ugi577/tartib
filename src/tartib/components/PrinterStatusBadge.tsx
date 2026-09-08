@@ -81,7 +81,7 @@ export function PrinterStatusBadge() {
     setMemuat(true);
     setPesanSukses('Mengirim perintah cetak...');
     try {
-      await jalankanCetak('Uji Cetak Tartib', 'tiket-amanah', printer?.lebarKertasBawaan || 'thermal', 'portrait');
+      await jalankanCetak('Uji Cetak Tartib', 'tiket-amanah', printer?.lebarKertasBawaan || 'thermal80', 'portrait');
       setPesanSukses('Uji cetak berhasil dikirim!');
     } catch (err) {
       setPesanError(err instanceof Error ? err.message : 'Gagal mengirim cetak');

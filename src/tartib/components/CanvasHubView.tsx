@@ -43,7 +43,7 @@ export function CanvasHubView() {
     })();
   }, []);
 
-  const ukuranKertasAwal: UkuranKertas = dokumenPilihan === 'thermal-tiket' ? 'thermal' : 'a4';
+  const ukuranKertasAwal: UkuranKertas = dokumenPilihan === 'thermal-tiket' ? 'thermal80' : 'a4';
   const orientasiAwal = dokumenPilihan === 'kbm' ? 'landscape' : 'portrait';
 
   return (

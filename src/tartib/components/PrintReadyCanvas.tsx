@@ -47,7 +47,7 @@ export function PrintReadyCanvas({
 
   // Dimensi CSS sesuai ukuran kertas
   function getGayaKertas(): { className: string; labelDimensi: string } {
-    if (ukuran === 'thermal') {
+    if (ukuran === 'thermal80') {
       return {
         className: 'w-[80mm] max-w-full min-h-[140mm] font-mono p-[4mm] text-xs',
         labelDimensi: 'Thermal Roll 80mm',
@@ -96,9 +96,9 @@ export function PrintReadyCanvas({
             </button>
             <button
               type="button"
-              onClick={() => setUkuran('thermal')}
+              onClick={() => setUkuran('thermal80')}
               className={`rounded-lg px-2.5 py-1 transition ${
-                ukuran === 'thermal' ? 'bg-white text-aksen-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                ukuran === 'thermal80' ? 'bg-white text-aksen-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Thermal Roll
@@ -106,7 +106,7 @@ export function PrintReadyCanvas({
           </div>
 
           {/* Toggle Orientasi (jika bukan thermal) */}
-          {ukuran !== 'thermal' && (
+          {ukuran !== 'thermal80' && (
             <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-0.5 text-xs font-medium">
               <button
                 type="button"
@@ -172,7 +172,7 @@ export function PrintReadyCanvas({
           {tampilkanSafeZone && (
             <span className="inline-flex items-center gap-1 text-emerald-700">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Garis putus-putus = Batas aman cetak (Margin {ukuran === 'thermal' ? '3mm' : '10mm'})
+              Garis putus-putus = Batas aman cetak (Margin {ukuran === 'thermal80' ? '3mm' : '10mm'})
             </span>
           )}
         </div>
@@ -218,7 +218,7 @@ export function PrintReadyCanvas({
               <div
                 aria-hidden="true"
                 className={`pointer-events-none absolute inset-2.5 rounded border border-dashed border-emerald-400/60 print:hidden ${
-                  ukuran === 'thermal' ? 'inset-1' : 'inset-3.5'
+                  ukuran === 'thermal80' ? 'inset-1' : 'inset-3.5'
                 }`}
               >
                 <span className="absolute -top-2.5 left-3 bg-white px-1 font-mono text-[9px] font-semibold text-emerald-600">
@@ -228,7 +228,7 @@ export function PrintReadyCanvas({
             )}
 
             {/* Mode Thermal: Garis Sobek Tiket Kasir */}
-            {ukuran === 'thermal' && (
+            {ukuran === 'thermal80' && (
               <div className="mb-3 border-b-2 border-dashed border-slate-300 pb-2 text-center">
                 <p className="text-sm font-bold tracking-wider">TARTIB THERMAL</p>
                 <p className="text-[10px] text-slate-500">{new Date().toLocaleDateString('id-ID')}</p>
@@ -239,7 +239,7 @@ export function PrintReadyCanvas({
             <div className="relative z-10">{children}</div>
 
             {/* Mode Thermal: Footer Slip */}
-            {ukuran === 'thermal' && (
+            {ukuran === 'thermal80' && (
               <div className="mt-4 border-t-2 border-dashed border-slate-300 pt-2 text-center text-[9px] text-slate-400">
                 <p>*** TANDA AMANAH SELESAI ***</p>
                 <p>Simpan tanda ini untuk bukti serah terima</p>
