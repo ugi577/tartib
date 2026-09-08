@@ -23,7 +23,8 @@
 - [x] `fb669ee` merge Agen B (AppDialog/ContextMenu portal + keyboard + anchor, PemilihIkonManual token) — 285 tes
 - [x] `9e1ffc5` merge Agen C (cabang `agen-c-printer-cari-identitas`): printer jujur, SearchModal via AppDialog + acara/template, identitas produk; `81e974c` merge Agen D (`agen-d-preset`): Preset HeaderView/SubNav + konfirmasi + preset SOP nyata (+22 test) — **307 tes**; `2be5899` @page thermal 80×297
 - [x] Ukur nyata pasca-merge (headless Chrome, 375px, skrip `scratchpad/cdp/ukur22.mjs`): beranda 198 (dulu 383), preset 149 (255), kanvas 179 (435), pengaturan 131 (208), acara/tamu/evaluasi/konfirmasi 113; nol overflow; @page tersuntik A4 210×297 / KBM 297×210 / thermal 80×297; body pulih setelah cetak
-- [ ] Agen A (KBM, cabang di worktree `agent-ae9014a0600842380`) & Agen E (struktur, `agent-a820a9422efc7b80d`) masih berjalan — merge ke master dengan `git merge --no-ff <cabang>` (cek `git -C <worktree> rev-parse --abbrev-ref HEAD`), lalu tsc/lint/vitest
+- [x] `0ebf9ad` merge Agen A (KBM: `components/kbm/KbmToolbar|KbmLembar`, `lib/kbm/hari`, preset tanpa nama guru) — **324 tes**; gate: tersisa `appClipboard.ts` jembatan + `SopView.tsx`
+- [ ] Agen E (struktur, worktree `agent-a820a9422efc7b80d`, cabang `agen-e-struktur`) masih berjalan — merge dengan `git merge --no-ff agen-e-struktur`, lalu tsc/lint/vitest/gate
 - [ ] Setelah semua merge: hapus shim `SopView as unknown as` di page.tsx (SopView sudah punya prop onBuka), hapus API lama di appClipboard.ts, sesuaikan pemanggil ContextMenu agar mengirim `anchor` dari tombol ⋯
 - [ ] Verifikasi browser 375px + 1280px (restart dev dulu)
 - [ ] Perbarui PROJECT-STATE.md + PLAN.md changelog v1.31 + DECISIONS K-26
