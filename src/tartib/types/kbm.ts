@@ -2,7 +2,10 @@
 
 import type { IdKertas, OrientasiKertas as OrientasiKertasBersama } from '../lib/cetak/kertas';
 
-export type HariKbm = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | "Jum'at" | 'Sabtu' | 'Ahad';
+// Sesi 22: satu bentuk kanonik per hari ('Jumat', 'Ahad'). Ejaan lain
+// ("Jum'at", "Minggu") dinormalisasi saat dibaca oleh lib/kbm/hari.ts, dan
+// tampilan memakai labelHari() ("Jum'at").
+export type HariKbm = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu' | 'Ahad';
 
 export interface SesiJam {
   ke: number;
@@ -37,6 +40,8 @@ export interface ModelJadwalKbm {
   dibuatPada: string;
   diubahPada?: string;
   kustom?: boolean;
+  /** Template kustom: id preset bawaan asalnya (untuk "Reset ke bawaan"). */
+  asalId?: string;
 }
 
 export type TipePrinter = 'bluetooth' | 'usb' | 'system' | 'simulasi';

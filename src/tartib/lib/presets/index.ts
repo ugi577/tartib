@@ -4,6 +4,7 @@ import { DAFTAR_PRESET_SOP, type PresetSop } from './presetSop';
 import { DAFTAR_PRESET_KBM } from './presetKbm';
 import type { ModelJadwalKbm } from '../../types/kbm';
 import { tartibDb, buatId } from '../../db/schema';
+import { normalisasiJadwal } from '../kbm/hari';
 
 export * from './presetStruktur';
 export * from './presetSop';
@@ -73,13 +74,15 @@ export async function terapkanPresetStruktur(preset: PresetStruktur): Promise<st
         judul: preset.nama,
         catatan: preset.deskripsi,
       });
-      // Bersihkan item lama
+      // Bersihkan item lama — sub-tugas dihapus per sopId LEBIH DULU (sesi 22,
+      // temuan [27]: sebelumnya hanya per itemId sehingga sub yang sopId-nya
+      // cocok tapi itemId-nya sudah tidak ada tertinggal sebagai yatim).
       const itemLama = await tartibDb.sopItem.where('sopId').equals(sopId).toArray();
-      const itemIds = itemLama.map((i) => i.id);
-      await tartibDb.sopItem.where('sopId').equals(sopId).delete();
-      for (const id of itemIds) {
-        await tartibDb.sopSubItem.where('itemId').equals(id).delete();
+      await tartibDb.sopSubItem.where('sopId').equals(sopId).delete();
+      for (const it of itemLama) {
+        await tartibDb.sopSubItem.where('itemId').equals(it.id).delete();
       }
+      await tartibDb.sopItem.where('sopId').equals(sopId).delete();
     } else {
       sopId = buatId();
       await tartibDb.sop.add({
@@ -151,12 +154,23 @@ export function simpanJadwalKbmLokal(jadwal: ModelJadwalKbm): void {
   store.setItem(KUNCI_STORAGE_KBM, JSON.stringify(jadwal));
 }
 
+/** Bentuk minimal yang harus ada agar objek dianggap jadwal KBM. */
+function apakahBentukJadwal(v: unknown): v is ModelJadwalKbm {
+  if (!v || typeof v !== 'object') return false;
+  const o = v as Record<string, unknown>;
+  return Array.isArray(o.daftarHari) && Array.isArray(o.daftarJam) && Array.isArray(o.entri);
+}
+
+// Setiap titik baca menormalkan nama hari (lib/kbm/hari.ts) supaya data lama
+// di localStorage yang masih memuat "Jum'at" langsung cocok dengan kanonik
+// 'Jumat' — komponen tidak perlu menambal lagi.
 export function bacaJadwalKbmLokal(): ModelJadwalKbm {
   const store = ambilStorage();
   const raw = store.getItem(KUNCI_STORAGE_KBM);
   if (raw) {
     try {
-      return JSON.parse(raw) as ModelJadwalKbm;
+      const parsed: unknown = JSON.parse(raw);
+      if (apakahBentukJadwal(parsed)) return normalisasiJadwal(parsed);
     } catch {
       // fallback bawaan
     }
@@ -169,8 +183,8 @@ export function bacaDaftarTemplateKbmKustom(): ModelJadwalKbm[] {
   const raw = store.getItem(KUNCI_STORAGE_TEMPLATE_KBM_KUSTOM);
   if (raw) {
     try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.filter(apakahBentukJadwal).map(normalisasiJadwal);
     } catch {
       // abaikan
     }
@@ -212,16 +226,30 @@ export function eksporJadwalJson(jadwal: ModelJadwalKbm): string {
 }
 
 export function imporJadwalJson(teksJson: string): ModelJadwalKbm {
-  const parsed = JSON.parse(teksJson) as ModelJadwalKbm;
-  if (!parsed || !Array.isArray(parsed.daftarHari) || !Array.isArray(parsed.daftarJam) || !Array.isArray(parsed.entri)) {
-    throw new Error('Format file template jadwal tidak valid');
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(teksJson);
+  } catch {
+    throw new Error('Teks bukan JSON yang sah — periksa tanda kurung/koma, atau pilih berkas .json hasil Ekspor.');
   }
+  if (!apakahBentukJadwal(parsed)) {
+    throw new Error('Format template jadwal tidak valid — perlu bidang daftarHari, daftarJam, dan entri.');
+  }
+  const jadwal = normalisasiJadwal(parsed);
+  if (jadwal.daftarHari.length === 0) {
+    throw new Error('Tidak ada nama hari yang dikenali (Senin … Ahad) di daftarHari.');
+  }
+  // Id yang sama dengan preset bawaan (mis. hasil Ekspor preset) diberi id
+  // baru agar katalog tidak memuat dua template ber-id sama; asalnya dicatat
+  // di asalId supaya "Reset ke bawaan" tetap tahu preset sumbernya.
+  const bentrokPreset = DAFTAR_PRESET_KBM.some((p) => p.id === jadwal.id);
   return {
-    ...parsed,
-    id: parsed.id || `kbm-impor-${Date.now()}`,
-    judul: parsed.judul || 'Jadwal Impor Kustom',
+    ...jadwal,
+    id: jadwal.id && !bentrokPreset ? jadwal.id : `kbm-impor-${Date.now()}`,
+    judul: jadwal.judul || 'Jadwal Impor Kustom',
     kustom: true,
-    dibuatPada: parsed.dibuatPada || new Date().toISOString(),
+    asalId: jadwal.asalId ?? (bentrokPreset ? jadwal.id : undefined),
+    dibuatPada: jadwal.dibuatPada || new Date().toISOString(),
   };
 }
 
