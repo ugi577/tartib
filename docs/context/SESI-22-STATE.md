@@ -24,10 +24,12 @@
 - [x] `9e1ffc5` merge Agen C (cabang `agen-c-printer-cari-identitas`): printer jujur, SearchModal via AppDialog + acara/template, identitas produk; `81e974c` merge Agen D (`agen-d-preset`): Preset HeaderView/SubNav + konfirmasi + preset SOP nyata (+22 test) — **307 tes**; `2be5899` @page thermal 80×297
 - [x] Ukur nyata pasca-merge (headless Chrome, 375px, skrip `scratchpad/cdp/ukur22.mjs`): beranda 198 (dulu 383), preset 149 (255), kanvas 179 (435), pengaturan 131 (208), acara/tamu/evaluasi/konfirmasi 113; nol overflow; @page tersuntik A4 210×297 / KBM 297×210 / thermal 80×297; body pulih setelah cetak
 - [x] `0ebf9ad` merge Agen A (KBM: `components/kbm/KbmToolbar|KbmLembar`, `lib/kbm/hari`, preset tanpa nama guru) — **324 tes**; gate: tersisa `appClipboard.ts` jembatan + `SopView.tsx`
-- [ ] Agen E (struktur, worktree `agent-a820a9422efc7b80d`, cabang `agen-e-struktur`) masih berjalan — merge dengan `git merge --no-ff agen-e-struktur`, lalu tsc/lint/vitest/gate
-- [ ] Setelah semua merge: hapus shim `SopView as unknown as` di page.tsx (SopView sudah punya prop onBuka), hapus API lama di appClipboard.ts, sesuaikan pemanggil ContextMenu agar mengirim `anchor` dari tombol ⋯
-- [ ] Verifikasi browser 375px + 1280px (restart dev dulu)
-- [ ] Perbarui PROJECT-STATE.md + PLAN.md changelog v1.31 + DECISIONS K-26
+- [x] `ad4194b` merge Agen E (struktur: `components/struktur/*`, `lib/struktur/{menuStruktur,usePapanSop,useAksiStruktur,useTekanLama}`, sopService transaksional) — `dad6c23` shim page.tsx & API klip lama dihapus — **tsc/lint bersih, vitest 347/347 (36 berkas), `pnpm gate` 8/8 hijau, build statis sukses**
+- [x] Shim & API lama dihapus. (Opsional lanjutan: DialogStruktur mengirim `anchor` ke ContextMenu — sekarang memakai x,y dari tombol ⋯, sudah berfungsi.)
+- [x] Verifikasi headless Chrome 375/1280 (`scratchpad/cdp/ukur22.mjs` + `uji-struktur.mjs`): konten pertama 375px — beranda 198, preset 149, **struktur 148 (kartu jabatan pertama 249; dulu 509)**, kanvas 179, KBM 131, pengaturan 131, template 151, acara/tamu/evaluasi/konfirmasi 113; nol overflow semua view; lembar A4 210×297mm pas-lebar, batas 10mm, KBM toolbar di slot (6 kontrol) & nol `sm:` di lembar; `@page` tersuntik (A4 210×297 / KBM 297×210 / thermal 80×297) & body pulih; alur ⋯→Salin→Tempel (15 kartu, "(Salinan)"), Potong→"Pindahkan … ke papan ini" (jumlah tetap, tanpa akhiran ganda), Hapus via KonfirmasiDialog (kembali 14) — nol error konsol
+- [x] DECISIONS K-26 (`604bacf`), PLAN v1.31 (`f5545fd`), PROJECT-STATE sesi 22 — final
+- [ ] **Verifikasi manual Ahmed**: cetak fisik A4/F4/thermal dari Kanvas & dari Struktur (Save as PDF), sentuh tombol ⋯ / tekan lama di HP, APK (`pnpm build:apk`), lalu sinkron publik `./scripts/sync-publik.sh master --push`
+- [ ] Rapikan worktree agen bila sudah tidak perlu: `git worktree remove .claude/worktrees/agent-*` (cabang agen-*/worktree-agent-* sudah ter-merge)
 
 ## Temuan audit terpenting (99 temuan; nomor = urutan di berkas ringkasan)
 
