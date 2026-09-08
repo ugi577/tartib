@@ -110,7 +110,6 @@ export type TipeKlipLama = 'jabatan' | 'sub-tugas' | 'kbm' | 'teks';
 /** @deprecated pakai ItemKlip */
 export interface ItemKlipLama {
   tipe: TipeKlipLama;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   teks: string;
   isCut?: boolean;
