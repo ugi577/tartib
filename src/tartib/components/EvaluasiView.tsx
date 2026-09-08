@@ -12,6 +12,7 @@ import { daftarDivisi } from '../services/divisiService';
 import * as evaluasiSvc from '../services/evaluasiService';
 import * as ts from '../services/templateService';
 import type { Acara, Divisi, Evaluasi, Template } from '../types';
+import { HeaderView } from './HeaderView';
 import { KELAS } from '../ui/kelas';
 
 function pesanError(e: unknown): string {
@@ -105,13 +106,8 @@ export function EvaluasiView() {
 
   if (!terpilih) {
     return (
-      <div>
-        <div className="mb-5">
-          <h2 className={KELAS.judulHalaman}>Evaluasi</h2>
-          <p className="text-sm text-teks-halus">
-            {daftar.total} acara — pilih acara untuk mengisi lembar evaluasi per divisi dan mempromosikan usulan.
-          </p>
-        </div>
+      <div className="space-y-4">
+        <HeaderView judul="Evaluasi" keterangan={`${daftar.total} acara · pilih acara untuk mengisi evaluasi per divisi`} />
         {daftar.memuat && <p className="text-sm text-teks-halus">Memuat…</p>}
         {!daftar.memuat && daftar.items.length === 0 && (
           <div className={KELAS.kosong}>
@@ -180,12 +176,11 @@ export function EvaluasiView() {
       >
         ← Kembali ke daftar acara
       </button>
-      <div className="mb-5">
-        <h2 className={KELAS.judulHalaman}>Evaluasi — {terpilih.nama}</h2>
-        <p className="mt-1 text-sm text-teks-halus">
-          {formatTanggalIndonesia(terpilih.tanggal)} · isi per divisi: satu yang berjalan baik, satu yang kurang,
-          satu usulan perbaikan.
-        </p>
+      <div className="mb-4">
+        <HeaderView
+          judul={`Evaluasi — ${terpilih.nama}`}
+          keterangan={`${formatTanggalIndonesia(terpilih.tanggal)} · per divisi: yang baik, yang kurang, usulan`}
+        />
       </div>
 
       {errorUmum && <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>}

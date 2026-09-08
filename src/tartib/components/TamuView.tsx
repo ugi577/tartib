@@ -17,6 +17,7 @@ import * as perlengkapanSvc from '../services/perlengkapanService';
 import { FormDialog, KonfirmasiDialog } from './AppDialog';
 import type { Acara, Divisi, KelompokTamu, Perlengkapan, Rsvp, StatusRsvp } from '../types';
 import { usePengaturan } from '../lib/usePengaturan';
+import { HeaderView } from './HeaderView';
 import { KELAS, badgeStatusRsvp } from '../ui/kelas';
 
 function pesanError(e: unknown): string {
@@ -255,11 +256,8 @@ export function TamuView() {
 
   if (!terpilih) {
     return (
-      <div>
-        <div className="mb-5">
-          <h2 className={KELAS.judulHalaman}>Tamu & Porsi</h2>
-          <p className="text-sm text-teks-halus">Pilih acara untuk kelola kelompok tamu, RSVP, dan ceklis perlengkapan.</p>
-        </div>
+      <div className="space-y-4">
+        <HeaderView judul="Tamu & Porsi" keterangan="Pilih acara: kelompok tamu, RSVP, porsi, perlengkapan" />
 
         {daftar.memuat && <p className="text-sm text-teks-halus">Memuat…</p>}
         {!daftar.memuat && daftar.items.length === 0 && (
@@ -301,12 +299,16 @@ export function TamuView() {
 
   return (
     <div>
-      <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-aksen-700 hover:underline">
-        ← Kembali ke daftar acara
-      </button>
-      <div className="mb-5">
-        <h2 className={KELAS.judulHalaman}>{terpilih.nama}</h2>
-        <p className="mt-1 text-sm text-teks-halus">{formatTanggalIndonesia(terpilih.tanggal)}</p>
+      <div className="mb-4">
+        <HeaderView
+          judul={terpilih.nama}
+          keterangan={formatTanggalIndonesia(terpilih.tanggal)}
+          kembali={
+            <button onClick={kembaliKeDaftar} className="mb-1 block text-sm font-medium text-aksen-700 hover:underline">
+              ← Kembali ke daftar acara
+            </button>
+          }
+        />
       </div>
 
       {errorUmum && <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>}

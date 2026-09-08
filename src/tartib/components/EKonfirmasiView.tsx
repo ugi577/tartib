@@ -11,7 +11,6 @@
 import { useMemo, useState } from 'react';
 import { JENIS_ACARA_BAKU } from '../db/seed';
 import {
-  JUDUL_TITLE,
   KOP_ARAB_BAKU,
   KOP_LATIN_BAKU,
   PRESET_KATEGORI,
@@ -19,6 +18,7 @@ import {
   susunHtmlKonfirmasi,
   type BidangKonfirmasi,
 } from '../lib/konfirmasi/eKonfirmasi';
+import { HeaderView } from './HeaderView';
 import { KELAS } from '../ui/kelas';
 import { unduhBerkas } from '../lib/unduh';
 
@@ -81,14 +81,7 @@ export function EKonfirmasiView() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className={KELAS.judulHalaman}>Buat e-Konfirmasi Kehadiran</h2>
-        <p className="mt-1 text-sm text-teks-halus">
-          Susun halaman konfirmasi untuk acara Anda — judul{' '}
-          <span className="font-medium text-teks-sedang">{JUDUL_TITLE}</span> — lalu unduh sebagai
-          berkas HTML yang siap dibagikan. Bidang khusus menyesuaikan kategori acara.
-        </p>
-      </div>
+      <HeaderView judul="e-Konfirmasi Kehadiran" keterangan="Susun & unduh halaman konfirmasi HTML siap dibagikan" />
 
       {pesan && <p className="rounded-lg bg-aksen-50 px-3 py-2 text-sm text-aksen-700">{pesan}</p>}
 

@@ -44,6 +44,7 @@ import * as cadanganSvc from '../services/cadanganService';
 import { unduhBerkas } from '../lib/unduh';
 import { KELAS } from '../ui/kelas';
 import { KonfirmasiDialog } from './AppDialog';
+import { HeaderView, SubNav } from './HeaderView';
 import { TentangView } from './TentangView';
 
 function pesanError(e: unknown): string {
@@ -258,35 +259,14 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
   const statusCadangan = statusPengingatCadangan(cadanganTerakhir, new Date());
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className={KELAS.judulHalaman}>Pengaturan</h2>
-        <p className={`mt-1 ${KELAS.keterangan}`}>
-          Preferensi tersimpan di perangkat ini saja — tidak ikut terkirim ke mana pun.
-        </p>
-      </div>
-
-      {/* Sub-navigasi bagian — pil yang membungkus sendiri di layar sempit. */}
-      <div className="flex flex-wrap gap-1.5 sm:gap-2">
-        {BAGIAN.map((b) => (
-          <button
-            key={b.id}
-            onClick={() => setBagian(b.id)}
-            aria-current={bagian === b.id ? 'true' : undefined}
-            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-center text-sm font-medium sm:px-4 ${
-              bagian === b.id
-                ? 'bg-gradient-to-b from-aksen-500 to-aksen-600 text-white shadow-glowAksen ring-1 ring-inset ring-white/30'
-                : 'bg-white/60 text-teks-sedang ring-1 ring-inset ring-white/70 backdrop-blur-sm hover:bg-white/80 hover:text-teks-utama'
-            }`}
-          >
-            {b.label}
-          </button>
-        ))}
-      </div>
+    <div className="space-y-4">
+      {/* Sesi 22: kepala halaman kompak (HeaderView + SubNav); kalimat privasi
+          pindah ke kartu Data & Cadangan. */}
+      <HeaderView judul="Pengaturan" subNav={<SubNav daftar={BAGIAN} aktif={bagian} onPilih={setBagian} />} />
 
       {bagian === 'umum' && (
         <>
-          <section className={`${KELAS.kartu} p-6`}>
+          <section className={KELAS.kartuIsi}>
             <h3 className={KELAS.judulKartu}>Identitas & kop cetak</h3>
             <p className={`mt-1 ${KELAS.keterangan}`}>
               Nama lembaga ini dicetak sebagai kop di semua lembar A4: buku acara, laporan
@@ -332,7 +312,7 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
             </div>
           </section>
 
-          <section className={`${KELAS.kartu} p-6`}>
+          <section className={KELAS.kartuIsi}>
             <h3 className={KELAS.judulKartu}>Nilai baku kalkulator porsi</h3>
             <p className={`mt-1 ${KELAS.keterangan}`}>
               Dipakai sebagai nilai awal kalkulator di tab Tamu &amp; Porsi. Angka di layar itu
@@ -406,10 +386,11 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
 
       {bagian === 'data' && (
         <>
-          <section className={`${KELAS.kartu} p-6`}>
+          <section className={KELAS.kartuIsi}>
             <h3 className={KELAS.judulKartu}>Isi data di perangkat ini</h3>
             <p className={`mt-1 ${KELAS.keterangan}`}>
-              Total {totalBaris} baris tersimpan di penyimpanan lokal peramban (IndexedDB).
+              Total {totalBaris} baris tersimpan di penyimpanan lokal peramban (IndexedDB) — hanya di
+              perangkat ini, tidak terkirim ke mana pun.
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {cadanganSvc.TABEL_CADANGAN.map((t) => (
@@ -421,7 +402,7 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
             </div>
           </section>
 
-          <section className={`${KELAS.kartu} p-6`}>
+          <section className={KELAS.kartuIsi}>
             <h3 className={KELAS.judulKartu}>Cadangan & pemulihan</h3>
             <p className={`mt-1 ${KELAS.keterangan}`}>
               Tartib tidak punya server: menghapus data peramban atau berganti perangkat berarti
@@ -465,7 +446,7 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
             </p>
           </section>
 
-          <section className={`${KELAS.kartu} p-6`}>
+          <section className={KELAS.kartuIsi}>
             <h3 className={KELAS.judulKartu}>Data baku & pembersihan</h3>
             <div className="mt-3 space-y-4">
               <div>
@@ -499,7 +480,7 @@ export function PengaturanView({ bagianAwal = 'umum' }: PropsPengaturanView) {
             </div>
           </section>
 
-          <section className={`${KELAS.kartu} p-6`}>
+          <section className={KELAS.kartuIsi}>
             <h3 className={KELAS.judulKartu}>Google Drive</h3>
             <p className={`mt-1 ${KELAS.keterangan}`}>
               Dipakai tombol &quot;Simpan ke Google Drive&quot; saat mengekspor template. Client ID

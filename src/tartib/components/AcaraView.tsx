@@ -25,6 +25,7 @@ import { standaloneHost } from '../host/standaloneHost';
 import { FormDialog } from './AppDialog';
 import type { Acara, AcaraDivisi, Divisi, Fase, JenisAcara, Template, Tugas } from '../types';
 import { KopCetak } from './KopCetak';
+import { HeaderView } from './HeaderView';
 import { KELAS, badgeStatusAcara, badgeStatusTugas } from '../ui/kelas';
 
 function pesanError(e: unknown): string {
@@ -224,21 +225,16 @@ export function AcaraView() {
 
   if (!terpilih) {
     return (
-      <div>
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className={KELAS.judulHalaman}>Acara</h2>
-            <p className="text-sm text-teks-halus">
-              {daftar.total} acara — dibuat dari template; perubahan template tidak mengubah acara yang sudah dibuat.
-            </p>
-          </div>
-          <button
-            onClick={bukaDialogBuat}
-            className={KELAS.tombolUtama}
-          >
-            Buat Acara
-          </button>
-        </div>
+      <div className="space-y-4">
+        <HeaderView
+          judul="Acara"
+          keterangan={`${daftar.total} acara · dibuat dari template`}
+          aksi={
+            <button onClick={bukaDialogBuat} className={KELAS.tombolUtamaKecil}>
+              Buat Acara
+            </button>
+          }
+        />
 
         {errorUmum && <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>}
 
@@ -514,7 +510,7 @@ export function AcaraView() {
       <div className="mb-5">
         <button
           onClick={kembaliKeDaftar}
-          className="mb-3 text-sm font-medium text-aksen-700 hover:underline print:hidden"
+          className="mb-2 text-sm font-medium text-aksen-700 hover:underline print:hidden"
         >
           ← Kembali ke daftar acara
         </button>

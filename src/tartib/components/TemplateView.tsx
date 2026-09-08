@@ -18,6 +18,7 @@ import { daftarDivisi } from '../services/divisiService';
 import { FormDialog, KonfirmasiDialog } from './AppDialog';
 import type { Divisi, Fase, JenisAcara, Template, TemplateItem } from '../types';
 import { KopCetak } from './KopCetak';
+import { HeaderView } from './HeaderView';
 import { KELAS } from '../ui/kelas';
 import { PanelImporTemplate } from './template/PanelImporTemplate';
 import { PanelEksporTemplate } from './template/PanelEksporTemplate';
@@ -321,18 +322,16 @@ export function TemplateView() {
 
   if (!terpilih) {
     return (
-      <div>
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className={KELAS.judulHalaman}>Template SOP Acara</h2>
-            <p className="text-sm text-teks-halus">
-              {daftar.total} template — duplikat, versi baru, dan arsip tanpa menimpa data.
-            </p>
-          </div>
-          <button onClick={bukaBaru} className={KELAS.tombolUtama}>
-            Buat Template
-          </button>
-        </div>
+      <div className="space-y-4">
+        <HeaderView
+          judul="Template SOP Acara"
+          keterangan={`${daftar.total} template · duplikat, versi baru, arsip`}
+          aksi={
+            <button onClick={bukaBaru} className={KELAS.tombolUtamaKecil}>
+              Buat Template
+            </button>
+          }
+        />
 
         {errorUmum && (
           <p className={`mb-4 ${KELAS.error}`}>{errorUmum}</p>
@@ -531,7 +530,7 @@ export function TemplateView() {
           yang tercetak hanya formulir panduan di bawah. */}
       <div className={cetakPanduan ? 'print:hidden' : undefined}>
         <div className="mb-5">
-        <button onClick={kembaliKeDaftar} className="mb-3 text-sm font-medium text-aksen-700 hover:underline">
+        <button onClick={kembaliKeDaftar} className="mb-2 text-sm font-medium text-aksen-700 hover:underline">
           ← Kembali ke daftar template
         </button>
         <div className="flex flex-wrap items-center gap-2">

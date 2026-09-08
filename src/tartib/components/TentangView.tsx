@@ -68,8 +68,8 @@ const LANSKAP = [
 
 export function TentangView() {
   return (
-    <div className="space-y-6">
-      <section className={`${KELAS.kartu} p-6`}>
+    <div className="space-y-4">
+      <section className={KELAS.kartuIsi}>
         <h3 className={KELAS.judulKartu}>Tentang Tartib</h3>
         <p className="mt-2 text-sm leading-relaxed text-teks-sedang">
           Tartib adalah pembuat SOP acara yang menyatukan <strong>dokumen</strong> dan{' '}
@@ -85,7 +85,7 @@ export function TentangView() {
         </p>
       </section>
 
-      <section className={`${KELAS.kartu} p-6`}>
+      <section className={KELAS.kartuIsi}>
         <h3 className={KELAS.judulKartu}>Apa yang bisa dikerjakan hari ini</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {KEMAMPUAN.map((k) => (
@@ -98,7 +98,7 @@ export function TentangView() {
         </div>
       </section>
 
-      <section className={`${KELAS.kartu} p-6`}>
+      <section className={KELAS.kartuIsi}>
         <h3 className={KELAS.judulKartu}>Posisi produk — riset lanskap 2026-08-22</h3>
         <p className={`mt-1 ${KELAS.keterangan}`}>
           Riset terhadap aplikasi sejenis (nama produk tidak disebutkan) menemukan satu celah
@@ -120,7 +120,7 @@ export function TentangView() {
         </p>
       </section>
 
-      <section className={`${KELAS.kartu} p-6`}>
+      <section className={KELAS.kartuIsi}>
         <h3 className={KELAS.judulKartu}>Yang disengaja belum ada</h3>
         <p className="mt-1 text-sm leading-relaxed text-teks-sedang">
           Notifikasi push, sinkronisasi pesan instan, kolaborasi banyak perangkat secara real-time,
@@ -131,7 +131,7 @@ export function TentangView() {
         </p>
       </section>
 
-      <section className={`${KELAS.kartu} p-6`}>
+      <section className={KELAS.kartuIsi}>
         <h3 className={KELAS.judulKartu}>Kontak Developer</h3>
         <p className="mt-1 text-sm text-teks-sedang">
           Pengembangan &amp; dukungan aplikasi ini dikelola oleh:{' '}

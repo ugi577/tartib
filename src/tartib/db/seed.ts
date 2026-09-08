@@ -197,8 +197,8 @@ export const TEMPLATE_PANDUAN: {
 
 // Papan baku SEMI-PATEN (Batch X, arahan Ahmed: "menu SOP untuk hal bersifat
 // semi paten, misal SOP daftar tugas/amanah/khidmah santri dan PICnya yg
-// mudah ceklist"): struktur amanah relatif tetap, nama PIC boleh berganti
-// kapan saja, dan tiap item mudah diceklis di tab SOP. Idempoten per judul
+// mudah ceklist"): struktur amanah relatif tetap, nama PIC diisi pengguna
+// (sesi 22: seed publik TANPA nama pribadi), dan tiap item mudah diceklis. Idempoten per judul
 // (pola TEMPLATE_PANDUAN) supaya muncul juga pada data yang sudah ada.
 export const SOP_AMANAH_BAKU: {
   judul: string;
@@ -211,118 +211,108 @@ export const SOP_AMANAH_BAKU: {
     sub?: { judul: string; picNama?: string; catatan?: string }[];
   }[];
 } = {
-  judul: 'Struktur PIC Amanah',
+  judul: 'Struktur & PIC',
   catatan:
-    'Struktur organisasi santri — jabatan dan penanggung jawab amanah. Klik jabatan untuk melihat daftar tugas, tambah/ubah jabatan dan tugas sesuai kebutuhan.',
+    'Contoh struktur organisasi santri — jabatan dan daftar tugas. Isi nama PIC, lalu tambah/ubah jabatan dan tugas sesuai lembaga Anda.',
   items: [
     // Pimpinan
-    { judul: 'MUDIR', picNama: 'Pimpinan Pondok', catatan: '🕌', rutin: 'Pimpinan' },
+    { judul: 'MUDIR', catatan: '🕌', rutin: 'Pimpinan' },
     // Pengurus Inti
-    { judul: 'HUMAS/SOSIAL', picNama: 'Habib Abdillah Al At thos', catatan: '🤝', rutin: 'Pengurus Inti' },
+    { judul: 'HUMAS/SOSIAL', catatan: '🤝', rutin: 'Pengurus Inti' },
     {
       judul: 'KETUA',
-      picNama: 'Adrian',
       catatan: '👑',
       rutin: 'Pengurus Inti',
       sub: [
-        { judul: 'Pompa Sungai', picNama: 'Adrian' },
-        { judul: 'Hp. Pondok', picNama: 'Adrian' },
+        { judul: 'Pompa Sungai' },
+        { judul: 'Hp. Pondok' },
       ],
     },
-    { judul: 'KORDINATOR MUSYRIF', picNama: 'ust Juswandi', catatan: '👥', rutin: 'Pengurus Inti' },
+    { judul: 'KORDINATOR MUSYRIF', catatan: '👥', rutin: 'Pengurus Inti' },
     {
-      judul: 'LOGISTIK MAHAD',
-      picNama: 'Yudi Nahyuddin',
+      judul: 'LOGISTIK',
       catatan: '📦',
       rutin: 'Pengurus Inti',
       sub: [
-        { judul: 'Kunci Motor', picNama: 'Yudhi' },
-        { judul: 'Lemari Tool', picNama: 'Hakim' },
-        { judul: 'Baterai & Charger', picNama: 'Syarif' },
-        { judul: 'Vacuum Cleaner', picNama: 'Zaki' },
+        { judul: 'Kunci Motor' },
+        { judul: 'Lemari Tool' },
+        { judul: 'Baterai & Charger' },
+        { judul: 'Vacuum Cleaner' },
       ],
     },
-    { judul: 'PEMBINA CIJULANG', picNama: 'ust Dimas Erilangga', catatan: '🏘️', rutin: 'Pengurus Inti' },
+    { judul: 'PEMBINA ASRAMA', catatan: '🏘️', rutin: 'Pengurus Inti' },
     // Divisi
     {
       judul: 'BENDAHARA',
-      picNama: 'Yudi Nahyuddin',
       catatan: '💰',
       rutin: 'Divisi',
       sub: [
-        { judul: 'PJ. Bendahara Kas', picNama: 'Yudi' },
-        { judul: 'Iuran Bulanan / Darda', picNama: 'Said' },
+        { judul: 'PJ. Bendahara Kas' },
+        { judul: 'Iuran Bulanan / Darda' },
       ],
     },
     {
       judul: 'SEKRETARIS',
-      picNama: 'Husnil',
       catatan: '📋',
       rutin: 'Divisi',
-      sub: [{ judul: 'WC Aula Depan', picNama: 'Husnil' }],
+      sub: [{ judul: 'WC Aula Depan' }],
     },
     {
       judul: 'KEAMANAN',
-      picNama: 'Zikri, Fauzan',
       catatan: '🔒',
       rutin: 'Divisi',
       sub: [
-        { judul: 'Kran Air', picNama: 'Farhan' },
-        { judul: 'Sandal', picNama: 'Andri - Farhan Petir' },
-        { judul: 'Matikan Lampu', picNama: 'Fikri - Ardi, Sam-Sam' },
+        { judul: 'Kran Air' },
+        { judul: 'Sandal' },
+        { judul: 'Matikan Lampu' },
       ],
     },
     {
       judul: 'BISNIS',
-      picNama: 'Hakim, Affil',
       catatan: '💼',
       rutin: 'Divisi',
       sub: [
-        { judul: 'Nampan & Piring', picNama: 'Hafiz, Affil' },
-        { judul: 'Kerapihan Rak Pampers', picNama: 'Affil, Hafiz' },
+        { judul: 'Nampan & Piring' },
+        { judul: 'Kerapihan Rak Pampers' },
       ],
     },
     {
-      judul: 'KEMANAN GHAZA',
-      picNama: 'Syaiful',
+      judul: 'KEAMANAN AREA',
       catatan: '🛡️',
       rutin: 'Divisi',
-      sub: [{ judul: 'Pompa Kolam', picNama: 'Ghaza' }],
+      sub: [{ judul: 'Pompa Kolam' }],
     },
     {
       judul: 'PJ KESEHATAN',
-      picNama: 'Rizky, Aziz',
       catatan: '🏥',
       rutin: 'Divisi',
-      sub: [{ judul: 'Jemuran Jatuh', picNama: 'Hadi - Aziz' }],
+      sub: [{ judul: 'Jemuran Jatuh' }],
     },
     {
       judul: 'PJ MEMBANGUNKAN',
-      picNama: 'Ardi, Said',
       catatan: '⏰',
       rutin: 'Divisi',
       sub: [
-        { judul: 'Membangunkan Santri', picNama: 'Ardi, Said' },
-        { judul: 'Gazebo', picNama: 'Ardi' },
-        { judul: 'Aula', picNama: 'Ardi' },
-        { judul: 'Dapur', picNama: 'Ardi, Rishi A.' },
-        { judul: 'Ingatkan Jumat', picNama: 'Said, Hafiz' },
-        { judul: 'Alat Kebersihan', picNama: 'Said Syarif' },
+        { judul: 'Membangunkan Santri' },
+        { judul: 'Gazebo' },
+        { judul: 'Aula' },
+        { judul: 'Dapur' },
+        { judul: 'Ingatkan Jumat' },
+        { judul: 'Alat Kebersihan' },
       ],
     },
     {
       judul: 'MEDIA',
-      picNama: 'Fahmi, Abdul Hadi',
       catatan: '📷',
       rutin: 'Divisi',
       sub: [
-        { judul: 'Hp. Media', picNama: 'Fahmi' },
-        { judul: 'Hadroh', picNama: 'Luthfi Maskur' },
-        { judul: 'Motor Ustadz', picNama: 'Hafizh, Aqi' },
-        { judul: 'Jendela & Lap Frame', picNama: 'Affan R.' },
-        { judul: 'Torrent Air', picNama: 'Azkhtar' },
-        { judul: 'Meja Majlis', picNama: 'Maher' },
-        { judul: 'Catat Lampu Rusak', picNama: 'Abdurrahman' },
+        { judul: 'Hp. Media' },
+        { judul: 'Hadroh' },
+        { judul: 'Motor Ustadz' },
+        { judul: 'Jendela & Lap Frame' },
+        { judul: 'Torrent Air' },
+        { judul: 'Meja Majlis' },
+        { judul: 'Catat Lampu Rusak' },
       ],
     },
   ],
