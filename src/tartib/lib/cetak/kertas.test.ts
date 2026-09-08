@@ -33,10 +33,10 @@ describe('kertas — satu sumber ukuran cetak', () => {
     expect(dimensiKertas('thermal80', 'landscape')).toEqual({ lebarMm: 80, tinggiMm: null, marginMm: 2 });
   });
 
-  it('aturan @page eksplisit dalam mm, tidak bersarang, gulung memakai auto', () => {
+  it('aturan @page eksplisit dalam mm, tidak bersarang, gulung memakai tinggi nominal 297', () => {
     expect(aturanPage('a4')).toBe('@page { size: 210mm 297mm; margin: 10mm; }');
     expect(aturanPage('f4', 'landscape')).toBe('@page { size: 330mm 215mm; margin: 10mm; }');
-    expect(aturanPage('thermal58')).toBe('@page { size: 58mm auto; margin: 2mm; }');
+    expect(aturanPage('thermal58')).toBe('@page { size: 58mm 297mm; margin: 2mm; }');
     expect(aturanPage('a5', 'portrait', 6)).toBe('@page { size: 148mm 210mm; margin: 6mm; }');
   });
 

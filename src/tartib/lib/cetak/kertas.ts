@@ -44,6 +44,9 @@ export const KERTAS_LEMBAR: readonly SpesifikasiKertas[] = DAFTAR_KERTAS.filter(
 
 export const KERTAS_BAKU: IdKertas = 'a4';
 
+/** Tinggi nominal halaman untuk kertas gulung (driver thermal umum: Roll 80 × 297 mm). */
+export const TINGGI_GULUNG_MM = 297;
+
 /** 1 mm = 96/25.4 px CSS (definisi unit absolut CSS). */
 export const PX_PER_MM = 96 / 25.4;
 
@@ -105,7 +108,9 @@ export function dimensiKertas(id: IdKertas, orientasi: OrientasiKertas = 'portra
 export function aturanPage(id: IdKertas, orientasi: OrientasiKertas = 'portrait', marginMm?: number): string {
   const d = dimensiKertas(id, orientasi);
   const margin = marginMm ?? d.marginMm;
-  const size = d.tinggiMm === null ? `${d.lebarMm}mm auto` : `${d.lebarMm}mm ${d.tinggiMm}mm`;
+  // `size` tidak menerima campuran panjang + auto (Chrome membuang aturannya).
+  // Kertas gulung memakai tinggi nominal driver thermal "Roll 80 × 297 mm".
+  const size = `${d.lebarMm}mm ${d.tinggiMm ?? TINGGI_GULUNG_MM}mm`;
   return `@page { size: ${size}; margin: ${margin}mm; }`;
 }
 
