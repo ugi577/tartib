@@ -2,6 +2,11 @@
 // dan SOP kustom buatan pengguna. Satu-satunya jalur baca/tulis data SOP
 // dari UI (PRD §3 pola wajib); fungsi murni diuji tanpa IndexedDB.
 // Batch Y: sub-tugas di bawah tiap item, kategori rutin, dan impor papan.
+// Sesi 22: salin/potong/tempel & duplikat item/sub-tugas dipindah dari UI ke
+// sini sebagai operasi TRANSAKSIONAL (dulu UI merangkai tambah + hapus tanpa
+// transaksi: salinan jadi tapi sumber gagal dihapus, ceklis hilang, sub dari
+// snapshot basi). Potong→Tempel kini benar-benar MEMINDAHKAN baris (update
+// sopId/itemId), bukan membuat baris baru bernama "(Salinan)".
 import { buatId, tartibDb } from '../db/schema';
 import { urutanBerikutnya } from '../lib/urutan';
 import type { Sop, SopItem, SopSubItem } from '../types';
@@ -126,6 +131,108 @@ export function salinanSop(
     return { ...s, id: buatId(), sopId: sop.id, itemId, selesai: false, selesaiPada: undefined };
   });
   return { sop, item, subItem };
+}
+
+// ===== Salin / pindah item & sub-tugas (sesi 22) — fungsi murni =====
+
+export const AKHIRAN_SALINAN = ' (Salinan)';
+
+/**
+ * Akhiran judul untuk salinan: hanya bila sumber dan tujuan berada di wadah
+ * yang sama (papan yang sama untuk item, jabatan yang sama untuk sub-tugas) —
+ * di situlah dua nama identik membingungkan. Salinan ke papan/jabatan lain
+ * memakai judul apa adanya. `akhiran` eksplisit (termasuk '') menang.
+ */
+export function akhiranSalinan(wadahAsal: string, wadahTujuan: string, akhiran?: string): string {
+  if (akhiran !== undefined) return akhiran;
+  return wadahAsal === wadahTujuan ? AKHIRAN_SALINAN : '';
+}
+
+export interface PenyisipanUrutan {
+  /** Urutan untuk baris baru: tepat setelah baris acuan. */
+  urutanBaru: number;
+  /** Baris lama yang harus digeser (id → urutan baru) agar tidak bertabrakan. */
+  geser: Array<{ id: string; urutan: number }>;
+}
+
+/**
+ * Sisipkan baris baru TEPAT setelah `setelahId` (duplikat item muncul di bawah
+ * aslinya, bukan di dasar daftar). Baris sesudah acuan dinomori ulang rapat
+ * (acuan+2, acuan+3, …) sehingga nomor kembar yang mungkin ada di data lama
+ * ikut terurai. Daftar boleh tidak terurut.
+ */
+export function sisipkanUrutan(daftar: readonly { id: string; urutan: number }[], setelahId: string): PenyisipanUrutan {
+  const terurut = [...daftar].sort((a, b) => a.urutan - b.urutan);
+  const i = terurut.findIndex((b) => b.id === setelahId);
+  if (i < 0) throw new SopError('Baris acuan penyisipan tidak ditemukan');
+  const dasar = terurut[i].urutan;
+  const geser: Array<{ id: string; urutan: number }> = [];
+  terurut.slice(i + 1).forEach((b, k) => {
+    const urutan = dasar + 2 + k;
+    if (urutan !== b.urutan) geser.push({ id: b.id, urutan });
+  });
+  return { urutanBaru: dasar + 1, geser };
+}
+
+export interface OpsiSalinanItem {
+  sopId: string;
+  urutan: number;
+  /** undefined = rutin sumber dipertahankan; '' = dikosongkan. */
+  rutin?: string;
+  /** '' = judul apa adanya. */
+  akhiran?: string;
+}
+
+export interface StrukturSalinanItem {
+  item: SopItem;
+  subItem: SopSubItem[];
+}
+
+/** Salinan satu item + sub-tugasnya: id baru, ceklis DIRESET, urutan sub asli dipertahankan. */
+export function salinanItem(
+  sumber: SopItem,
+  subs: readonly SopSubItem[],
+  opsi: OpsiSalinanItem,
+): StrukturSalinanItem {
+  const item: SopItem = {
+    ...sumber,
+    id: buatId(),
+    sopId: opsi.sopId,
+    judul: `${sumber.judul}${opsi.akhiran ?? AKHIRAN_SALINAN}`,
+    rutin: opsi.rutin === undefined ? sumber.rutin : opsi.rutin || undefined,
+    selesai: false,
+    selesaiPada: undefined,
+    urutan: opsi.urutan,
+  };
+  const subItem = subs.map((s) => {
+    if (s.itemId !== sumber.id) {
+      throw new SopError(`Sub-tugas "${s.judul}" bukan milik item "${sumber.judul}"`);
+    }
+    return { ...s, id: buatId(), sopId: item.sopId, itemId: item.id, selesai: false, selesaiPada: undefined };
+  });
+  return { item, subItem };
+}
+
+export interface OpsiSalinanSub {
+  itemId: string;
+  sopId: string;
+  urutan: number;
+  /** '' = judul apa adanya. */
+  akhiran?: string;
+}
+
+/** Salinan satu sub-tugas ke jabatan tujuan: id baru, ceklis direset. */
+export function salinanSubItem(sumber: SopSubItem, opsi: OpsiSalinanSub): SopSubItem {
+  return {
+    ...sumber,
+    id: buatId(),
+    sopId: opsi.sopId,
+    itemId: opsi.itemId,
+    judul: `${sumber.judul}${opsi.akhiran ?? AKHIRAN_SALINAN}`,
+    selesai: false,
+    selesaiPada: undefined,
+    urutan: opsi.urutan,
+  };
 }
 
 // ===== Impor papan dari dokumen (Batch Y) =====
@@ -422,4 +529,126 @@ export async function tandaiCeklisSub(subId: string, selesai: boolean): Promise<
   if (berikutnya === sub) return sub;
   await tartibDb.sopSubItem.put(berikutnya);
   return berikutnya;
+}
+
+// ===== Salin / pindah item & sub-tugas (sesi 22) — akses data =====
+// Semua operasi di bawah membaca sumber DARI DB saat dipanggil (bukan dari
+// snapshot UI) dan berjalan dalam satu transaksi: gagal di tengah = tidak ada
+// yang berubah. ID yang tidak ada di tabel yang dituju → SopError, sehingga
+// ID sub-tugas tidak bisa diperlakukan sebagai item dan sebaliknya.
+
+async function pastikanSopAda(sopId: string): Promise<Sop> {
+  const sop = await tartibDb.sop.get(sopId);
+  if (!sop) throw new SopError('Papan tujuan tidak ditemukan');
+  return sop;
+}
+
+async function subMilikItem(itemId: string): Promise<SopSubItem[]> {
+  const semua = await tartibDb.sopSubItem.where('itemId').equals(itemId).toArray();
+  return semua.sort((a, b) => a.urutan - b.urutan);
+}
+
+/** Duplikat item + seluruh sub-tugasnya, disisipkan TEPAT setelah aslinya; ceklis salinan kosong. */
+export async function duplikatItemSop(itemId: string, opsi: { akhiran?: string } = {}): Promise<SopItem> {
+  return tartibDb.transaction('rw', tartibDb.sopItem, tartibDb.sopSubItem, async () => {
+    const sumber = await pastikanItemAda(itemId);
+    const [subs, saudara] = await Promise.all([subMilikItem(itemId), daftarItemSop(sumber.sopId)]);
+    const { urutanBaru, geser } = sisipkanUrutan(saudara, itemId);
+    const { item, subItem } = salinanItem(sumber, subs, {
+      sopId: sumber.sopId,
+      urutan: urutanBaru,
+      akhiran: opsi.akhiran ?? AKHIRAN_SALINAN,
+    });
+    // Geser tetangga dulu supaya urutan baru tidak pernah kembar.
+    for (const g of geser) await tartibDb.sopItem.update(g.id, { urutan: g.urutan });
+    await tartibDb.sopItem.add(item);
+    if (subItem.length > 0) await tartibDb.sopSubItem.bulkAdd(subItem);
+    return item;
+  });
+}
+
+/**
+ * Salin item (+ sub) ke papan tujuan — boleh papan yang sama. Ditaruh di
+ * urutan terakhir papan tujuan; akhiran "(Salinan)" hanya bila papan sama.
+ * `rutin` (mis. tier bagan tempat menempel) menimpa rutin sumber bila diberi.
+ */
+export async function salinItemKePapan(
+  itemId: string,
+  sopIdTujuan: string,
+  opsi: { rutin?: string; akhiran?: string } = {},
+): Promise<SopItem> {
+  return tartibDb.transaction('rw', tartibDb.sop, tartibDb.sopItem, tartibDb.sopSubItem, async () => {
+    const sumber = await pastikanItemAda(itemId);
+    await pastikanSopAda(sopIdTujuan);
+    const [subs, tujuan] = await Promise.all([subMilikItem(itemId), daftarItemSop(sopIdTujuan)]);
+    const { item, subItem } = salinanItem(sumber, subs, {
+      sopId: sopIdTujuan,
+      urutan: urutanBerikutnya(tujuan),
+      rutin: opsi.rutin,
+      akhiran: akhiranSalinan(sumber.sopId, sopIdTujuan, opsi.akhiran),
+    });
+    await tartibDb.sopItem.add(item);
+    if (subItem.length > 0) await tartibDb.sopSubItem.bulkAdd(subItem);
+    return item;
+  });
+}
+
+/**
+ * PINDAHKAN item (+ sub) ke papan tujuan: baris yang sama di-update (id,
+ * judul, ceklis, selesaiPada utuh), tidak ada baris baru, tidak ada akhiran.
+ * Urutan = terakhir di papan tujuan (juga bila papan sama — "tempel" di
+ * papan sendiri berarti kirim ke bawah/tier lain).
+ */
+export async function pindahkanItem(itemId: string, opsi: { sopIdTujuan: string; rutin?: string }): Promise<void> {
+  await tartibDb.transaction('rw', tartibDb.sop, tartibDb.sopItem, tartibDb.sopSubItem, async () => {
+    const sumber = await pastikanItemAda(itemId);
+    await pastikanSopAda(opsi.sopIdTujuan);
+    const tujuan = (await daftarItemSop(opsi.sopIdTujuan)).filter((i) => i.id !== itemId);
+    await tartibDb.sopItem.update(itemId, {
+      sopId: opsi.sopIdTujuan,
+      rutin: opsi.rutin === undefined ? sumber.rutin : opsi.rutin || undefined,
+      urutan: urutanBerikutnya(tujuan),
+    });
+    if (opsi.sopIdTujuan !== sumber.sopId) {
+      await tartibDb.sopSubItem.where('itemId').equals(itemId).modify({ sopId: opsi.sopIdTujuan });
+    }
+  });
+}
+
+/** Salin sub-tugas ke jabatan tujuan (boleh jabatan yang sama → akhiran "(Salinan)"); ceklis kosong. */
+export async function salinSubItem(
+  subId: string,
+  itemIdTujuan: string,
+  opsi: { akhiran?: string } = {},
+): Promise<SopSubItem> {
+  return tartibDb.transaction('rw', tartibDb.sopItem, tartibDb.sopSubItem, async () => {
+    const sumber = await tartibDb.sopSubItem.get(subId);
+    if (!sumber) throw new SopError('Sub-tugas tidak ditemukan');
+    const induk = await tartibDb.sopItem.get(itemIdTujuan);
+    if (!induk) throw new SopError('Jabatan tujuan tidak ditemukan');
+    const sub = salinanSubItem(sumber, {
+      itemId: induk.id,
+      sopId: induk.sopId,
+      urutan: urutanBerikutnya(await subMilikItem(induk.id)),
+      akhiran: akhiranSalinan(sumber.itemId, induk.id, opsi.akhiran),
+    });
+    await tartibDb.sopSubItem.add(sub);
+    return sub;
+  });
+}
+
+/** PINDAHKAN sub-tugas ke jabatan tujuan: baris yang sama di-update, nama & ceklis utuh. */
+export async function pindahkanSubItem(subId: string, itemIdTujuan: string): Promise<void> {
+  await tartibDb.transaction('rw', tartibDb.sopItem, tartibDb.sopSubItem, async () => {
+    const sumber = await tartibDb.sopSubItem.get(subId);
+    if (!sumber) throw new SopError('Sub-tugas tidak ditemukan');
+    const induk = await tartibDb.sopItem.get(itemIdTujuan);
+    if (!induk) throw new SopError('Jabatan tujuan tidak ditemukan');
+    const saudara = (await subMilikItem(induk.id)).filter((s) => s.id !== subId);
+    await tartibDb.sopSubItem.update(subId, {
+      itemId: induk.id,
+      sopId: induk.sopId,
+      urutan: urutanBerikutnya(saudara),
+    });
+  });
 }
