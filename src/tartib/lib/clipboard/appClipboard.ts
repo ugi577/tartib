@@ -13,9 +13,6 @@
 //     tanda dan pil "Klip: …" bisa tampil;
 //   - TIDAK menulis ke clipboard sistem (menimpa clipboard pengguna diam-diam
 //     dan melempar NotAllowedError di WebView).
-//
-// API lama (salinItem/potongItem/ambilKlipAktif) masih ada di bawah sebagai
-// jembatan sementara — dihapus setelah semua pemanggil pindah.
 
 import type { EntriJadwal } from '../../types/kbm';
 
@@ -100,41 +97,4 @@ export function labelKlip(k: ItemKlip): string {
     case 'kbm':
       return `Sesi "${k.entri.mapel}" ${aksi}`;
   }
-}
-
-// ── Jembatan API lama (dihapus setelah KbmMatriksView & SopView bermigrasi) ──
-
-/** @deprecated pakai ItemKlip */
-export type TipeKlipLama = 'jabatan' | 'sub-tugas' | 'kbm' | 'teks';
-
-/** @deprecated pakai ItemKlip */
-export interface ItemKlipLama {
-  tipe: TipeKlipLama;
-  data: any;
-  teks: string;
-  isCut?: boolean;
-  sumberId?: string;
-  waktu: string;
-}
-
-let klipLama: ItemKlipLama | null = null;
-
-/** @deprecated pakai simpanKlip({ …, isCut: false }) */
-export function salinItem(tipe: TipeKlipLama, data: unknown, teks: string, sumberId?: string): void {
-  klipLama = { tipe, data, teks, isCut: false, sumberId, waktu: new Date().toISOString() };
-}
-
-/** @deprecated pakai simpanKlip({ …, isCut: true }) */
-export function potongItem(tipe: TipeKlipLama, data: unknown, teks: string, sumberId?: string): void {
-  klipLama = { tipe, data, teks, isCut: true, sumberId, waktu: new Date().toISOString() };
-}
-
-/** @deprecated pakai ambilKlip / ambilKlipTipe */
-export function ambilKlipAktif(): ItemKlipLama | null {
-  return klipLama;
-}
-
-/** @deprecated bersihkanKlip() sudah mencakup keduanya */
-export function bersihkanKlipLama(): void {
-  klipLama = null;
 }

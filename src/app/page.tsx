@@ -21,7 +21,7 @@ import { TemplateView } from '../tartib/components/TemplateView';
 import { TamuView } from '../tartib/components/TamuView';
 import { PengaturanView } from '../tartib/components/PengaturanView';
 import { EKonfirmasiView } from '../tartib/components/EKonfirmasiView';
-import { SopView as SopViewAsli } from '../tartib/components/SopView';
+import { SopView } from '../tartib/components/SopView';
 import { CanvasHubView } from '../tartib/components/CanvasHubView';
 import { PresetLibraryView } from '../tartib/components/PresetLibraryView';
 import { PrinterStatusBadge } from '../tartib/components/PrinterStatusBadge';
@@ -31,10 +31,6 @@ import { jalankanSeed } from '../tartib/db/seed';
 import { KELAS } from '../tartib/ui/kelas';
 import { LogoTartib } from '../tartib/components/LogoTartib';
 import type { DokumenKanvas } from '../tartib/host/TartibHost';
-
-// SopView menerima `onBuka` setelah paket Struktur (sesi 22) di-merge; sampai
-// saat itu prop diteruskan lewat tipe longgar agar shell tetap terkompilasi.
-const SopView = SopViewAsli as unknown as (p: { onBuka?: (view: string, dok?: string) => void }) => JSX.Element;
 
 type View =
   | 'beranda'
