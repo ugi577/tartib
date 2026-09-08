@@ -2,8 +2,16 @@
 
 // Dialog aplikasi — satu-satunya mekanisme modal di Tartib (BRIEF: tanpa
 // window.confirm/alert; konfirmasi destruktif lewat KonfirmasiDialog).
+//
+// Sesi 22: overlay + panel dirender lewat portal ke `document.body`. Sebelumnya
+// dialog dirender di tempat pemanggil; bila pemanggil berada di dalam elemen
+// ber-`transform` (lembar kanvas cetak 1123px), `position: fixed` jadi relatif
+// ke lembar itu dan dialog muncul di luar layar HP. Portal membuat `fixed`
+// selalu relatif ke viewport. Selagi terbuka, scroll body dikunci; tombol ✕
+// dibesarkan ke 40×40 (target sentuh); overlay `print:hidden`.
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { KELAS } from '../ui/kelas';
 
 interface PropsAppDialog {
@@ -20,39 +28,93 @@ const LEBAR: Record<NonNullable<PropsAppDialog['lebar']>, string> = {
   lg: 'max-w-2xl',
 };
 
-export function AppDialog({ terbuka, judul, onTutup, children, lebar = 'md' }: PropsAppDialog) {
+// ── Kunci scroll body ──────────────────────────────────────────────────────
+// Dihitung dengan penghitung agar dua dialog yang terbuka bersamaan
+// (mis. FormDialog + KonfirmasiDialog) tidak saling melepas kunci lebih awal.
+let jumlahKunci = 0;
+let overflowSebelum = '';
+
+function kunciScrollBody(): () => void {
+  if (jumlahKunci === 0) {
+    overflowSebelum = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+  jumlahKunci += 1;
+  return () => {
+    jumlahKunci = Math.max(0, jumlahKunci - 1);
+    if (jumlahKunci === 0) document.body.style.overflow = overflowSebelum;
+  };
+}
+
+/**
+ * `true` hanya setelah komponen terpasang di browser. Saat prerender statis
+ * (`next build`) `document` belum ada, jadi render pertama di server maupun
+ * klien sama-sama `null` — tidak ada selisih hidrasi.
+ */
+function useSudahTerpasang(): boolean {
+  const [terpasang, setTerpasang] = useState(false);
   useEffect(() => {
-    if (!terbuka) return;
+    setTerpasang(true);
+  }, []);
+  return terpasang;
+}
+
+export function AppDialog({ terbuka, judul, onTutup, children, lebar = 'md' }: PropsAppDialog) {
+  const terpasang = useSudahTerpasang();
+  const idJudul = useId();
+
+  // Simpan handler di ref supaya effect di bawah tidak lepas-pasang listener
+  // setiap render (pemanggil hampir selalu memberi lambda baru).
+  const onTutupRef = useRef(onTutup);
+  useEffect(() => {
+    onTutupRef.current = onTutup;
+  });
+
+  useEffect(() => {
+    if (!terbuka || !terpasang) return;
     const padaKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onTutup();
+      if (e.key === 'Escape') onTutupRef.current();
     };
     window.addEventListener('keydown', padaKey);
-    return () => window.removeEventListener('keydown', padaKey);
-  }, [terbuka, onTutup]);
+    const lepasKunci = kunciScrollBody();
+    return () => {
+      window.removeEventListener('keydown', padaKey);
+      lepasKunci();
+    };
+  }, [terbuka, terpasang]);
 
-  if (!terbuka) return null;
+  if (!terbuka || !terpasang || typeof document === 'undefined') return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onTutup} />
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center p-4 print:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={idJudul}
+    >
+      <div className="absolute inset-0 bg-netral-900/40 backdrop-blur-sm" onClick={onTutup} />
       <div
-        className={`relative w-full ${LEBAR[lebar]} max-h-[85vh] overflow-y-auto rounded-kartu border border-white/70 bg-permukaan-kartu p-5 shadow-angkat backdrop-blur-xl`}
+        className={`relative w-full ${LEBAR[lebar]} max-h-[85vh] overflow-y-auto overscroll-contain rounded-kartu border border-white/70 bg-permukaan-kartu p-5 shadow-angkat backdrop-blur-xl`}
       >
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-teks-utama">{judul}</h2>
+          <h2 id={idJudul} className="text-lg font-semibold text-teks-utama">
+            {judul}
+          </h2>
           <button
+            type="button"
             onClick={onTutup}
             aria-label="Tutup dialog"
-            className="rounded-full p-1 text-teks-redup hover:bg-white/60 hover:text-teks-sedang"
+            className={`${KELAS.tombolIkon} -mr-1.5 min-h-[40px] min-w-[40px] shrink-0`}
           >
-            <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+            <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5" aria-hidden="true">
               <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
             </svg>
           </button>
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -79,13 +141,11 @@ export function KonfirmasiDialog({
     <AppDialog terbuka={terbuka} judul={judul} onTutup={onBatal} lebar="sm">
       <p className="text-sm text-teks-sedang">{pesan}</p>
       <div className="mt-5 flex justify-end gap-2">
-        <button
-          onClick={onBatal}
-          className={KELAS.tombolSekunder}
-        >
+        <button type="button" onClick={onBatal} className={KELAS.tombolSekunder}>
           Batal
         </button>
         <button
+          type="button"
           onClick={onYa}
           className={bahaya ? KELAS.tombolBahayaSolid : KELAS.tombolUtama}
         >
@@ -125,21 +185,12 @@ export function FormDialog({
         }}
       >
         <div className="space-y-4">{children}</div>
-        {error && (
-          <p className={`mt-3 ${KELAS.error}`}>{error}</p>
-        )}
+        {error && <p className={`mt-3 ${KELAS.error}`}>{error}</p>}
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onTutup}
-            className={KELAS.tombolSekunder}
-          >
+          <button type="button" onClick={onTutup} className={KELAS.tombolSekunder}>
             Batal
           </button>
-          <button
-            type="submit"
-            className={KELAS.tombolUtama}
-          >
+          <button type="submit" className={KELAS.tombolUtama}>
             {labelSimpan}
           </button>
         </div>
