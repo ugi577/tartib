@@ -1,11 +1,23 @@
 // Preset SOP & Timeline Acara (Katalog Template Siap Pakai)
+//
+// Sesi 22: preset ini kini DITERAPKAN sungguhan menjadi Template (fase +
+// item) lewat lib/presets/terapkanPresetSop.ts — sebelumnya tombol "Gunakan"
+// hanya memberi notifikasi tanpa menulis apa pun. Data di sini murni (tanpa
+// akses DB) dan tanpa nama pribadi: kolom PIC diisi pengguna sendiri.
+//
+// Kontrak label `fase`: satu label = satu fase template, urut sesuai
+// kemunculan pertama. Offset hari dibaca dari label ('H-30 s/d H-7' → -30,
+// 'Hari-H' → 0, 'H+1' → +1); bila label tidak memuat angka, isi `offsetHari`
+// pada item pertama fase itu agar parser tidak perlu menebak.
 
 export interface ItemSopPreset {
-  fase: string; // mis. 'H-30 s.d H-7', 'Hari-H', 'H+1'
-  seksi: string; // mis. 'Acara', 'Konsumsi', 'Perlengkapan'
+  fase: string; // mis. 'Fase Persiapan (H-30 s/d H-7)', 'Hari-H (Akad)', 'Pasca Acara (H+1)'
+  seksi: string; // nama divisi tujuan — dicocokkan ke divisi baku, dibuat bila belum ada
   judul: string;
   catatan?: string;
   wajib?: boolean;
+  /** Offset hari fase (relatif hari-H) — hanya perlu bila label `fase` tak memuat angka. */
+  offsetHari?: number;
 }
 
 export interface PresetSop {
@@ -83,7 +95,7 @@ export const PRESET_SOP_UJIAN_SEMESTER: PresetSop = {
     { fase: 'Hari-H Pelaksanaan Ujian', seksi: 'Pengawas', judul: 'Pemeriksaan kartu peserta & absensi kehadiran peserta didik', wajib: true },
     { fase: 'Hari-H Pelaksanaan Ujian', seksi: 'Pengawas', judul: 'Penghitungan lembar jawab & pengembalian ke ruang panitia', wajib: true },
 
-    { fase: 'Pasca Ujian (Koreksi & Nilai)', seksi: 'Kurikulum', judul: 'Pendistribusian lembar jawaban ke guru pengampu untuk dikoreksi', wajib: true },
+    { fase: 'Pasca Ujian (Koreksi & Nilai)', seksi: 'Kurikulum', judul: 'Pendistribusian lembar jawaban ke guru pengampu untuk dikoreksi', wajib: true, offsetHari: 1 },
     { fase: 'Pasca Ujian (Koreksi & Nilai)', seksi: 'Kurikulum', judul: 'Input nilai ke sistem e-Raport / leger nilai madrasah', wajib: true },
     { fase: 'Pasca Ujian (Koreksi & Nilai)', seksi: 'Pimpinan', judul: 'Rapat pleno kenaikan kelas / kelulusan bersama kepala madrasah', wajib: true },
   ],
@@ -105,7 +117,7 @@ export const PRESET_SOP_DAUROH: PresetSop = {
     { fase: 'Hari-H Pelaksanaan', seksi: 'Media', judul: 'Uji siaran live streaming YouTube/Facebook & perekaman audio kajian', wajib: true },
     { fase: 'Hari-H Pelaksanaan', seksi: 'Konsumsi', judul: 'Distribusi snack kajian & air mineral kemasan kepada jamaah', wajib: true },
 
-    { fase: 'Penutupan & Evaluasi', seksi: 'Bendahara', judul: 'Penyerahan bisyarah / tanda terima narasumber & rekap kotak infaq', wajib: true },
+    { fase: 'Penutupan & Evaluasi', seksi: 'Bendahara', judul: 'Penyerahan bisyarah / tanda terima narasumber & rekap kotak infaq', wajib: true, offsetHari: 1 },
     { fase: 'Penutupan & Evaluasi', seksi: 'Kebersihan', judul: 'Operasi semut pembersihan sampah aula & masjid pasca acara bubar', wajib: true },
   ],
 };
