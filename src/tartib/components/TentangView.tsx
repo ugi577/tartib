@@ -1,54 +1,56 @@
 'use client';
 
-// Bagian "Tentang" — sejak sesi 16 tampil DI DALAM tab Pengaturan (arahan
-// Ahmed), bukan lagi tab tersendiri. Isinya dirapikan agar cocok dengan
-// kemampuan yang benar-benar ada di aplikasi hari ini (Batch A–W + sesi 15–16):
-// impor dokumen, ekspor .docx/Drive, cetak A4, dan cadangan data lokal.
-// Konten statis — tidak ada akses data.
+// Bagian "Tentang" — tampil DI DALAM Pengaturan (sejak sesi 16), bukan tab
+// tersendiri. Sesi 22: isi ditulis ulang mengikuti identitas produk yang
+// sama dengan README.md dan metadata layout.tsx ("Struktur organisasi,
+// jadwal KBM, dan SOP acara siap cetak — offline, tanpa akun"); KEMAMPUAN
+// mengacu nama menu yang benar-benar ada (Struktur & PIC, Preset, Kanvas
+// Cetak, Acara, e-Konfirmasi, Pengaturan); tanpa merek aplikasi lain (K-13:
+// "Aplikasi sejenis"); tanpa klaim fitur yang tidak ada. Konten statis.
 
 import { DIVISI_BAKU } from '../db/seed';
 import { KELAS } from '../ui/kelas';
 
 const KEMAMPUAN: ReadonlyArray<{ tab: string; judul: string; isi: string }> = [
   {
-    tab: 'Template',
-    judul: 'Menyusun SOP sekali, dipakai berulang',
-    isi: `Template berisi fase (dengan offset hari, mis. H-30 sampai H+1), item tugas, divisi penanggung jawab dari ${DIVISI_BAKU.length} divisi baku, serta rumus kuantitas. Template bisa diduplikasi, diarsipkan, dan diterbitkan sebagai versi baru.`,
+    tab: 'Struktur & PIC',
+    judul: 'Bagan organisasi dan daftar amanah',
+    isi: 'Jabatan bertingkat (Pimpinan, Pengurus Inti, Divisi) dengan PIC dan sub-tugas berceklis; menu konteks salin/duplikat/potong; tampilan bagan atau daftar. Siap cetak A4, F4/Folio, Letter, Legal, A5, bisa diunduh sebagai .docx dan diimpor kembali dari .docx.',
   },
   {
-    tab: 'Template',
-    judul: 'Impor dokumen SOP yang sudah ada',
-    isi: 'Dokumen SOP berformat .docx dibaca langsung di perangkat: fase dan item dikenali dari heading, divisi ditebak dari kata kunci, hasilnya menjadi template biasa yang bisa diedit. Tidak ada berkas yang dikirim ke server.',
+    tab: 'Preset',
+    judul: 'Katalog siap pakai',
+    isi: 'Struktur panitia dan organisasi (pernikahan/walimah, organisasi santri, RT/RW, DKM), SOP acara, serta jadwal KBM 5 hari, 6 hari, halaqah tahfidz, dan harian pesantren. Sekali terapkan, lalu ubah sesuka hati.',
   },
   {
-    tab: 'Template',
-    judul: 'Ekspor & panduan cetak',
-    isi: 'Template bisa diunduh sebagai .docx, disimpan ke Google Drive milik Anda sendiri, atau dicetak sebagai panduan pengisian manual di kertas A4.',
+    tab: 'Kanvas Cetak',
+    judul: 'Pratinjau presisi sebelum dicetak',
+    isi: 'Lembar berdimensi kertas sebenarnya (A4, F4/Folio 215×330, Letter, Legal, A5, Thermal 80/58 mm) dengan garis batas aman, orientasi tegak/mendatar, dan penyesuaian lebar layar HP. Dokumen: bagan struktur, matriks KBM, dan tiket/slip tugas thermal per jabatan.',
+  },
+  {
+    tab: 'Kanvas Cetak',
+    judul: 'Matriks jadwal KBM',
+    isi: 'Kisi hari × jam per kelas dengan sesi istirahat, warna sorotan, dan kop kustom. Jadwal bisa disimpan sebagai template kustom, diekspor/diimpor sebagai JSON, dan dicetak mendatar.',
   },
   {
     tab: 'Acara',
-    judul: 'SOP menjadi tugas nyata',
-    isi: 'Satu klik "Buat Acara" menyalin template: tiap fase mendapat tanggal kalender sungguhan (tanggal acara digeser offset hari), tiap item menjadi tugas milik divisinya, dengan PIC yang wajib terisi.',
+    judul: 'SOP acara menjadi tugas nyata',
+    isi: `Template SOP berisi fase (H-30 sampai H+1), item tugas per divisi dari ${DIVISI_BAKU.length} divisi baku, dan rumus kuantitas; bisa diduplikasi, diversikan, diimpor dari .docx, diunduh .docx, atau disimpan ke Google Drive. "Buat Acara" mengubahnya menjadi papan tugas bertanggal dengan PIC per divisi, status BELUM → JALAN → SELESAI/BATAL, progres otomatis, dan laporan cetak.`,
   },
   {
     tab: 'Acara',
-    judul: 'Papan eksekusi & laporan cetak',
-    isi: 'Status tugas berjalan BELUM → JALAN → SELESAI/BATAL dengan jejak waktu; progres per fase, per divisi, dan keseluruhan terhitung otomatis. Siap cetak A4: buku acara, laporan eksekusi, dan lembar tugas per divisi.',
+    judul: 'Tamu, porsi, dan evaluasi',
+    isi: 'Kelompok tamu dengan RSVP berombongan, kalkulator porsi (RSVP + buffer + santri + panitia + cadangan) dan peralatan makan, ceklis perlengkapan per divisi, serta catatan evaluasi tiap divisi yang bisa dipromosikan menjadi item pada versi template berikutnya.',
   },
   {
-    tab: 'Tamu & Porsi',
-    judul: 'Undangan, porsi, dan perlengkapan',
-    isi: 'Kelompok tamu dengan RSVP berombongan, kalkulator porsi (RSVP + buffer + santri + panitia + cadangan) dan kebutuhan peralatan makan, plus ceklis perlengkapan per divisi.',
-  },
-  {
-    tab: 'Evaluasi',
-    judul: 'Perbaikan masuk kembali ke template',
-    isi: 'Catatan evaluasi tiap divisi seusai acara bisa dipromosikan menjadi item pada versi template berikutnya — SOP ikut membaik tiap kali acara selesai.',
+    tab: 'e-Konfirmasi',
+    judul: 'Undangan konfirmasi kehadiran',
+    isi: 'Isian manual (judul, tanggal, waktu, tempat, tautan peta, WhatsApp) dan kategori acara dengan preset bidang; hasilnya dipratinjau lalu diunduh sebagai satu berkas HTML mandiri yang bisa dibagikan.',
   },
   {
     tab: 'Pengaturan',
     judul: 'Kop cetak, nilai baku, dan cadangan',
-    isi: 'Nama lembaga untuk kop semua lembar A4, nilai baku kalkulator porsi, client ID Google Drive, serta unduh/pulihkan seluruh data dalam satu berkas .json.',
+    isi: 'Nama lembaga untuk kop semua lembar cetak, nilai baku kalkulator porsi, client ID Google Drive, serta unduh/pulihkan seluruh data dalam satu berkas .json — satu-satunya jaring pengaman karena data hanya ada di perangkat ini.',
   },
 ];
 
@@ -56,7 +58,7 @@ const LANSKAP = [
   {
     nama: 'Aplikasi sejenis — penyusun dokumen SOP',
     fokus: 'Pembuatan dokumen SOP',
-    catatan: 'Kuat menyusun dokumen (AI, suara, visual), tetapi tidak terhubung dengan eksekusi acara di lapangan.',
+    catatan: 'Kuat menyusun dokumen, tetapi tidak terhubung dengan eksekusi acara di lapangan.',
   },
   {
     nama: 'Aplikasi sejenis — pengelola eksekusi acara',
@@ -68,20 +70,20 @@ const LANSKAP = [
 
 export function TentangView() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <section className={KELAS.kartuIsi}>
         <h3 className={KELAS.judulKartu}>Tentang Tartib</h3>
         <p className="mt-2 text-sm leading-relaxed text-teks-sedang">
-          Tartib adalah pembuat SOP acara yang menyatukan <strong>dokumen</strong> dan{' '}
-          <strong>eksekusi</strong> dalam satu alur: susun template SOP, buat acara dari template,
-          lalu kawal tugas panitia di papan eksekusi sampai H+1 dan cetak laporannya.
+          Tartib menyusun <strong>struktur organisasi &amp; PIC</strong>, <strong>jadwal KBM</strong>, dan{' '}
+          <strong>SOP acara</strong> — semuanya siap cetak. Alurnya: pilih preset atau buat dari kosong,
+          sesuaikan, pratinjau di Kanvas Cetak yang mengikuti ukuran kertas sebenarnya, lalu cetak atau
+          simpan sebagai PDF lewat dialog cetak sistem.
         </p>
         <p className="mt-2 text-sm leading-relaxed text-teks-sedang">
           Berjalan sepenuhnya <strong>offline</strong>: tanpa akun, tanpa server, tanpa langganan.
           Seluruh data tersimpan di penyimpanan lokal peramban (IndexedDB) pada perangkat ini —
           karena itu cadangan berkala di bagian Data &amp; Cadangan bukan pelengkap, melainkan
-          satu-satunya jaring pengaman. Aplikasi juga dirancang sebagai modul yang dapat disematkan
-          ke aplikasi induk lewat satu titik sambungan (TartibHost).
+          satu-satunya jaring pengaman. Tersedia sebagai aplikasi web dan APK Android.
         </p>
       </section>
 
@@ -103,7 +105,8 @@ export function TentangView() {
         <p className={`mt-1 ${KELAS.keterangan}`}>
           Riset terhadap aplikasi sejenis (nama produk tidak disebutkan) menemukan satu celah
           besar: aplikasi pembuat SOP berhenti di dokumen, aplikasi eksekusi acara memulai dari
-          nol — tidak ada yang menghubungkan keduanya untuk acara kecil–menengah.
+          nol — tidak ada yang menghubungkan keduanya untuk acara kecil–menengah, apalagi
+          menyatukannya dengan bagan organisasi dan jadwal yang siap cetak.
         </p>
         <div className="mt-4 space-y-3">
           {LANSKAP.map((l) => (
@@ -116,7 +119,8 @@ export function TentangView() {
         </div>
         <p className="mt-4 text-sm leading-relaxed text-teks-sedang">
           Tartib mengisi celah itu: template SOP yang sekali dibuat langsung menjadi mesin
-          eksekusi — bukan dokumen yang dilupakan di rak.
+          eksekusi, dan struktur, jadwal, serta laporannya keluar sebagai lembar cetak yang rapi —
+          bukan dokumen yang dilupakan di rak.
         </p>
       </section>
 
@@ -125,9 +129,9 @@ export function TentangView() {
         <p className="mt-1 text-sm leading-relaxed text-teks-sedang">
           Notifikasi push, sinkronisasi pesan instan, kolaborasi banyak perangkat secara real-time,
           dan integrasi ERP/QMS semuanya membutuhkan jaringan dan akun — bertentangan dengan
-          prinsip offline penuh. Semua tercatat sebagai visi jangka panjang (backlog), bukan janji
-          fitur. Langkah integrasi terdekat yang direncanakan adalah penyematan Tartib sebagai
-          modul di aplikasi induk melalui TartibHost.
+          prinsip offline penuh. Pengiriman data cetak langsung ke printer Bluetooth/USB (ESC/POS)
+          juga belum ada: semua pencetakan lewat dialog cetak sistem, termasuk Simpan sebagai PDF.
+          Semua tercatat sebagai visi jangka panjang, bukan janji fitur.
         </p>
       </section>
 

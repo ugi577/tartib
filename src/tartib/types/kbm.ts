@@ -63,7 +63,7 @@ export interface ItemAntreanCetak {
   jenisDokumen: 'struktur' | 'sop' | 'kbm' | 'tiket-amanah';
   ukuranKertas: UkuranKertas;
   orientasi: OrientasiKertas;
-  status: 'antre' | 'mencetak' | 'selesai' | 'gagal';
+  status: 'antre' | 'mencetak' | 'selesai' | 'gagal' | 'dibatalkan'; // 'dibatalkan' = dialog cetak ditutup cepat (sesi 22)
   pesan?: string;
   dibuatPada: string;
   selesaiPada?: string;

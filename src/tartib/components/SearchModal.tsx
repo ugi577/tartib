@@ -1,184 +1,254 @@
 'use client';
 
-// Modal Pencarian Cepat Global (Search)
-// Mencari secara instan di seluruh PIC, tugas, jadwal KBM, dan acara.
+// Pencarian cepat global (sesi 22) — dirender lewat AppDialog sehingga
+// Escape, aria, portal, dan z-index seragam dengan dialog lain (listener
+// ⌘K/Escape ganda yang dulu ada di sini dihapus; pembuka ⌘K ada di page.tsx).
+//
+// Sumber dibaca SEKALI saat dialog terbuka (bukan di useMemo tiap ketik):
+// jabatan & tugas papan Struktur/SOP (tartibDb.sopItem/sopSubItem), acara
+// (tartibDb.acara), template SOP (tartibDb.template), dan jadwal KBM aktif
+// (bacaJadwalKbmLokal). Hasil KBM menuju Kanvas Cetak dengan penanda dokumen
+// 'kbm' agar page.tsx bisa membuka `?view=canvas&dok=kbm`.
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AppDialog } from './AppDialog';
 import { tartibDb } from '../db/schema';
 import { bacaJadwalKbmLokal } from '../lib/presets';
-import type { SopItem, SopSubItem } from '../types';
+import type { Acara, SopItem, SopSubItem, Template } from '../types';
+import type { EntriJadwal } from '../types/kbm';
+import { KELAS } from '../ui/kelas';
 
-interface SearchResult {
+/** Dokumen Kanvas Cetak yang bisa dituju dari hasil pencarian. */
+export type DokumenPencarian = 'struktur' | 'kbm' | 'tiket';
+
+type ViewTujuan = 'sop' | 'canvas' | 'acara' | 'template';
+
+interface HasilCari {
   id: string;
-  kategori: 'PIC & Jabatan' | 'Tugas & SOP' | 'Jadwal KBM' | 'Acara';
+  kategori: 'PIC & Jabatan' | 'Tugas & SOP' | 'Jadwal KBM' | 'Acara' | 'Template SOP';
   judul: string;
   keterangan: string;
-  viewTujuan: string;
+  viewTujuan: ViewTujuan;
+  dokumen?: DokumenPencarian;
 }
 
 interface SearchModalProps {
   terbuka: boolean;
   onTutup: () => void;
-  onPilihHasil: (view: string) => void;
+  onPilihHasil: (view: string, dok?: DokumenPencarian) => void;
+}
+
+const BATAS_HASIL = 15;
+
+const LABEL_STATUS_ACARA: Record<Acara['status'], string> = {
+  DRAF: 'Draf',
+  SIAP: 'Siap',
+  BERJALAN: 'Berjalan',
+  SELESAI: 'Selesai',
+  DIEVALUASI: 'Dievaluasi',
+};
+
+function cocok(q: string, ...teks: Array<string | undefined>): boolean {
+  return teks.some((t) => t !== undefined && t.toLowerCase().includes(q));
 }
 
 export function SearchModal({ terbuka, onTutup, onPilihHasil }: SearchModalProps) {
   const [kataKunci, setKataKunci] = useState('');
   const [itemsSop, setItemsSop] = useState<SopItem[]>([]);
   const [subItemsSop, setSubItemsSop] = useState<SopSubItem[]>([]);
+  const [daftarAcara, setDaftarAcara] = useState<Acara[]>([]);
+  const [daftarTemplate, setDaftarTemplate] = useState<Template[]>([]);
+  const [entriKbm, setEntriKbm] = useState<EntriJadwal[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!terbuka) return;
     setKataKunci('');
+    setEntriKbm(bacaJadwalKbmLokal().entri);
+    let batal = false;
     void (async () => {
       try {
-        const [it, sub] = await Promise.all([
+        const [it, sub, acara, template] = await Promise.all([
           tartibDb.sopItem.toArray(),
           tartibDb.sopSubItem.toArray(),
+          tartibDb.acara.toArray(),
+          tartibDb.template.toArray(),
         ]);
+        if (batal) return;
         setItemsSop(it);
         setSubItemsSop(sub);
+        setDaftarAcara(acara);
+        setDaftarTemplate(template);
       } catch {
-        // Abaikan
+        // Basis data belum siap — pencarian tetap berjalan untuk sumber lain.
       }
     })();
+    // autoFocus tidak andal di dalam portal; fokus setelah dialog terpasang.
+    const t = window.setTimeout(() => inputRef.current?.focus(), 30);
+    return () => {
+      batal = true;
+      window.clearTimeout(t);
+    };
   }, [terbuka]);
 
-  // Keyboard shortcut Cmd+K / Ctrl+K
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        if (terbuka) onTutup();
-        else {
-          // dibuka oleh parent
-        }
-      } else if (e.key === 'Escape' && terbuka) {
-        onTutup();
-      }
-    }
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [terbuka, onTutup]);
-
-  const hasilCari = useMemo(() => {
+  const hasilCari = useMemo<HasilCari[]>(() => {
     const q = kataKunci.trim().toLowerCase();
     if (!q) return [];
+    const hasil: HasilCari[] = [];
 
-    const hasil: SearchResult[] = [];
-
-    // 1. Cari di SopItem (Jabatan PIC)
     for (const it of itemsSop) {
-      if (it.judul.toLowerCase().includes(q) || it.picNama.toLowerCase().includes(q)) {
+      if (cocok(q, it.judul, it.picNama)) {
         hasil.push({
           id: `item-${it.id}`,
           kategori: 'PIC & Jabatan',
           judul: it.judul,
-          keterangan: it.picNama ? `PIC: ${it.picNama} • ${it.rutin || 'Struktur'}` : it.rutin || 'Struktur',
+          keterangan: [it.picNama ? `PIC: ${it.picNama}` : null, it.rutin || 'Struktur'].filter(Boolean).join(' · '),
           viewTujuan: 'sop',
         });
       }
     }
 
-    // 2. Cari di SopSubItem (Tugas detail)
     for (const s of subItemsSop) {
-      if (s.judul.toLowerCase().includes(q) || s.picNama.toLowerCase().includes(q)) {
+      if (cocok(q, s.judul, s.picNama)) {
         hasil.push({
           id: `sub-${s.id}`,
           kategori: 'Tugas & SOP',
           judul: s.judul,
-          keterangan: s.picNama ? `Tugas PIC: ${s.picNama}` : 'Tugas Amanah',
+          keterangan: s.picNama ? `Tugas PIC: ${s.picNama}` : 'Tugas',
           viewTujuan: 'sop',
         });
       }
     }
 
-    // 3. Cari di Jadwal KBM
-    const kbm = bacaJadwalKbmLokal();
-    for (const e of kbm.entri) {
-      if (
-        e.mapel.toLowerCase().includes(q) ||
-        (e.guru && e.guru.toLowerCase().includes(q)) ||
-        (e.kelas && e.kelas.toLowerCase().includes(q))
-      ) {
+    for (const e of entriKbm) {
+      if (cocok(q, e.mapel, e.guru, e.kelas)) {
         hasil.push({
           id: `kbm-${e.id}`,
           kategori: 'Jadwal KBM',
           judul: `${e.mapel} (${e.kelas || 'Semua'})`,
-          keterangan: `${e.hari} JP ${e.jamKe}${e.guru ? ` • Pengampu: ${e.guru}` : ''}`,
+          keterangan: `${e.hari} · jam ke-${e.jamKe}${e.guru ? ` · ${e.guru}` : ''}`,
           viewTujuan: 'canvas',
+          dokumen: 'kbm',
         });
       }
     }
 
-    return hasil.slice(0, 15);
-  }, [kataKunci, itemsSop, subItemsSop]);
+    for (const a of daftarAcara) {
+      if (cocok(q, a.nama, a.lokasi)) {
+        hasil.push({
+          id: `acara-${a.id}`,
+          kategori: 'Acara',
+          judul: a.nama,
+          keterangan: [a.tanggal, a.lokasi, LABEL_STATUS_ACARA[a.status]].filter(Boolean).join(' · '),
+          viewTujuan: 'acara',
+        });
+      }
+    }
 
-  if (!terbuka) return null;
+    for (const t of daftarTemplate) {
+      if (cocok(q, t.nama, t.catatan)) {
+        hasil.push({
+          id: `template-${t.id}`,
+          kategori: 'Template SOP',
+          judul: t.nama,
+          keterangan: `Versi ${t.versi} · ${t.aktif ? 'aktif' : 'diarsipkan'}`,
+          viewTujuan: 'template',
+        });
+      }
+    }
+
+    return hasil.slice(0, BATAS_HASIL);
+  }, [kataKunci, itemsSop, subItemsSop, entriKbm, daftarAcara, daftarTemplate]);
+
+  function pilih(h: HasilCari) {
+    onPilihHasil(h.viewTujuan, h.dokumen);
+    onTutup();
+  }
+
+  const q = kataKunci.trim();
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 sm:pt-24"
-    >
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onTutup} />
-
-      <div className="relative w-full max-w-lg rounded-2xl border border-emas-300/40 bg-white p-4 shadow-2xl transition-all">
-        {/* Input Bar */}
-        <div className="relative flex items-center border-b border-slate-200 pb-3">
-          <span className="text-slate-400 pl-1 pr-2">🔍</span>
-          <input
-            autoFocus
-            type="search"
-            value={kataKunci}
-            onChange={(e) => setKataKunci(e.target.value)}
-            placeholder="Ketik nama PIC, jabatan, tugas, atau mapel KBM…"
-            className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
-          />
+    <AppDialog terbuka={terbuka} judul="Cari cepat" onTutup={onTutup} lebar="lg">
+      <div className="relative">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-teks-redup"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+        <label htmlFor="cari-cepat-input" className="sr-only">
+          Kata kunci pencarian
+        </label>
+        <input
+          ref={inputRef}
+          id="cari-cepat-input"
+          type="search"
+          value={kataKunci}
+          onChange={(e) => setKataKunci(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && hasilCari.length > 0) {
+              e.preventDefault();
+              pilih(hasilCari[0]);
+            }
+          }}
+          placeholder="Cari PIC, jabatan, tugas, mapel, acara, template…"
+          autoComplete="off"
+          enterKeyHint="search"
+          aria-controls="cari-cepat-hasil"
+          className={`${KELAS.input} min-h-10 pl-9 ${q ? 'pr-11' : ''}`}
+        />
+        {q && (
           <button
             type="button"
-            onClick={onTutup}
-            className="rounded px-2 py-0.5 text-xs text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            onClick={() => {
+              setKataKunci('');
+              inputRef.current?.focus();
+            }}
+            aria-label="Kosongkan pencarian"
+            className={`${KELAS.tombolIkon} absolute right-1 top-1/2 h-10 w-10 -translate-y-1/2`}
           >
-            ESC
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-5 w-5">
+              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+            </svg>
           </button>
-        </div>
-
-        {/* Hasil Pencarian */}
-        <div className="mt-3 max-h-80 overflow-y-auto divide-y divide-slate-100">
-          {kataKunci.trim() === '' ? (
-            <div className="py-8 text-center text-xs text-slate-400">
-              <p>Mulai ketik untuk mencari di seluruh data aplikasi.</p>
-              <p className="mt-1 text-[11px] text-slate-300">Contoh: &quot;Adrian&quot;, &quot;Pompa&quot;, &quot;Matematika&quot;, &quot;Bendahara&quot;</p>
-            </div>
-          ) : hasilCari.length === 0 ? (
-            <div className="py-8 text-center text-xs text-slate-400">
-              Tidak ditemukan hasil untuk &quot;{kataKunci}&quot;.
-            </div>
-          ) : (
-            hasilCari.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  onPilihHasil(item.viewTujuan);
-                  onTutup();
-                }}
-                className="flex w-full items-center justify-between p-2.5 text-left transition hover:bg-aksen-50/60 rounded-xl"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-slate-800">{item.judul}</p>
-                  <p className="text-[11px] text-slate-500">{item.keterangan}</p>
-                </div>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
-                  {item.kategori}
-                </span>
-              </button>
-            ))
-          )}
-        </div>
+        )}
       </div>
-    </div>
+
+      <div id="cari-cepat-hasil" role="region" aria-live="polite" className="mt-3 max-h-[50dvh] overflow-y-auto">
+        {q === '' ? (
+          <div className={`py-6 text-center ${KELAS.keterangan}`}>
+            <p>Ketik untuk mencari di seluruh data aplikasi.</p>
+            <p className={`mt-1 ${KELAS.keteranganKecil}`}>
+              Contoh: &quot;Bendahara&quot;, &quot;Tahfidz&quot;, &quot;Konsumsi&quot;
+            </p>
+          </div>
+        ) : hasilCari.length === 0 ? (
+          <p className={`py-6 text-center ${KELAS.keterangan}`}>Tidak ada hasil untuk &quot;{q}&quot;.</p>
+        ) : (
+          <ul className="divide-y divide-white/60">
+            {hasilCari.map((h) => (
+              <li key={h.id}>
+                <button
+                  type="button"
+                  onClick={() => pilih(h)}
+                  className="flex min-h-[44px] w-full items-center justify-between gap-3 rounded-kontrol px-2.5 py-2 text-left transition hover:bg-white/60"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-teks-kuat">{h.judul}</span>
+                    <span className={`block truncate ${KELAS.keteranganKecil}`}>{h.keterangan}</span>
+                  </span>
+                  <span className={`${KELAS.badgeNetral} shrink-0`}>{h.kategori}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </AppDialog>
   );
 }
