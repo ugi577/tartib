@@ -18,7 +18,11 @@
   (jurnal: `.../subagents/workflows/wf_373059a8-db6/journal.jsonl`). Fase verifikasi/sintesis mungkin belum selesai — hasil akhirnya opsional, temuan mentah sudah dibaca semua.
 - [x] `94e3b97` modul kertas bersama `lib/cetak/kertas.ts` (+8 test) & `lib/useUkuranElemen.ts`
 - [x] Fondasi sesi 22 (commit setelah `94e3b97`): HeaderView + `KELAS.subNav*`, klip bertipe (`simpanKlip/ambilKlipTipe/useKlip`; API lama masih ada sebagai jembatan), `UkuranKertas = IdKertas`, hack nama PIC dihapus dari `sopService`, `buatId` fallback. tsc/lint bersih, vitest 277/277.
-- [ ] Paket perbaikan (lihat rencana di bawah) — **belum ada yang dikerjakan selain fondasi**
+- [x] `2814a4b` cetak mengikuti kertas (TartibHost 'kanvas', standaloneHost suntik @page + body.cetak-lembar, globals.css tanpa @page bersarang, PrintReadyCanvas mm tetap + fit-to-width + slot toolbar, CanvasHubView kop Pengaturan + tiket nyata)
+- [x] `1afaa34` shell & header: page.tsx (nav konsisten, 10 kartu beranda, ?dok=, onBuka, ⌘K, aria), HeaderView di Pengaturan/Acara/Template/Tamu/Evaluasi/e-Konfirmasi, kartuIsi, seed tanpa nama
+- [x] `fb669ee` merge Agen B (AppDialog/ContextMenu portal + keyboard + anchor, PemilihIkonManual token) — 285 tes
+- [ ] Agen A (KBM), C (printer/cari/identitas), D (preset), E (struktur) masih berjalan di worktree `.claude/worktrees/agent-*` — cabang: lihat `git worktree list`; merge ke master satu per satu dengan `git merge --no-ff <cabang>` lalu tsc/lint/vitest
+- [ ] Setelah semua merge: hapus shim `SopView as unknown as` di page.tsx (SopView sudah punya prop onBuka), hapus API lama di appClipboard.ts, sesuaikan pemanggil ContextMenu agar mengirim `anchor` dari tombol ⋯
 - [ ] Verifikasi browser 375px + 1280px (restart dev dulu)
 - [ ] Perbarui PROJECT-STATE.md + PLAN.md changelog v1.31 + DECISIONS K-26
 

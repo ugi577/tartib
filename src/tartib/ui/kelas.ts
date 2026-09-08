@@ -73,7 +73,7 @@ export const KELAS = {
   tombolBahayaHalus: `${TOMBOL_DASAR} ${UKURAN_KECIL} text-teks-halus hover:bg-red-100/70 hover:text-red-600`,
   tombolBahayaSolid: `${TOMBOL_DASAR} ${UKURAN_NORMAL} bg-red-600 text-white shadow-[0_10px_24px_-8px_rgb(220_38_38/0.45)] ring-1 ring-inset ring-white/30 hover:bg-red-700`,
   /** Tombol ikon pil kecil (pindah urutan ↑ ↓, tutup dialog). */
-  tombolIkon: `${TOMBOL_DASAR} h-8 w-8 text-teks-sedang hover:bg-white/60 hover:text-teks-utama`,
+  tombolIkon: `${TOMBOL_DASAR} h-10 w-10 text-teks-sedang hover:bg-white/60 hover:text-teks-utama`,
 
   // ── Kontrol isian ────────────────────────────────────────────────────────
   input:
