@@ -4,6 +4,62 @@ Log keputusan permanen. **Entry terbaru di ATAS.** Format: `K-xx — tanggal —
 
 ---
 
+## K-26 — 2026-09-08 — Sesi 22 — pembersihan kekacauan untuk rilis publik: cetak mengikuti kertas, header kompak, copy-paste struktur, kejujuran produk
+
+Arahan Ahmed: *"banyak sekali kekacauan di proyek ini, spt header di beberapa menu terlalu besar, fungsi
+copi paste dll di struktur organisasi, print privew yg tdk mengikuti ukuran kertas sebenarnya, aplikasi
+ini jg akan direkomendasikan dr menu studio print di proyek mahad app v3 selain defaultnya berdiri
+sendiri untuk siapapun yg instal"* + *"ingat sll amankan proses yg brjalan karena bisa berhenti tiba2 krn
+limit agen"*. Audit multi-agen (6 pencari, termasuk pengukuran headless Chrome) menghasilkan 99 temuan
+(`docs/context/SESI-22-STATE.md`). Keputusan:
+
+1. **Satu sumber ukuran kertas** — `src/tartib/lib/cetak/kertas.ts`: A4, **F4/Folio = 215 × 330 mm**
+   (ukuran folio pasar Indonesia; dulu SopView memakai 210 × 330 dan kanvas 215 × 330), Letter, Legal, A5,
+   Thermal 80/58 (gulung, `@page` memakai tinggi nominal 297 mm ala driver "Roll 80 × 297"), margin baku per
+   kertas, preferensi perangkat `tartib.kertas` yang dipakai bersama. Tipe lama `UkuranKertas` = alias
+   `IdKertas` ('thermal' dinormalisasi ke 'thermal80').
+2. **`@page` tidak boleh bersarang** — blok `body[data-kertas] { @page … }` di globals.css tidak valid CSS
+   dan terbukti kosong di CSSOM (hanya `size:auto` yang berlaku); dihapus. Ukuran dinamis disuntik sebagai
+   `<style id="tartib-page">` oleh `standaloneHost.cetak({ jenis: 'kanvas', … })` (varian `CetakPayload`
+   baru, K-04 dipertahankan: kanvas tidak memanggil `window.print()` sendiri) dan dicabut pada `afterprint`
+   (tenggat 1,5 s untuk WebView). Saat cetak, body diberi `cetak-lembar` dan leluhur lembar `cetak-jalur`
+   sehingga kerangka layar (padding main, meja kerja, toolbar) tidak ikut tercetak.
+3. **Pratinjau = kertas** — `PrintReadyCanvas` merender lembar berdimensi mm tetap (lebar × tinggi kertas,
+   padding = margin `@page`, garis batas cetak tepat di margin) yang diskalakan pas-lebar (`transform`
+   + pembungkus setinggi tinggi×skala; tanpa transform saat skala 1 agar dialog `fixed` di dalamnya tidak
+   terjebak), dengan perkiraan batas halaman. Di dalam lembar dilarang prefix responsif `sm:`/`md:`
+   (lembar mengikuti kertas, bukan viewport). Slot `#kanvas-toolbar-slot` di toolbar untuk kontrol milik
+   dokumen agar tidak berada di dalam kertas.
+4. **Kepala halaman kompak & satu nama per tujuan** — komponen `HeaderView` (+`SubNav`, token
+   `KELAS.subNav*`, `judulHalaman` text-lg) dipakai SEMUA view; nama menu identik di nav bawah, kartu
+   beranda, dan judul view: Beranda · Preset · Struktur (& PIC) · Kanvas (Cetak) · Pengaturan; fitur lain
+   (Template SOP Acara, Acara, Tamu & Porsi, Evaluasi, e-Konfirmasi, Jadwal KBM) lewat kartu beranda.
+   Navigasi dari dalam `src/tartib` HANYA lewat prop callback (`onBuka`, `onPilihHasil`,
+   `onPilihPresetSelesai`) — `<a href="/?view=…">` mentah rusak di basePath GitHub Pages.
+5. **Kejujuran produk untuk pengguna publik** — (a) migrasi nama PIC tertentu yang dikodekan keras
+   ("lutfi → Yudi") di jalur BACA `sopService`/SopView DIHAPUS: fungsi baca harus murni; (b) seed papan baku
+   dan semua preset TANPA nama pribadi (PIC kosong / peran generik); (c) printer: hanya "Printer sistem"
+   (dialog cetak / Simpan sebagai PDF) yang diklaim bekerja — simulasi, baterai fiktif, dan status
+   "berhasil dicetak" palsu untuk Bluetooth/USB dihapus; pairing BT/USB tetap ada tetapi dinyatakan
+   "pengiriman data cetak belum didukung"; (d) preset SOP acara benar-benar membuat Template
+   (`terapkanPresetSop`), bukan sekadar notifikasi; (e) menerapkan preset struktur/jadwal meminta
+   konfirmasi dengan angka nyata; (f) kop kanvas dari Pengaturan, tiket thermal dari data papan nyata;
+   (g) identitas produk satu kalimat: "Struktur organisasi, jadwal KBM, dan SOP acara siap cetak —
+   offline, tanpa akun" (layout/README/Tentang).
+6. **Papan klip internal bertipe** — `lib/clipboard/appClipboard.ts`: discriminated union
+   (jabatan | sub-tugas | kbm), hanya menyimpan ID (data dibaca dari DB saat tempel), reaktif (`useKlip`),
+   tidak menulis ke clipboard sistem. Potong→Tempel = PINDAH (tanpa "(Salinan)", ceklis utuh) lewat fungsi
+   service transaksional; tempel hanya aktif bila tipe klip cocok; menu konteks dapat dibuka dari tombol
+   "⋯" (sentuh) selain klik kanan; label shortcut keyboard tanpa handler dihapus.
+7. **Dialog & menu lewat portal ke body** — `AppDialog`/`ContextMenu` `createPortal` (elemen
+   `position: fixed` di dalam lembar ber-transform dulu diposisikan relatif ke kertas); ContextMenu
+   mengukur tinggi nyata, `role=menuitem` + navigasi panah, item ≥ 40 px, tidak menimpa nav bawah.
+8. **Gate baru** (ditambahkan ke daftar grep verifikasi): nol `alert(`/`confirm(` di `src/tartib`
+   (kecuali string HTML e-Konfirmasi), nol `dark:`, nol `href="/?view=`, nol kelas Tailwind tak
+   terdefinisi (`animate-in`, `active:scale-98`, `animate-fade-in`), nol `sm:` di dalam `#print-ready-sheet`.
+
+---
+
 ## K-25 — 2026-08-29 — Sesi 20 — rupa kaca krem–teal–emas dari referensi UI Ahmed
 
 Arahan Ahmed: *"terapkan ui ini ke proyek, cek dan pahami dl, tetap pertahankan ornamen yg sudah ada,
